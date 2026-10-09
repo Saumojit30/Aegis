@@ -1,0 +1,18 @@
+# Aegis Assumption Modifiers for Scenario Simulations
+# Every modifier carries an explicit scientific citation and verification flag
+
+food_sequencing:
+  name: "Vegetables/Protein Before Carbohydrates"
+  description: "Consuming fiber and protein 10-15 minutes prior to carbohydrates delays gastric emptying and blunts glucose excursions."
+  source_citation: "Shukla et al., BMJ Open Diabetes Res Care 2017 (DOI: 10.1136/bmjdrc-2017-000440)"
+  peak_multiplier: 0.82
+  time_to_peak_shift_min: 15
+  delayed_window_multiplier: 0.95
+
+post_meal_walk:
+  name: "20-Minute Post-Prandial Walk"
+  description: "Light to moderate physical activity initiated 15-30 minutes after eating increases muscle glucose uptake via GLUT4 translocation."
+  source_citation: "Buffey et al., Sports Med 2022 (DOI: 10.1007/s40279-022-01649-4)"
+  peak_multiplier: 0.85
+  time_to_peak_shift_min: 0
+  delayed_window_multiplier: 0.88

@@ -1,0 +1,26 @@
+# Aegis Base Configuration
+
+data:
+  sampling_interval_min: 5
+  forecast_horizon_min: 180
+  history_window_min: 60
+  interpolation_limit_min: 15
+  glucose_min_valid: 20.0
+  glucose_max_valid: 600.0
+  min_meal_separation_min: 180
+  raw_data_dir: "data/raw/cgmacros"
+  processed_data_dir: "data/processed"
+  demo_data_dir: "data/demo"
+
+model:
+  model_type: "gru_fusion"
+  seq_hidden_dim: 32
+  static_hidden_dim: 16
+  meal_hidden_dim: 16
+  fusion_hidden_dim: 32
+  dropout: 0.2
+  learning_rate: 0.001
+  weight_decay: 0.0001
+  batch_size: 32
+  max_epochs: 100
+  patience: 10
