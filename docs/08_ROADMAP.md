@@ -97,6 +97,13 @@ M1 Data ready (C1) · M2 Model decision (C2) · M3 End-to-end demo (C3) · M4 Su
 | D9 | Model runtime | | PyTorch CPU vs ONNX | PyTorch CPU first; ONNX in Track B | speed | larger image |
 | D10 | Sequencing/walking | not in data | learn vs assume | assumption-driven, labelled | honesty | not data-validated |
 | D11 | Data in repo | CC BY-NC-SA 4.0; 628 MB; challenge needs accessible files | commit all; commit none; download script + small attributed subset | download script + checksums + synthetic fixtures + small attributed demo subset | permitted by licence, practical, accessible to judges | share-alike applies to the subset; weights held back until G-licence |
+| D12 | Dual-mode inference | Replay WebSocket latency & local dev orchestration overhead | separate container only vs in-process only vs dual-mode | Pluggable provider (in-process for dev/demo; HTTP container for deployment) | Zero HTTP overhead during 1s replay ticks; retains 100% decoupling | Small abstraction layer (`InferenceProvider`) |
+| D13 | Replay persistence | High-speed time-series replay (2x-10x) blocking on DB writes | sync DB writes per tick vs async milestone checkpointing | In-memory cursor + asynchronous milestone checkpointing | Eliminates event loop lag and DB lock churn | In-memory session state lost if process crashes |
+| D14 | Synthetic EHR source | Java runtime and Synthea graph generation time sink | Synthea Java setup vs pure Python clinical generator | Pure Python generator with documented distributions & fixed seed | Zero Java dependency, 100% reproducible, fast in CI | Synthetic distributions fixed to published literature |
+| D15 | Wearable missingness | Real-world HR/METs dropout in CGMacros (30-60%) | require dense tensors vs explicit mask channels | Explicit mask channels + zero-imputed z-scores + degradation flags | Robust to sensor detachment and dropout | Model must learn to ignore zeroed channels via masks |
+| D16 | Indian preset OOD guardrails | Simulating Indian dishes on California training cohort | unconstrained extrapolation vs support-based guardrails | Support-score boundary enforcement + physiological clamping + forced LOW reliability | Prevents hallucinated or impossible glucose curves | Clamped outputs must be explicitly labelled OOD |
+
+*(See `docs/10_REFINEMENTS.md` for full technical specifications of D12–D16)*
 
 ## 11. Definition of Done
 ```text

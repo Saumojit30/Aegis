@@ -16,7 +16,7 @@ Technology choices:
 | Choice | Why | Alternative | Fit |
 |---|---|---|---|
 | FastAPI | typed contracts, async, WebSocket support | Flask/Django | fastest path to validated APIs |
-| Separate inference service | demonstrates train/serve separation | in-process model | cheap, strong MLOps story; fall back to in-process behind the same interface if short on time (D7) |
+| Separate inference service | demonstrates train/serve separation | in-process model | Pluggable `InferenceProvider` interface (D12): in-process for dev/demo; HTTP service for production container deployment |
 | PostgreSQL | relational patient/event data, JSONB for predictions | SQLite | realistic deployment; Docker makes it cheap |
 | In-process async replay + WebSocket | no broker needed | Kafka/Redis/Celery | avoids infrastructure theatre |
 | Next.js + TypeScript | component UI | plain React/Streamlit | judge-ready dashboard |
@@ -109,6 +109,7 @@ incoming event → schema validation → normalisation (units, 5-min grid)
 | Aspect | Rule |
 |---|---|
 | Source | processed `sensor_5min` + `meals` for one patient (preloaded in DB; demo patients come from `data/demo`) |
+| State | In-memory cursor and buffer per active session (D13); writes milestone events (meals, scenarios, anomalies) asynchronously to DB |
 | Ordering | strict by timestamp; meals before the sensor row at the same timestamp |
 | Speed | configurable: 1 simulated minute = 0.2–2 s; default 1 s per 5-min tick |
 | Control | start, pause, resume, stop, seek to next meal (demo helper) |
