@@ -1,0 +1,7 @@
+Participant ID,Gender,Age,Height (inches),Body weight (pounds),BMI,A1c,Fasting glucose,Insulin,Triglycerides,HDL,LDL,Group
+P001,Female,28,65.0,132.0,22.0,5.2,88.0,6.5,95.0,58.0,105.0,healthy
+P002,Male,34,70.0,165.0,23.7,5.4,92.0,7.2,110.0,52.0,112.0,healthy
+P010,Male,48,69.0,195.0,28.8,6.0,110.0,14.5,165.0,44.0,128.0,prediabetes
+P011,Female,52,64.0,178.0,30.5,6.2,115.0,16.0,180.0,42.0,134.0,prediabetes
+P020,Female,58,63.0,185.0,32.8,7.4,138.0,22.0,210.0,38.0,142.0,t2d
+P021,Male,61,71.0,225.0,31.4,7.8,145.0,24.5,225.0,36.0,148.0,t2d
