@@ -1,0 +1,71 @@
+# Aegis Frozen Input/Output Schema (Phase A3)
+
+version: "v1.0-frozen"
+
+inputs:
+  sequence:
+    shape: [12, 6]
+    window_minutes: 60
+    step_minutes: 5
+    channels:
+      0: "delta_glucose (mg/dL relative to G(t0))"
+      1: "glucose_mask (1.0 = observed, 0.0 = missing)"
+      2: "hr_zscore (0.0 if missing)"
+      3: "hr_mask (1.0 = present, 0.0 = missing)"
+      4: "mets_zscore (0.0 if missing)"
+      5: "mets_mask (1.0 = present, 0.0 = missing)"
+
+  static:
+    shape: [8]
+    features:
+      0: "age (z-score)"
+      1: "sex (0 = Female, 1 = Male)"
+      2: "bmi (z-score)"
+      3: "hba1c (z-score)"
+      4: "fasting_glucose (z-score)"
+      5: "fasting_insulin (z-score)"
+      6: "triglycerides (z-score)"
+      7: "hdl (z-score)"
+
+  meal:
+    shape: [16]
+    features:
+      0: "calories (z-score)"
+      1: "carbs_g (z-score)"
+      2: "protein_g (z-score)"
+      3: "fat_g (z-score)"
+      4: "fiber_g (z-score)"
+      5: "fat_ratio"
+      6: "protein_ratio"
+      7: "fiber_per_carb"
+      8: "glycaemic_load_proxy"
+      9: "minutes_since_prev_meal"
+      10: "meal_type_breakfast"
+      11: "meal_type_lunch"
+      12: "meal_type_dinner"
+      13: "meal_type_snack"
+      14: "hour_sin"
+      15: "hour_cos"
+
+  anchor:
+    shape: [4]
+    features:
+      0: "last_glucose (z-score)"
+      1: "anchor_age_min (normalized)"
+      2: "pre_meal_mean_30 (normalized)"
+      3: "pre_meal_slope_15 (normalized)"
+
+outputs:
+  trajectory:
+    shape: [36]
+    horizon_minutes: 180
+    step_minutes: 5
+    units: "mg/dL relative to G(t0)"
+    windows:
+      primary: [0, 24]     # 0 - 120 minutes
+      delayed: [24, 36]    # 120 - 180 minutes
+
+constraints:
+  glucose_range_mg_dl: [40.0, 400.0]
+  delta_glucose_range: [-40.0, 180.0]
+  max_interpolation_gap_min: 15

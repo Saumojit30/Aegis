@@ -40,7 +40,8 @@
 - [x] **Phase A0 (Foundation):** COMPLETED (Batch 1: `foundation-and-config` archived with 12/12 unit tests passing, ruff lint clean)
 - [x] **Phase A1 (Data Acquisition & Audit):** COMPLETED (Batch 2: download, checksums, demo data fixtures, attribution)
 - [x] **Phase A2 (Pipeline & Features):** COMPLETED (Batch 2: `data-pipeline-and-features` archived; 22/22 unit tests passing; Checkpoint C1 met)
-- [ ] **Phase A3 (Baselines & Contracts):** Queued (Batch 3)
+- [x] **Phase A3 (Baselines & Contracts):** COMPLETED (Batch 3: `evaluation-and-contracts` archived; B0–B4 evaluated; contracts frozen; 34/34 unit tests passing)
+- [ ] **Phase A4 (Temporal Model & Meal Layer):** Queued (Batch 4)
 - [ ] **Phase A3 (Baselines & Contracts):** Queued
 - [ ] **Phase A4 (Temporal Model & Meal Layer):** Queued
 - [ ] **Phase A5 (Personalisation & Similarity):** Queued

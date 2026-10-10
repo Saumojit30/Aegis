@@ -42,6 +42,8 @@ data/processed/
 # MLflow and tracking
 mlruns/
 .mlflow/
+*.db
+*.sqlite
 
 # Environment variables & secrets
 .env
