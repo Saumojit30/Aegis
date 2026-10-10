@@ -69,3 +69,4 @@ htmlcov/
 # DVC local storage
 .dvc/cache/
 .dvc/tmp/
+uv.lock
