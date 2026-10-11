@@ -1,0 +1,23 @@
+{
+  "model_architecture": "StructuredMealForecasterS",
+  "dataset_version": "v1.0.0-c0425ca91dfa9819",
+  "git_commit": "7d6ae204fc2977c46a7a301b0003a1b364663762",
+  "input_schema": {
+    "sequence": [
+      12,
+      6
+    ],
+    "anchor": [
+      4
+    ],
+    "meal": [
+      16
+    ],
+    "static": [
+      8
+    ]
+  },
+  "output_horizon_steps": 36,
+  "personalisation_basis_dim": 3,
+  "is_calibrated": true
+}

@@ -1,6 +1,6 @@
 # Aegis Project Status & Tracking Dashboard
 
-> **Current Phase:** Phase A6 — Uncertainty & Degradation  
+> **Current Phase:** Phase A7 — Inference & Backend Services  
 > **Target Track:** Track A (Challenge Prototype) + Track B (MLOps Portfolio)  
 > **Last Updated:** 2026-10-22  
 
@@ -43,8 +43,8 @@
 - [x] **Phase A3 (Baselines & Contracts):** COMPLETED (Batch 3: `evaluation-and-contracts` archived; B0–B4 evaluated; contracts frozen; 34/34 unit tests passing)
 - [x] **Phase A4 (Temporal Model & Meal Layer):** COMPLETED (Batch 4: GRU fusion encoder, Fast/Slow gamma absorption kinetics head Candidate S, Huber loss with peak under-prediction penalty, 42/42 unit tests passing)
 - [x] **Phase A5 (Personalisation & Similarity):** COMPLETED (Batch 4: Residual PCA basis r=3, chronological ridge adaptation K in {0, 1, 3, 5, 10}, Gaussian clinical similarity prior; Checkpoint C2 met)
-- [ ] **Phase A6 (Uncertainty & Degradation):** In Progress (Batch 5)
-- [ ] **Phase A7 (Inference & Backend Services):** Queued (Batch 6)
+- [x] **Phase A6 (Uncertainty & Degradation):** COMPLETED (Batch 5: Scenarios D0–D7 implemented & tested, split-conformal intervals achieving >=95% empirical coverage, reliability rules engine, reports degradation_summary.md & uncertainty_coverage.md, production bundle in artifacts/bundle/; 58/58 unit tests passing)
+- [ ] **Phase A7 (Inference & Backend Services):** In Progress (Batch 6)
 - [ ] **Phase A8 (Frontend Clinician Dashboard):** Queued (Batch 6)
 - [ ] **Phase A9 (Testing, Containers & CI):** Queued (Batch 6)
 - [ ] **Phase A10 (Submission Package):** Queued
