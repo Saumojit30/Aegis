@@ -1,6 +1,6 @@
 # Aegis Project Status & Tracking Dashboard
 
-> **Current Phase:** Phase A8 — Frontend Clinician Dashboard  
+> **Current Phase:** Phase A10 — Submission Package & Final Audit  
 > **Target Track:** Track A (Challenge Prototype) + Track B (MLOps Portfolio)  
 > **Last Updated:** 2026-10-22  
 
@@ -21,8 +21,8 @@
 | **G1** | EHR pairing strategy | ✅ APPROVED (D14) | Deterministic pure-Python clinical EHR generator (`aegis/data/ehr_synthetic.py`) |
 | **G2** | Final model selection (held-out evidence vs B3 baseline) | ✅ APPROVED | Checkpoint C2 met: Candidate S (MAE 12.95) and Adapted S (MAE 8.92) decisively beat B3 GBDT (22.00) |
 | **G3** | Claims review for README, slides & video | ⏳ PENDING | Prior to submission; strictly logged in `reports/claims.csv` |
-| **G4** | Indian meal preset nutrient values and sources | ⏳ PENDING | Phase A2 presets audit |
-| **G5** | Demo script & offline fallback video | ⏳ PENDING | Phase A8 / A10 |
+| **G4** | Indian meal preset nutrient values and sources | ✅ APPROVED (D16) | Phase A2 presets audit & out-of-distribution reliability bounds |
+| **G5** | Demo script & offline fallback video | ⏳ PENDING | Phase A10 walkthrough |
 | **G6** | Submission upload | ⏳ PENDING | Phase A10 final |
 
 ---
@@ -44,10 +44,10 @@
 - [x] **Phase A4 (Temporal Model & Meal Layer):** COMPLETED (Batch 4: GRU fusion encoder, Fast/Slow gamma absorption kinetics head Candidate S, Huber loss with peak under-prediction penalty, 42/42 unit tests passing)
 - [x] **Phase A5 (Personalisation & Similarity):** COMPLETED (Batch 4: Residual PCA basis r=3, chronological ridge adaptation K in {0, 1, 3, 5, 10}, Gaussian clinical similarity prior; Checkpoint C2 met)
 - [x] **Phase A6 (Uncertainty & Degradation):** COMPLETED (Batch 5: Scenarios D0–D7 implemented & tested, split-conformal intervals achieving >=95% empirical coverage, reliability rules engine, reports degradation_summary.md & uncertainty_coverage.md, production bundle in artifacts/bundle/; 58/58 unit tests passing)
-- [x] **Phase A7 (Inference & Backend Services):** COMPLETED (Batch 6: FastAPI backend, pluggable inference provider with InProcess and HTTP support (D12), in-memory replay engine (D13) with WebSocket streaming, counterfactual what-if simulation, SQLite/Postgres ORM models & seeder, 66/66 tests passing; Checkpoint C3 met)
-- [ ] **Phase A8 (Frontend Clinician Dashboard):** In Progress (Batch 6)
-- [ ] **Phase A9 (Testing, Containers & CI):** Queued (Batch 6)
-- [ ] **Phase A10 (Submission Package):** Queued
+- [x] **Phase A7 (Inference & Backend Services):** COMPLETED (Batch 6.1: FastAPI backend, pluggable inference provider with InProcess and HTTP support (D12), in-memory replay engine (D13) with WebSocket streaming, counterfactual what-if simulation, SQLite/Postgres ORM models & seeder, 66/66 tests passing; Checkpoint C3 met)
+- [x] **Phase A8 (Frontend Clinician Dashboard):** COMPLETED (Batch 6.2: Clinician replay dashboard at `services/backend/static/index.html` mounted at `/dashboard`, What-If simulation with origin labeling, Next.js 14 frontend in `services/frontend/`, 67/67 unit and integration tests passing)
+- [x] **Phase A9 (Testing, Containers & CI):** COMPLETED (Batch 6.2: Docker multi-container compose orchestration, production Dockerfiles for backend and inference microservices, one-command offline demo runner in `scripts/run_demo.py`, 67/67 tests passing, 100% ruff lint clean)
+- [ ] **Phase A10 (Submission Package & Final Audit):** In Progress
 
 ---
 

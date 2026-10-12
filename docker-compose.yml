@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: services/backend/Dockerfile
+    container_name: aegis-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./aegis.db
+      - INFERENCE_MODE=inprocess
+      - INFERENCE_URL=http://inference:8001
+    volumes:
+      - aegis-data:/app/data
+    restart: unless-stopped
+
+  inference:
+    build:
+      context: .
+      dockerfile: services/inference/Dockerfile
+    container_name: aegis-inference
+    ports:
+      - "8001:8001"
+    environment:
+      - MODEL_BUNDLE_PATH=artifacts/bundle
+    restart: unless-stopped
+
+volumes:
+  aegis-data:
