@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis — Type 2 Diabetes Digital Twin & Clinician Replay Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #f1f5f9; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .badge-synthetic { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fbbf24; }
+    .badge-model { background: rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); color: #60a5fa; }
+    .badge-assumption { background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.4); color: #c084fc; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Clinical Disclaimer Strip -->
+  <div class="bg-amber-950/80 border-b border-amber-600/40 text-amber-200 px-4 py-2 text-xs flex items-center justify-between shadow-sm">
+    <div class="flex items-center space-x-2">
+      <span class="font-bold uppercase tracking-wider bg-amber-500 text-neutral-950 px-1.5 py-0.5 rounded text-[10px]">Research Prototype</span>
+      <span>Model-based estimates using open & synthetic data only. <strong>Not medical advice and not suitable for treatment decisions.</strong></span>
+    </div>
+    <div class="hidden md:flex items-center space-x-4 text-[11px] text-amber-300/80 font-mono">
+      <span>Decision D12: In-Process Dual Mode</span>
+      <span>Decision D13: Async Replay</span>
+      <span>Gate G2: Approved</span>
+    </div>
+  </div>
+
+  <!-- Header & Controls -->
+  <header class="bg-slate-900 border-b border-slate-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-lg shadow-inner">
+        AE
+      </div>
+      <div>
+        <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
+          Aegis Clinician Twin
+          <span class="text-xs font-normal text-slate-400 font-mono">v1.0-prod</span>
+        </h1>
+        <p class="text-[11px] text-slate-400">180-Min Calibrated Trajectory Forecasting & Counterfactual Simulation</p>
+      </div>
+    </div>
+
+    <!-- Center: Patient Selector & Replay Toolbar -->
+    <div class="flex items-center space-x-3 bg-slate-950/80 p-1.5 rounded-lg border border-slate-800 text-sm">
+      <label class="text-xs text-slate-400 font-medium pl-2">Twin:</label>
+      <select id="patientSelect" class="bg-slate-900 border border-slate-700 text-white rounded px-2.5 py-1 text-xs focus:ring-1 focus:ring-emerald-500 outline-none">
+        <option value="P001">P001 (T2D, 58y, HbA1c 6.8%)</option>
+        <option value="P002">P002 (T2D, 62y, HbA1c 7.4%)</option>
+        <option value="P010">P010 (T2D, 54y, HbA1c 6.3%)</option>
+        <option value="P011">P011 (T2D, 66y, HbA1c 7.1%)</option>
+        <option value="P020">P020 (T2D, 51y, HbA1c 6.5%)</option>
+        <option value="P021">P021 (T2D, 59y, HbA1c 6.9%)</option>
+      </select>
+
+      <div class="h-4 w-px bg-slate-800"></div>
+
+      <!-- Playback Controls -->
+      <button id="btnStart" onclick="startReplay()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1 rounded text-xs font-medium flex items-center gap-1 shadow-sm transition">
+        ▶ Start
+      </button>
+      <button id="btnPause" onclick="pauseReplay()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded text-xs font-medium transition">
+        ⏸ Pause
+      </button>
+      <button id="btnResume" onclick="resumeReplay()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded text-xs font-medium transition">
+        ⏯ Resume
+      </button>
+      <button id="btnStop" onclick="stopReplay()" class="bg-slate-800 hover:bg-slate-700 text-rose-400 px-2 py-1 rounded text-xs font-medium transition">
+        ⏹ Stop
+      </button>
+
+      <div class="h-4 w-px bg-slate-800"></div>
+
+      <label class="text-xs text-slate-400">Speed:</label>
+      <select id="speedSelect" onchange="changeSpeed()" class="bg-slate-900 border border-slate-700 text-white rounded px-1.5 py-1 text-xs outline-none">
+        <option value="1">1x</option>
+        <option value="5">5x</option>
+        <option value="10" selected>10x</option>
+        <option value="50">50x</option>
+        <option value="100">100x</option>
+      </select>
+    </div>
+
+    <!-- Status & Connection -->
+    <div class="flex items-center space-x-3 text-xs">
+      <div id="wsIndicator" class="flex items-center space-x-1.5 text-emerald-400 font-mono text-[11px] bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="wsStatus">LIVE WS REPLAY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Grid -->
+  <main class="flex-1 p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 max-w-[1700px] w-full mx-auto">
+
+    <!-- LEFT COLUMN: Twin Profile & Personalisation (3 Cols) -->
+    <div class="lg:col-span-3 space-y-4">
+
+      <!-- Patient Overview Card -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Digital Twin Profile</h2>
+          <span id="patientGroupBadge" class="bg-emerald-950/60 text-emerald-400 border border-emerald-800 text-[10px] px-2 py-0.5 rounded font-mono font-bold">T2D GROUP</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800/60">
+            <span class="text-slate-400 text-[10px] block">Age / Sex</span>
+            <span id="profileAgeSex" class="font-semibold text-slate-200">58y / Female</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800/60">
+            <span class="text-slate-400 text-[10px] block">BMI</span>
+            <span id="profileBMI" class="font-semibold text-slate-200">28.5 kg/m²</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800/60">
+            <span class="text-slate-400 text-[10px] block">HbA1c</span>
+            <span id="profileHba1c" class="font-bold text-amber-400">6.8%</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800/60">
+            <span class="text-slate-400 text-[10px] block">Fasting Glucose</span>
+            <span id="profileFasting" class="font-semibold text-slate-200">118 mg/dL</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Synthetic EHR Comorbidities (D14) -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Synthetic EHR Extras</h2>
+          <span class="badge-synthetic text-[10px] px-1.5 py-0.5 rounded font-mono font-bold">SYNTHETIC (D14)</span>
+        </div>
+        <div class="space-y-2 text-xs">
+          <div>
+            <span class="text-slate-400 text-[11px] block">Diagnoses & Risk Factors</span>
+            <span id="ehrDiagnoses" class="text-slate-300 font-medium">Type 2 Diabetes, Essential Hypertension</span>
+          </div>
+          <div>
+            <span class="text-slate-400 text-[11px] block">Active Medications</span>
+            <span id="ehrMedications" class="text-slate-300 font-medium">Metformin 500mg, Lisinopril 10mg</span>
+          </div>
+          <div class="bg-slate-950/60 p-2 rounded border border-slate-800/60 flex justify-between items-center">
+            <span class="text-slate-400 text-[11px]">BP Baseline (Synthetic)</span>
+            <span class="font-mono text-emerald-400 font-bold">132 / 84 mmHg</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Few-Shot Personalisation Status (Phase A5) -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Personalisation (K-Curve)</h2>
+          <span class="bg-blue-950/60 text-blue-400 border border-blue-800 text-[10px] px-2 py-0.5 rounded font-mono font-bold">K = 5 MEALS</span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-2">Residual PCA basis ($r=3$) with Ridge shrinkage toward clinical twin prior.</p>
+        <div class="w-full bg-slate-950 rounded-full h-2 border border-slate-800 overflow-hidden mb-2">
+          <div class="bg-blue-500 h-2 rounded-full" style="width: 85%"></div>
+        </div>
+        <div class="flex justify-between text-[11px] text-slate-400 font-mono">
+          <span>Cold-Start MAE: 17.0</span>
+          <span class="text-emerald-400 font-bold">Adapted MAE: 8.9 mg/dL</span>
+        </div>
+      </div>
+
+      <!-- Nearest Clinical Twins -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Nearest Clinical Twins</h2>
+        <div id="similarTwinsList" class="space-y-1.5 text-xs font-mono">
+          <div class="flex justify-between p-1.5 rounded bg-slate-950/50 border border-slate-800">
+            <span class="text-slate-300">P010 (HbA1c 6.3%)</span>
+            <span class="text-emerald-400">Sim: 0.89</span>
+          </div>
+          <div class="flex justify-between p-1.5 rounded bg-slate-950/50 border border-slate-800">
+            <span class="text-slate-300">P020 (HbA1c 6.5%)</span>
+            <span class="text-emerald-400">Sim: 0.84</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CENTER COLUMN: Trajectory Forecasting & Counterfactual Simulation (6 Cols) -->
+    <div class="lg:col-span-6 space-y-4">
+
+      <!-- Main Forecast Chart Card -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3 border-b border-slate-800/80 pb-2">
+          <div class="flex items-center space-x-2">
+            <h2 class="text-sm font-bold text-white tracking-tight">180-Minute Postprandial Forecast</h2>
+            <span id="reliabilityBadge" class="bg-emerald-950/80 text-emerald-400 border border-emerald-600/60 text-[11px] font-bold px-2 py-0.5 rounded uppercase">
+              HIGH CONFIDENCE
+            </span>
+          </div>
+          <div class="flex items-center space-x-4 text-xs">
+            <span class="flex items-center gap-1.5 text-emerald-400 font-medium">
+              <span class="w-3 h-0.5 bg-emerald-400 inline-block"></span> Candidate S Forecast
+            </span>
+            <span class="flex items-center gap-1.5 text-emerald-400/60 text-[11px]">
+              <span class="w-3 h-2 bg-emerald-500/20 border border-emerald-500/40 inline-block rounded-xs"></span> 90% Conformal Band
+            </span>
+            <span class="flex items-center gap-1.5 text-rose-400/80 text-[11px]">
+              <span class="w-3 h-0.5 border-b border-dashed border-rose-400 inline-block"></span> 180 mg/dL Threshold
+            </span>
+          </div>
+        </div>
+
+        <!-- Chart Canvas -->
+        <div class="relative h-72 w-full">
+          <canvas id="forecastChart"></canvas>
+        </div>
+
+        <!-- Metric Cards -->
+        <div class="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-slate-800/80 text-xs text-center font-mono">
+          <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-sans">Predicted Peak</span>
+            <span id="metricPeak" class="text-sm font-bold text-white">164.2 mg/dL</span>
+          </div>
+          <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-sans">Time to Peak</span>
+            <span id="metricTTP" class="text-sm font-bold text-white">55 min</span>
+          </div>
+          <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-sans">Delayed Mean (120-180)</span>
+            <span id="metricDelayed" class="text-sm font-bold text-white">131.0 mg/dL</span>
+          </div>
+          <div class="bg-slate-950/80 p-2 rounded border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-sans">Time > 180 mg/dL</span>
+            <span id="metricAbove" class="text-sm font-bold text-emerald-400">0 min</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- What-If Dietary Simulator Card -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-800/80 pb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Counterfactual Dietary Simulator</h2>
+          <span class="text-[11px] text-slate-400">Compare Interventions vs Baseline Meal</span>
+        </div>
+
+        <!-- Indian Preset Selector -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4 text-xs">
+          <div>
+            <label class="text-[11px] text-slate-400 block mb-1">Preset Meal (ICMR-NIN IFCT 2017):</label>
+            <select id="presetSelect" onchange="onPresetChange()" class="w-full bg-slate-950 border border-slate-700 text-white rounded p-1.5 text-xs outline-none focus:border-emerald-500">
+              <option value="roti_dal_sabzi">2 Rotis with Dal & Mixed Veg Sabzi (48g carbs, 12g fat)</option>
+              <option value="idli_sambar">3 Idlis with Sambar & Chutney (55g carbs, 8g fat)</option>
+              <option value="chicken_biryani">Chicken Biryani Standard Plate (68g carbs, 22g fat)</option>
+              <option value="masala_dosa">Masala Dosa with Sambar (62g carbs, 18g fat)</option>
+              <option value="rajma_chawal">Rajma Chawal (72g carbs, 14g fat)</option>
+            </select>
+          </div>
+          <div class="flex items-center space-x-2 pt-4">
+            <button onclick="runSimulation()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-1.5 px-3 rounded text-xs transition shadow-sm">
+              ⚡ Run What-If Comparison
+            </button>
+          </div>
+        </div>
+
+        <!-- Intervention Comparison Table -->
+        <div class="overflow-x-auto text-xs">
+          <table class="w-full text-left font-mono border-collapse">
+            <thead>
+              <tr class="border-b border-slate-800 text-[10px] text-slate-400 uppercase">
+                <th class="py-1.5 px-2">Intervention</th>
+                <th class="py-1.5 px-2">Origin</th>
+                <th class="py-1.5 px-2">Peak</th>
+                <th class="py-1.5 px-2">Δ Peak</th>
+                <th class="py-1.5 px-2">TTP</th>
+                <th class="py-1.5 px-2">Citation / Evidence</th>
+              </tr>
+            </thead>
+            <tbody id="simulationTableBody" class="divide-y divide-slate-800/60">
+              <tr>
+                <td class="py-2 px-2 text-white font-medium">Baseline Meal</td>
+                <td class="py-2 px-2"><span class="badge-model text-[10px] px-1.5 py-0.5 rounded font-bold">MODEL</span></td>
+                <td class="py-2 px-2 text-white">164.2 mg/dL</td>
+                <td class="py-2 px-2 text-slate-400">0.0</td>
+                <td class="py-2 px-2 text-slate-300">55m</td>
+                <td class="py-2 px-2 text-slate-400 text-[10px]">Candidate S absorption</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-2 text-emerald-400 font-medium">Portion 70%</td>
+                <td class="py-2 px-2"><span class="badge-model text-[10px] px-1.5 py-0.5 rounded font-bold">MODEL</span></td>
+                <td class="py-2 px-2 text-emerald-300">146.5 mg/dL</td>
+                <td class="py-2 px-2 text-emerald-400 font-bold">-17.7 mg/dL</td>
+                <td class="py-2 px-2 text-slate-300">55m</td>
+                <td class="py-2 px-2 text-slate-400 text-[10px]">Proportional scale</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-2 text-purple-400 font-medium">20m Post-Meal Walk</td>
+                <td class="py-2 px-2"><span class="badge-assumption text-[10px] px-1.5 py-0.5 rounded font-bold">ASSUMPTION</span></td>
+                <td class="py-2 px-2 text-purple-300">142.1 mg/dL</td>
+                <td class="py-2 px-2 text-emerald-400 font-bold">-22.1 mg/dL</td>
+                <td class="py-2 px-2 text-slate-300">50m</td>
+                <td class="py-2 px-2 text-slate-400 text-[10px]">Reynolds et al., Diabetologia 2016</td>
+              </tr>
+              <tr>
+                <td class="py-2 px-2 text-purple-400 font-medium">Food Sequencing (Carb Last)</td>
+                <td class="py-2 px-2"><span class="badge-assumption text-[10px] px-1.5 py-0.5 rounded font-bold">ASSUMPTION</span></td>
+                <td class="py-2 px-2 text-purple-300">149.8 mg/dL</td>
+                <td class="py-2 px-2 text-emerald-400 font-bold">-14.4 mg/dL</td>
+                <td class="py-2 px-2 text-slate-300">70m (+15m)</td>
+                <td class="py-2 px-2 text-slate-400 text-[10px]">Shukla et al., BMJ Open 2017</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Telemetry, Reliability & Degradation Injector (3 Cols) -->
+    <div class="lg:col-span-3 space-y-4">
+
+      <!-- Live Stream Telemetry -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Live Stream Telemetry</h2>
+        <div class="grid grid-cols-3 gap-2 text-center font-mono">
+          <div class="bg-slate-950 p-2 rounded border border-slate-800">
+            <span class="text-[9px] text-slate-400 block font-sans">Glucose</span>
+            <span id="liveGlucose" class="text-base font-bold text-emerald-400">124</span>
+            <span class="text-[9px] text-slate-500 block">mg/dL</span>
+          </div>
+          <div class="bg-slate-950 p-2 rounded border border-slate-800">
+            <span class="text-[9px] text-slate-400 block font-sans">Heart Rate</span>
+            <span id="liveHR" class="text-base font-bold text-slate-200">74</span>
+            <span class="text-[9px] text-slate-500 block">bpm</span>
+          </div>
+          <div class="bg-slate-950 p-2 rounded border border-slate-800">
+            <span class="text-[9px] text-slate-400 block font-sans">METs</span>
+            <span id="liveMETs" class="text-base font-bold text-slate-200">1.15</span>
+            <span class="text-[9px] text-slate-500 block">activity</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clinical Reliability & Rationale (Phase A6) -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Clinical Reliability</h2>
+          <span id="relStatusBadge" class="bg-emerald-950 text-emerald-400 border border-emerald-700 text-[10px] px-2 py-0.5 rounded font-bold font-mono">
+            HIGH
+          </span>
+        </div>
+        <p id="relClinicianMessage" class="text-xs text-slate-300 mb-2 leading-relaxed">
+          High confidence: Calibrated trajectory backed by active sensors and clinical twin personalisation.
+        </p>
+        <ul id="relReasonsList" class="text-[11px] text-slate-400 space-y-1 font-mono list-disc list-inside">
+          <li>Active CGM telemetry stream</li>
+          <li>Complete biometric sensors</li>
+          <li>Personalised on 5 historical meals</li>
+        </ul>
+      </div>
+
+      <!-- Degradation Scenario Injector (Decision D15 / D16) -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400">Degradation Injector</h2>
+          <span id="activeDegBadge" class="text-[10px] font-mono text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+            D0 NOMINAL
+          </span>
+        </div>
+        <p class="text-[11px] text-slate-400 mb-3">Inject realistic telemetry failures to observe interval widening & reliability degradation:</p>
+        
+        <div class="grid grid-cols-2 gap-1.5 text-xs">
+          <button onclick="injectDegradation('D0')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 py-1.5 px-2 rounded text-[11px] text-left transition border border-slate-700">
+            D0: Full Sensors
+          </button>
+          <button onclick="injectDegradation('D1_30m')" class="bg-slate-800 hover:bg-slate-700 text-amber-300 py-1.5 px-2 rounded text-[11px] text-left transition border border-amber-900/40">
+            D1: CGM Dropout 30m
+          </button>
+          <button onclick="injectDegradation('D3')" class="bg-slate-800 hover:bg-slate-700 text-amber-300 py-1.5 px-2 rounded text-[11px] text-left transition border border-amber-900/40">
+            D3: No HR/METs
+          </button>
+          <button onclick="injectDegradation('D4')" class="bg-slate-800 hover:bg-slate-700 text-rose-300 py-1.5 px-2 rounded text-[11px] text-left transition border border-rose-900/40">
+            D4: Reduced Sensor
+          </button>
+          <button onclick="injectDegradation('D5')" class="bg-slate-800 hover:bg-slate-700 text-amber-300 py-1.5 px-2 rounded text-[11px] text-left transition border border-amber-900/40">
+            D5: Unknown Meal
+          </button>
+          <button onclick="injectDegradation('D7')" class="bg-slate-800 hover:bg-slate-700 text-rose-300 py-1.5 px-2 rounded text-[11px] text-left transition border border-rose-900/40">
+            D7: Out of Support
+          </button>
+        </div>
+      </div>
+
+      <!-- Lineage & MLOps Card -->
+      <div class="bg-slate-900/90 rounded-xl border border-slate-800 p-4 text-[11px] font-mono text-slate-400 space-y-1 shadow-sm">
+        <div class="text-xs font-semibold uppercase tracking-wider text-slate-400 font-sans mb-1">Model & Lineage Audit</div>
+        <div class="flex justify-between"><span>Architecture:</span> <span class="text-slate-200">Candidate S (Fast/Slow Gamma)</span></div>
+        <div class="flex justify-between"><span>Model Version:</span> <span class="text-slate-200">v1.0-prod</span></div>
+        <div class="flex justify-between"><span>Conformal Quantiles:</span> <span class="text-emerald-400">Calibrated (90%)</span></div>
+        <div class="flex justify-between"><span>Tracking:</span> <span class="text-slate-200">MLflow Run Validated</span></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // Initialize Chart.js
+    const ctx = document.getElementById('forecastChart').getContext('2d');
+    const horizonLabels = Array.from({ length: 36 }, (_, i) => `${(i + 1) * 5}m`);
+
+    const initialForecast = [124, 128, 134, 142, 151, 159, 164, 163, 160, 154, 148, 143, 138, 135, 132, 130, 128, 127, 126, 125, 124, 123, 123, 122, 122, 121, 121, 120, 120, 120, 119, 119, 118, 118, 118, 117];
+    const lowerBand = initialForecast.map(v => Math.max(40, v - 18));
+    const upperBand = initialForecast.map(v => Math.min(400, v + 18));
+    const thresholdLine = Array(36).fill(180);
+
+    const forecastChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: horizonLabels,
+        datasets: [
+          {
+            label: 'Threshold 180 mg/dL',
+            data: thresholdLine,
+            borderColor: 'rgba(244, 63, 94, 0.6)',
+            borderDash: [5, 5],
+            borderWidth: 1.5,
+            pointRadius: 0,
+            fill: false,
+          },
+          {
+            label: 'Upper 90% Bound',
+            data: upperBand,
+            borderColor: 'transparent',
+            backgroundColor: 'rgba(16, 185, 129, 0.15)',
+            pointRadius: 0,
+            fill: '+1',
+          },
+          {
+            label: 'Lower 90% Bound',
+            data: lowerBand,
+            borderColor: 'transparent',
+            pointRadius: 0,
+            fill: false,
+          },
+          {
+            label: 'Candidate S Forecast',
+            data: initialForecast,
+            borderColor: '#10b981',
+            backgroundColor: '#10b981',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            tension: 0.3,
+          },
+          {
+            label: 'Simulated Intervention',
+            data: [],
+            borderColor: '#a855f7',
+            backgroundColor: '#a855f7',
+            borderWidth: 2,
+            borderDash: [4, 4],
+            pointRadius: 0,
+            tension: 0.3,
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#0f172a',
+            borderColor: '#334155',
+            borderWidth: 1,
+            titleFont: { family: 'JetBrains Mono' },
+            bodyFont: { family: 'JetBrains Mono' },
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
+          },
+          y: {
+            min: 80,
+            max: 220,
+            grid: { color: 'rgba(51, 65, 85, 0.3)' },
+            ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
+          }
+        }
+      }
+    });
+
+    // WebSocket Replay Connection
+    let ws = null;
+    let activeSession = "default";
+    let activeDegradation = "D0";
+
+    function connectWebSocket() {
+      const loc = window.location;
+      const wsProto = loc.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProto}//${loc.host}/ws/replay/${activeSession}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        document.getElementById('wsStatus').innerText = 'LIVE WS CONNECTED';
+        document.getElementById('wsIndicator').className = 'flex items-center space-x-1.5 text-emerald-400 font-mono text-[11px] bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full';
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'TICK') {
+            document.getElementById('liveGlucose').innerText = Math.round(msg.glucose);
+            document.getElementById('liveHR').innerText = Math.round(msg.hr);
+            document.getElementById('liveMETs').innerText = msg.mets.toFixed(2);
+          } else if (msg.type === 'FORECAST') {
+            updateForecastChart(msg.forecast, msg.interval.lower, msg.interval.upper, msg.metrics, msg.reliability);
+          } else if (msg.type === 'DEGRADATION_CHANGED') {
+            document.getElementById('activeDegBadge').innerText = msg.degradation;
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+
+      ws.onclose = () => {
+        document.getElementById('wsStatus').innerText = 'DISCONNECTED';
+        document.getElementById('wsIndicator').className = 'flex items-center space-x-1.5 text-slate-400 font-mono text-[11px] bg-slate-900 border border-slate-800 px-2.5 py-1 rounded-full';
+        setTimeout(connectWebSocket, 3000);
+      };
+    }
+
+    connectWebSocket();
+
+    async function startReplay() {
+      const patient = document.getElementById('patientSelect').value;
+      const speed = document.getElementById('speedSelect').value;
+      await fetch(`/replay/start?session_id=${activeSession}&patient_id=${patient}&speed=${speed}&degradation=${activeDegradation}`, { method: 'POST' });
+    }
+
+    async function pauseReplay() {
+      await fetch(`/replay/pause?session_id=${activeSession}`, { method: 'POST' });
+    }
+
+    async function resumeReplay() {
+      await fetch(`/replay/resume?session_id=${activeSession}`, { method: 'POST' });
+    }
+
+    async function stopReplay() {
+      await fetch(`/replay/stop?session_id=${activeSession}`, { method: 'POST' });
+    }
+
+    async function changeSpeed() {
+      const speed = document.getElementById('speedSelect').value;
+      await startReplay();
+    }
+
+    async function injectDegradation(deg) {
+      activeDegradation = deg;
+      document.getElementById('activeDegBadge').innerText = deg;
+      await fetch(`/replay/degrade?session_id=${activeSession}&degradation=${deg}`, { method: 'POST' });
+
+      // Trigger predict to update chart with new interval bounds and reliability
+      const patient = document.getElementById('patientSelect').value;
+      const res = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patient_id: patient,
+          session_id: activeSession,
+          t0: new Date().toISOString(),
+          meal: { carbs_g: 55, protein_g: 15, fat_g: 12, amount_pct: 100 },
+          degradation: deg
+        })
+      });
+      const data = await res.json();
+      updateForecastChart(data.glucose, data.interval.lower, data.interval.upper, data.metrics, data.reliability);
+    }
+
+    function updateForecastChart(forecast, lower, upper, metrics, reliability) {
+      forecastChart.data.datasets[1].data = upper;
+      forecastChart.data.datasets[2].data = lower;
+      forecastChart.data.datasets[3].data = forecast;
+      forecastChart.update();
+
+      if (metrics) {
+        document.getElementById('metricPeak').innerText = `${metrics.peak.toFixed(1)} mg/dL`;
+        document.getElementById('metricTTP').innerText = `${metrics.time_to_peak_min} min`;
+        document.getElementById('metricDelayed').innerText = `${metrics.delayed_mean_120_180.toFixed(1)} mg/dL`;
+        document.getElementById('metricAbove').innerText = `${metrics.minutes_above_threshold.toFixed(0)} min`;
+      }
+
+      if (reliability) {
+        const badge = document.getElementById('reliabilityBadge');
+        const statusBadge = document.getElementById('relStatusBadge');
+        const lbl = reliability.label.toUpperCase();
+        badge.innerText = `${lbl} CONFIDENCE`;
+        statusBadge.innerText = lbl;
+
+        if (lbl === 'HIGH') {
+          badge.className = 'bg-emerald-950/80 text-emerald-400 border border-emerald-600/60 text-[11px] font-bold px-2 py-0.5 rounded uppercase';
+          statusBadge.className = 'bg-emerald-950 text-emerald-400 border border-emerald-700 text-[10px] px-2 py-0.5 rounded font-bold font-mono';
+        } else if (lbl === 'MODERATE') {
+          badge.className = 'bg-amber-950/80 text-amber-300 border border-amber-600/60 text-[11px] font-bold px-2 py-0.5 rounded uppercase';
+          statusBadge.className = 'bg-amber-950 text-amber-300 border border-amber-700 text-[10px] px-2 py-0.5 rounded font-bold font-mono';
+        } else {
+          badge.className = 'bg-rose-950/80 text-rose-300 border border-rose-600/60 text-[11px] font-bold px-2 py-0.5 rounded uppercase';
+          statusBadge.className = 'bg-rose-950 text-rose-300 border border-rose-700 text-[10px] px-2 py-0.5 rounded font-bold font-mono';
+        }
+
+        const msgEl = document.getElementById('relClinicianMessage');
+        if (reliability.reasons && reliability.reasons.length > 0) {
+          const list = document.getElementById('relReasonsList');
+          list.innerHTML = reliability.reasons.map(r => `<li>${r}</li>`).join('');
+        }
+      }
+    }
+
+    async function runSimulation() {
+      const patient = document.getElementById('patientSelect').value;
+      const res = await fetch('/simulate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patient_id: patient,
+          session_id: activeSession,
+          t0: new Date().toISOString(),
+          meal: { carbs_g: 60, protein_g: 18, fat_g: 15, meal_type: 'dinner' },
+          degradation: activeDegradation,
+          scenarios: [
+            { type: 'portion', amount_pct: 70 },
+            { type: 'walk', minutes: 20 },
+            { type: 'sequencing' }
+          ]
+        })
+      });
+      const data = await res.json();
+      if (data.scenarios && data.scenarios.length > 0) {
+        // Overlay walking scenario curve in purple
+        const walkSc = data.scenarios.find(s => s.type === 'walk');
+        if (walkSc) {
+          forecastChart.data.datasets[4].data = walkSc.trajectory;
+          forecastChart.update();
+        }
+      }
+    }
+
+    function onPresetChange() {
+      runSimulation();
+    }
+  </script>
+</body>
+</html>

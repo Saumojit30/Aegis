@@ -22,6 +22,16 @@ def test_health_endpoint(client):
     assert data["disclaimer"] == CLINICAL_DISCLAIMER
 
 
+def test_serve_dashboard(client):
+    res_root = client.get("/")
+    assert res_root.status_code == 200
+    assert "Aegis" in res_root.text
+
+    res_dash = client.get("/dashboard")
+    assert res_dash.status_code == 200
+    assert "Aegis" in res_dash.text
+
+
 def test_model_info_endpoint(client):
     response = client.get("/model/info")
     assert response.status_code == 200
