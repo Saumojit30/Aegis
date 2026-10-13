@@ -1,0 +1,53 @@
+flowchart TD
+    subgraph DataSources["1. Data Acquisition & Validation"]
+        CGM["CGMacros Open Data<br/>(PhysioNet CC BY-NC-SA 4.0)<br/>CGM, HR, METs, Meals (14 T2D)"]
+        SYN["Deterministic Synthetic EHR<br/>(ADA 2024 Guidelines)<br/>[Flagged: is_synthetic=true]"]
+        NIN["Indian Food Presets<br/>(NIN IFCT 2017 & USDA)<br/>[Support Clamped & Flagged]"]
+    end
+
+    subgraph Pipeline["2. Data Pipeline & Feature Engineering"]
+        DVC["Leakage-Free 5-Fold Split<br/>(Patient-Stratified / Zero Cross-Contamination)"]
+        FEAT["Temporal Grid Resampler (5-min)<br/>+ Missingness Indicator Masks (D15)<br/>+ Static & Dynamic Tensor Fusion"]
+        DEG["Degradation Injection Engine<br/>(Scenarios D0 to D7: Dropout, Gaps, Missing Wearables)"]
+    end
+
+    subgraph Training["3. Model Training & Validation"]
+        GRU["Temporal Fusion Encoder (GRU)<br/>Fused Static Patient & Wearable Sequences"]
+        HEAD["Candidate S: Dual-Gamma Absorption Head<br/>(Fast/Slow Carbohydrate Kinetics)"]
+        HUBER["Masked Huber Loss<br/>+ Peak Under-Prediction Penalty"]
+        ADAPT["Few-Shot Personalisation (Ridge r=3)<br/>+ Gaussian Clinical Similarity Prior"]
+        MLFLOW["MLflow Experiment Tracking<br/>(Strict Metadata, Metrics, Git Hash)"]
+    end
+
+    subgraph Artifacts["4. Model Artifact Bundle"]
+        BUNDLE["Production Bundle (artifacts/bundle/)<br/>- PyTorch Candidate S Model<br/>- Feature Scaler & Normalisers<br/>- Split-Conformal Uncertainty Table<br/>- Deterministic Metadata Manifest"]
+    end
+
+    subgraph Serving["5. Pluggable Serving & Replay Services"]
+        INF["Inference Provider (D12)<br/>(In-Process or Decoupled HTTP Microservice)"]
+        BACKEND["FastAPI Backend Service<br/>(Relational State, Patient Registry, REST API)"]
+        REPLAY["Async In-Memory Replay Engine (D13)<br/>(WebSocket Real-Time Telemetry Stream)"]
+        SIM["What-If Counterfactual Simulator<br/>- Model-Driven (Carbs, Fat, Protein)<br/>- Assumption-Driven (Sequencing, Walk)"]
+    end
+
+    subgraph Client["6. Clinician Replay Dashboard"]
+        UI["Clinician Interactive Dashboard<br/>- 180-min Postprandial Glucose Curve<br/>- Calibrated Split-Conformal 90% Bands<br/>- Real-Time Dynamic Reliability Badge<br/>- Interactive What-If Counterfactual Comparison<br/>- Stress-Testing Degradation Controls"]
+    end
+
+    CGM --> DVC
+    SYN --> DVC
+    NIN --> DVC
+    DVC --> FEAT
+    FEAT --> DEG
+    DEG --> GRU
+    GRU --> HEAD
+    HEAD --> HUBER
+    HUBER --> ADAPT
+    ADAPT --> MLFLOW
+    MLFLOW --> BUNDLE
+    BUNDLE --> INF
+    INF --> BACKEND
+    BACKEND --> REPLAY
+    BACKEND --> SIM
+    REPLAY --> UI
+    SIM --> UI
