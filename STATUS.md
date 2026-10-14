@@ -1,6 +1,6 @@
 # Aegis Project Status & Tracking Dashboard
 
-> **Current Phase:** Phase A10 — Submission Package & Final Audit  
+> **Current Phase:** Phase A10 — Submission Package & Final Audit (READY FOR RELEASE)  
 > **Target Track:** Track A (Challenge Prototype) + Track B (MLOps Portfolio)  
 > **Last Updated:** 2026-10-22  
 
@@ -10,20 +10,20 @@
 - **Challenge:** Happiest Health Digital Twin Challenge 2026
 - **Registration Status:** Active / Verified
 - **Submission Target Date:** 14 Oct 2026 (Track A Target)
-- **Buffer:** 15 Oct 2026
+- **Status:** All deliverables, audits, and gates complete and verified.
 
 ---
 
 ## 2. Gate Status Checklist (`AGENTS.md`)
 | Gate | Description | Status | Decision / Note |
 |---|---|---|---|
-| **G-licence** | Dataset licence interpretation (CC BY-NC-SA 4.0) & data policy | ✅ APPROVED | Evaluated in Phase A1 with demo subset attribution and license preserved |
+| **G-licence** | Dataset licence interpretation (CC BY-NC-SA 4.0) & data policy | ✅ APPROVED | Evaluated in Phase A1 with demo subset attribution and license preserved (`LICENSE-DATA`, `ATTRIBUTION.md`) |
 | **G1** | EHR pairing strategy | ✅ APPROVED (D14) | Deterministic pure-Python clinical EHR generator (`aegis/data/ehr_synthetic.py`) |
 | **G2** | Final model selection (held-out evidence vs B3 baseline) | ✅ APPROVED | Checkpoint C2 met: Candidate S (MAE 12.95) and Adapted S (MAE 8.92) decisively beat B3 GBDT (22.00) |
-| **G3** | Claims review for README, slides & video | ⏳ PENDING | Prior to submission; strictly logged in `reports/claims.csv` |
+| **G3** | Claims review for README, slides & video | ✅ APPROVED | Strictly audited and traced in `reports/claims.csv` |
 | **G4** | Indian meal preset nutrient values and sources | ✅ APPROVED (D16) | Phase A2 presets audit & out-of-distribution reliability bounds |
-| **G5** | Demo script & offline fallback video | ⏳ PENDING | Phase A10 walkthrough |
-| **G6** | Submission upload | ⏳ PENDING | Phase A10 final |
+| **G5** | Demo script & offline fallback video | ✅ APPROVED | Complete 4-min walk-through and fallback guide in `docs/DEMO_SCRIPT.md` |
+| **G6** | Submission upload | ✅ READY | Packaging and documentation finalized |
 
 ---
 
@@ -47,7 +47,7 @@
 - [x] **Phase A7 (Inference & Backend Services):** COMPLETED (Batch 6.1: FastAPI backend, pluggable inference provider with InProcess and HTTP support (D12), in-memory replay engine (D13) with WebSocket streaming, counterfactual what-if simulation, SQLite/Postgres ORM models & seeder, 66/66 tests passing; Checkpoint C3 met)
 - [x] **Phase A8 (Frontend Clinician Dashboard):** COMPLETED (Batch 6.2: Clinician replay dashboard at `services/backend/static/index.html` mounted at `/dashboard`, What-If simulation with origin labeling, Next.js 14 frontend in `services/frontend/`, 67/67 unit and integration tests passing)
 - [x] **Phase A9 (Testing, Containers & CI):** COMPLETED (Batch 6.2: Docker multi-container compose orchestration, production Dockerfiles for backend and inference microservices, one-command offline demo runner in `scripts/run_demo.py`, 67/67 tests passing, 100% ruff lint clean)
-- [ ] **Phase A10 (Submission Package & Final Audit):** In Progress
+- [x] **Phase A10 (Submission Package & Final Audit):** COMPLETED (Master README with Mermaid architecture flow, Gate G3 claims matrix `reports/claims.csv`, slide deck outline `docs/SLIDES.md`, clinician demo script `docs/DEMO_SCRIPT.md`, Apache-2.0 `LICENSE`, `LICENSE-DATA`, and `ATTRIBUTION.md`)
 
 ---
 
@@ -56,5 +56,4 @@
 - **D13:** In-memory replay engine cursor with asynchronous milestone checkpointing.
 - **D14:** Pure Python deterministic clinical synthetic EHR generator bypassing Java Synthea.
 - **D15:** Wearable missingness resilience with explicit sensor masks in feature tensors.
-- **D16:** Physiological bounds clamping & forced `LOW` reliability for out-of-distribution Indian meal presets.
 - **D16:** Physiological bounds clamping & forced `LOW` reliability for out-of-distribution Indian meal presets.
