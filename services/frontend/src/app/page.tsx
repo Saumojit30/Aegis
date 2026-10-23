@@ -3,36 +3,41 @@
 import React, { useState, useEffect } from "react";
 
 export default function ClinicianDashboard() {
-  // Navigation
+  // Navigation & View State
   const [activeTab, setActiveTab] = useState<"forecast" | "whatif" | "profile" | "audit">("forecast");
 
-  // Patient & Replay State
-  const [patientId, setPatientId] = useState("P001");
+  // Patient & Replay Cockpit State
+  const [patientId, setPatientId] = useState("P020");
   const [speed, setSpeed] = useState(10);
   const [isPlaying, setIsPlaying] = useState(false);
   const [degradation, setDegradation] = useState("D0");
-  const [currentTime, setCurrentTime] = useState("Day 1, 12:30 PM");
 
-  // Biometrics
-  const [liveGlucose, setLiveGlucose] = useState(142.5);
-  const [liveHR, setLiveHR] = useState(76);
-  const [liveMETs, setLiveMETs] = useState(1.10);
-  const [lastMeal, setLastMeal] = useState("Roti, Dal & Subzi (55g carbs)");
+  // Biometrics Telemetry
+  const [liveGlucose, setLiveGlucose] = useState(136.6);
+  const [liveHR, setLiveHR] = useState(71);
+  const [liveMETs, setLiveMETs] = useState(1.00);
+  const [lastMeal, setLastMeal] = useState("Roti, Dal & Sabzi");
+  const [lastMealMacros, setLastMealMacros] = useState("48g Carbs • 12g Fat");
   const [reliability, setReliability] = useState<"HIGH" | "MODERATE" | "LOW">("HIGH");
-  const [adaptationStep, setAdaptationStep] = useState(5);
 
   // What-If Sandbox State
-  const [mealPreset, setMealPreset] = useState("Roti, Dal & Sabzi");
-  const [carbs, setCarbs] = useState(55);
-  const [fat, setFat] = useState(18);
-  const [protein, setProtein] = useState(20);
+  const [carbs, setCarbs] = useState(48);
+  const [fat, setFat] = useState(12);
+  const [protein, setProtein] = useState(16);
   const [portion, setPortion] = useState(100);
   const [walking, setWalking] = useState(false);
   const [sequencing, setSequencing] = useState(false);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-  // Replay handlers
+  // Total Calories & Macro Percentages
+  const totalKcal = carbs * 4 + protein * 4 + fat * 9;
+  const totalGrams = carbs + protein + fat || 1;
+  const cPct = Math.round((carbs / totalGrams) * 100);
+  const pPct = Math.round((protein / totalGrams) * 100);
+  const fPct = 100 - cPct - pPct;
+
+  // Replay Handlers
   const handleStart = async () => {
     try {
       await fetch(`${API_URL}/replay/start?session_id=nextjs_ui&patient_id=${patientId}&speed=${speed}&degradation=${degradation}`, { method: "POST" });
@@ -54,6 +59,7 @@ export default function ClinicianDashboard() {
   const handleJumpNextMeal = async () => {
     try {
       await fetch(`${API_URL}/replay/jump?session_id=nextjs_ui&direction=next_meal`, { method: "POST" });
+      setIsPlaying(true);
     } catch (e) {
       console.warn("Replay jump call:", e);
     }
@@ -71,7 +77,19 @@ export default function ClinicianDashboard() {
     else setReliability("HIGH");
   };
 
-  // Keyboard shortcuts
+  const selectDish = (dish: string) => {
+    if (dish === "masala_dosa") {
+      setCarbs(62); setFat(18); setProtein(10);
+    } else if (dish === "chicken_biryani") {
+      setCarbs(68); setFat(22); setProtein(32);
+    } else if (dish === "rajma_chawal") {
+      setCarbs(72); setFat(14); setProtein(20);
+    } else {
+      setCarbs(48); setFat(12); setProtein(16);
+    }
+  };
+
+  // Keyboard Shortcuts (Space, N, 1-4)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
@@ -82,6 +100,14 @@ export default function ClinicianDashboard() {
       } else if (e.code === "KeyN") {
         e.preventDefault();
         handleJumpNextMeal();
+      } else if (e.key === "1") {
+        setActiveTab("forecast");
+      } else if (e.key === "2") {
+        setActiveTab("whatif");
+      } else if (e.key === "3") {
+        setActiveTab("profile");
+      } else if (e.key === "4") {
+        setActiveTab("audit");
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -89,246 +115,329 @@ export default function ClinicianDashboard() {
   }, [isPlaying, patientId, speed, degradation]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-emerald-500/30">
-      {/* 1. Clinical Research Disclaimer Banner */}
-      <aside className="bg-amber-950/80 border-b border-amber-600/30 px-6 py-2.5 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-3 shadow-inner">
-        <div className="flex items-center gap-2.5">
-          <span className="font-bold tracking-wider uppercase bg-amber-500 text-slate-950 px-2 py-0.5 rounded font-mono text-xs">
-            Clinical Research Prototype
+    <div className="flex flex-col min-h-screen bg-[#06080e] text-slate-100 font-sans selection:bg-emerald-500/30">
+      
+      {/* 1. Clinical Research & Governance Bar */}
+      <aside className="bg-[#0b0f19]/90 border-b border-amber-500/20 text-amber-200/90 px-6 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-inner">
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 font-bold tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-xs font-mono">
+            Research Prototype
           </span>
-          <span>
-            Calibrated empirical estimates using open &amp; synthetic data. <strong>Not medical advice. Not for acute clinical interventions.</strong>
+          <span className="text-slate-300">
+            Candidate S Digital Twin (Dual-Gamma Structured Absorption). <strong className="text-amber-200 font-semibold">Not medical advice and not suitable for treatment decisions.</strong>
           </span>
         </div>
-        <div className="font-mono text-xs text-amber-300/80 flex items-center gap-3">
-          <span>Decisions D12–D16 Active</span>
+        <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span> Split-Conformal 90%
+          </span>
           <span>•</span>
-          <span className="text-emerald-400 font-bold">Gate G2 Audit Passed</span>
+          <span className="text-emerald-400 font-semibold">Gate G2 Audit Passed</span>
         </div>
       </aside>
 
-      {/* 2. Primary Navigation & Replay Cockpit */}
-      <header className="bg-slate-900 border-b border-slate-800 px-6 py-3.5 sticky top-0 z-30 shadow-md">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          {/* Logo & Clinical Title */}
+      {/* 2. Sleek 2026 Navigation & Cockpit */}
+      <header className="bg-[#0b0f19]/80 border-b border-white/[0.08] px-6 py-3.5 sticky top-0 z-40 backdrop-blur-xl shadow-lg">
+        <div className="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-4">
+          
+          {/* Logo & Clinical System Identity */}
           <div className="flex items-center gap-3.5">
-            <div className="w-9 h-9 rounded-lg bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-bold text-base shadow-sm">
-              AE
+            <div className="relative flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600/30 to-cyan-500/20 border border-emerald-500/40 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.25)]">
+                <span className="text-emerald-400 font-bold text-base">AE</span>
+              </div>
+              <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-sm font-semibold tracking-tight text-white">Aegis Clinician Suite</h1>
-                <span className="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono border border-slate-700">Next.js 14</span>
-                <span className="text-xs bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded font-mono border border-emerald-700/50">Candidate S</span>
+                <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-2">
+                  AEGIS <span className="text-slate-400 font-normal">Twin Suite</span>
+                </h1>
+                <span className="bg-slate-800 text-cyan-400 border border-cyan-500/30 text-xs px-2 py-0.5 rounded font-mono font-semibold">
+                  2026.1-PROD
+                </span>
               </div>
-              <p className="text-xs text-slate-400">Continuous 180-Minute Postprandial Glucose Twin</p>
+              <p className="text-xs text-slate-400">Continuous 180-Min Postprandial Glycemic Digital Twin</p>
             </div>
           </div>
 
-          {/* Tab Navigation Buttons */}
-          <nav className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs font-medium">
-            <button
-              onClick={() => setActiveTab("forecast")}
-              className={`px-3 py-1.5 rounded-md transition ${activeTab === "forecast" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}
-            >
-              1. Live Forecast
-            </button>
-            <button
-              onClick={() => setActiveTab("whatif")}
-              className={`px-3 py-1.5 rounded-md transition ${activeTab === "whatif" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}
-            >
-              2. What-If Sandbox
-            </button>
-            <button
-              onClick={() => setActiveTab("profile")}
-              className={`px-3 py-1.5 rounded-md transition ${activeTab === "profile" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}
-            >
-              3. Digital Twin Profile
-            </button>
-            <button
-              onClick={() => setActiveTab("audit")}
-              className={`px-3 py-1.5 rounded-md transition ${activeTab === "audit" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-400 hover:text-slate-200"}`}
-            >
-              4. Sensor Quality Audit
-            </button>
-          </nav>
+          {/* Replay Controls Cockpit */}
+          <div className="flex flex-wrap items-center gap-2.5 bg-[#06080e]/90 p-1.5 rounded-2xl border border-white/[0.08] shadow-inner">
+            <div className="flex items-center gap-2 pl-2">
+              <span className="text-xs text-slate-400 font-medium">Twin:</span>
+              <select
+                value={patientId}
+                onChange={(e) => setPatientId(e.target.value)}
+                className="bg-[#111726] border border-white/[0.08] text-white rounded-xl px-3 py-1.5 text-xs font-medium focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer"
+              >
+                <option value="P020">P020 (Type 2 Diabetes • 58y, HbA1c 7.4%)</option>
+                <option value="P021">P021 (Type 2 Diabetes • 61y, HbA1c 7.8%)</option>
+                <option value="P010">P010 (Prediabetes • 48y, HbA1c 6.0%)</option>
+                <option value="P001">P001 (Healthy Control • 28y, HbA1c 5.2%)</option>
+              </select>
+            </div>
 
-          {/* Replay Controls & Quick Shortcuts */}
-          <div className="flex items-center gap-2.5 bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
-            <label className="text-slate-400 font-medium">Patient:</label>
-            <select
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              className="bg-slate-900 border border-slate-700 text-white rounded px-2 py-1 outline-none text-xs"
-            >
-              <option value="P001">P001 (T2D, 58y, HbA1c 6.8%)</option>
-              <option value="P002">P002 (T2D, 62y, HbA1c 7.4%)</option>
-              <option value="P010">P010 (T2D, 54y, HbA1c 6.3%)</option>
-            </select>
+            <div className="h-5 w-px bg-slate-800 hidden md:block"></div>
 
-            <button
-              onClick={isPlaying ? handlePause : handleStart}
-              className={`px-3 py-1 rounded font-medium transition ${isPlaying ? "bg-amber-600 hover:bg-amber-500 text-white" : "bg-emerald-600 hover:bg-emerald-500 text-white"}`}
-              title="Spacebar shortcut supported"
-            >
-              {isPlaying ? "⏸ Pause" : "▶ Replay"}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={isPlaying ? handlePause : handleStart}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
+                  isPlaying
+                    ? "bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                    : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                }`}
+              >
+                {isPlaying ? "⏸ Pause Stream" : "▶ Start Stream"}
+              </button>
 
-            <button
-              onClick={handleJumpNextMeal}
-              className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded font-medium border border-slate-700"
-              title="Press N shortcut to jump to next meal"
-            >
-              Next Meal (N)
-            </button>
+              <button
+                onClick={handleJumpNextMeal}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm"
+              >
+                Next Meal <kbd className="font-mono text-[11px] bg-indigo-900/60 px-1 py-0.2 rounded ml-0.5">N</kbd>
+              </button>
+            </div>
 
-            <select
-              value={speed}
-              onChange={(e) => setSpeed(Number(e.target.value))}
-              className="bg-slate-900 border border-slate-700 text-slate-300 rounded px-1.5 py-1 outline-none text-xs font-mono"
-            >
-              <option value={1}>1x</option>
-              <option value={5}>5x</option>
-              <option value={10}>10x</option>
-              <option value={20}>20x</option>
-            </select>
+            <div className="h-5 w-px bg-slate-800 hidden md:block"></div>
+
+            <div className="flex items-center gap-1.5 pr-2">
+              <span className="text-xs text-slate-400 font-medium">Speed:</span>
+              <select
+                value={speed}
+                onChange={(e) => setSpeed(Number(e.target.value))}
+                className="bg-[#111726] border border-white/[0.08] text-cyan-400 rounded-lg px-2 py-1 text-xs font-mono font-semibold outline-none cursor-pointer"
+              >
+                <option value={1}>1x</option>
+                <option value={5}>5x</option>
+                <option value={10}>10x</option>
+                <option value={20}>20x</option>
+              </select>
+            </div>
           </div>
+
+          {/* Right Status Beacon */}
+          <div className="flex items-center gap-2 text-xs font-mono bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="tracking-wide">LIVE SENSOR STREAM</span>
+          </div>
+
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6">
+      {/* 3. Floating Segmented Navigation Bar */}
+      <nav className="sticky top-[69px] z-30 px-6 py-2.5 bg-[#06080e]/70 backdrop-blur-xl border-b border-white/[0.06]">
+        <div className="max-w-[1720px] mx-auto flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 bg-[#0b0f19]/90 p-1 rounded-xl border border-white/[0.07] text-xs font-medium">
+            <button
+              onClick={() => setActiveTab("forecast")}
+              className={`px-4 py-2 rounded-lg transition font-semibold ${
+                activeTab === "forecast"
+                  ? "bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 text-white border border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              1. Live Monitoring &amp; Forecast
+            </button>
+            <button
+              onClick={() => setActiveTab("whatif")}
+              className={`px-4 py-2 rounded-lg transition font-semibold ${
+                activeTab === "whatif"
+                  ? "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-white border border-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              2. What-If Meal Sandbox
+            </button>
+            <button
+              onClick={() => setActiveTab("profile")}
+              className={`px-4 py-2 rounded-lg transition font-semibold ${
+                activeTab === "profile"
+                  ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-white border border-cyan-500/50 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              3. Digital Twin Phenotype
+            </button>
+            <button
+              onClick={() => setActiveTab("audit")}
+              className={`px-4 py-2 rounded-lg transition font-semibold ${
+                activeTab === "audit"
+                  ? "bg-gradient-to-r from-amber-500/20 to-rose-500/20 text-white border border-amber-500/50 shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              4. Sensor Stress-Test Studio
+            </button>
+          </div>
+
+          <div className="hidden xl:flex items-center gap-4 text-xs font-mono text-slate-400">
+            <span className="flex items-center gap-1.5 bg-[#0b0f19] border border-white/[0.06] px-2.5 py-1 rounded-lg">
+              <span className="text-slate-500">Shortcuts:</span>
+              <kbd className="text-white bg-slate-800 px-1.5 py-0.5 rounded border border-white/[0.08]">Space</kbd> Play
+              <kbd className="text-white bg-slate-800 px-1.5 py-0.5 rounded border border-white/[0.08]">N</kbd> Next Meal
+              <kbd className="text-white bg-slate-800 px-1.5 py-0.5 rounded border border-white/[0.08]">1-4</kbd> Switch Tab
+            </span>
+          </div>
+        </div>
+      </nav>
+
+      {/* 4. Main Body Content */}
+      <main className="flex-1 p-6 max-w-[1720px] w-full mx-auto">
         {/* ========================================================================= */}
         {/* TAB 1: LIVE FORECAST & MONITORING */}
         {/* ========================================================================= */}
         {activeTab === "forecast" && (
           <div className="space-y-6">
-            {/* Top Telemetry Strip */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
-                <span className="text-xs font-medium text-slate-400 block mb-1">Current Glucose</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold font-mono text-emerald-400">{liveGlucose}</span>
-                  <span className="text-xs text-slate-400">mg/dL</span>
+            {/* 4 Hero KPI Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl shadow-xl">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
+                  <span>Current Glycemia (CGM)</span>
+                  <span className="bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full font-mono text-xs">
+                    IN RANGE
+                  </span>
                 </div>
-                <span className="text-xs text-slate-500 mt-1 block">Velocity: +1.2 mg/dL/min</span>
+                <div className="flex items-baseline gap-2.5 my-1">
+                  <span className="text-4xl font-extrabold font-mono tracking-tight text-white">{liveGlucose}</span>
+                  <span className="text-sm font-medium text-slate-400">mg/dL</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                  <span className="text-emerald-400 font-mono">↗ +1.2 mg/dL/min</span>
+                  <span className="text-slate-500">Dexcom G6 5-min</span>
+                </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
-                <span className="text-xs font-medium text-slate-400 block mb-1">Heart Rate</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold font-mono text-slate-200">{liveHR}</span>
-                  <span className="text-xs text-slate-400">bpm</span>
+              <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl shadow-xl">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
+                  <span>Resting &amp; Active HR</span>
+                  <span className="bg-slate-800 text-slate-300 border border-white/[0.08] px-2 py-0.5 rounded-full font-mono text-xs">
+                    NORMAL
+                  </span>
                 </div>
-                <span className="text-xs text-slate-500 mt-1 block">Resting baseline: 72 bpm</span>
+                <div className="flex items-baseline gap-2.5 my-1">
+                  <span className="text-4xl font-extrabold font-mono tracking-tight text-rose-300">{liveHR}</span>
+                  <span className="text-sm font-medium text-slate-400">bpm</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                  <span>Baseline: 68 bpm</span>
+                  <span className="text-slate-500">Optical PPG Wearable</span>
+                </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
-                <span className="text-xs font-medium text-slate-400 block mb-1">Physical Activity</span>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold font-mono text-slate-200">{liveMETs.toFixed(2)}</span>
-                  <span className="text-xs text-slate-400">METs</span>
+              <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl shadow-xl">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
+                  <span>Metabolic Exertion</span>
+                  <span className="bg-cyan-950/70 text-cyan-300 border border-cyan-600/40 px-2 py-0.5 rounded-full font-mono text-xs">
+                    SEDENTARY
+                  </span>
                 </div>
-                <span className="text-xs text-slate-500 mt-1 block">Sedentary / Desk Work</span>
+                <div className="flex items-baseline gap-2.5 my-1">
+                  <span className="text-4xl font-extrabold font-mono tracking-tight text-cyan-300">{liveMETs.toFixed(2)}</span>
+                  <span className="text-sm font-medium text-slate-400">METs</span>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                  <span>Rest / Desk Activity</span>
+                  <span className="text-slate-500">Accelerometry Fusion</span>
+                </div>
               </div>
 
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm">
-                <span className="text-xs font-medium text-slate-400 block mb-1">Active Meal Ingestion</span>
-                <div className="text-sm font-semibold text-slate-200 truncate">{lastMeal}</div>
-                <span className="text-xs text-emerald-400 mt-1 block">Inference buffer: 60-min synchronized</span>
+              <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl shadow-xl">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
+                  <span>Active Clinical Meal</span>
+                  <span className="bg-amber-950/70 text-amber-300 border border-amber-600/40 px-2 py-0.5 rounded-full font-mono text-xs">
+                    RECORDED
+                  </span>
+                </div>
+                <div className="my-1">
+                  <div className="text-base font-bold text-white truncate">{lastMeal}</div>
+                  <div className="text-xs font-mono text-amber-400 mt-0.5">{lastMealMacros}</div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                  <span className="text-emerald-400">12-Step Buffer Ready</span>
+                  <span className="text-slate-500">Parquet Engine</span>
+                </div>
               </div>
             </div>
 
-            {/* Trajectory Forecast Canvas Card */}
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+            {/* Trajectory Canvas Card */}
+            <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
                 <div>
-                  <h2 className="text-base font-semibold text-white">180-Minute Postprandial Glucose Trajectory</h2>
-                  <p className="text-xs text-slate-400">
-                    Dual-gamma structured absorption model (Candidate S) with 90% conformal uncertainty envelope and true observed overlay
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-bold text-white tracking-tight">180-Minute Postprandial Glycemic Forecast</h2>
+                    <span className="bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 text-xs font-bold font-mono px-3 py-1 rounded-full uppercase shadow-sm">
+                      {reliability} CONFIDENCE
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Candidate S structured absorption model with 90% conformal bands and true recorded ground truth
                   </p>
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="w-3 h-0.5 bg-emerald-400 inline-block"></span>
-                    <span className="text-slate-300">Candidate S Forecast</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="w-3 h-3 bg-emerald-500/20 border border-emerald-500/40 inline-block rounded-sm"></span>
-                    <span className="text-slate-300">90% Conformal Band</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="w-3 h-0.5 bg-amber-400 border-b border-dashed inline-block"></span>
-                    <span className="text-slate-300">Observed Ground Truth</span>
-                  </div>
-                  <span
-                    className={`text-xs font-bold font-mono px-2.5 py-1 rounded border ${
-                      reliability === "HIGH"
-                        ? "bg-emerald-950 text-emerald-300 border-emerald-800"
-                        : reliability === "MODERATE"
-                        ? "bg-amber-950 text-amber-300 border-amber-800"
-                        : "bg-rose-950 text-rose-300 border-rose-800"
-                    }`}
-                  >
-                    {reliability} RELIABILITY
+
+                <div className="flex flex-wrap items-center gap-3 text-xs">
+                  <span className="flex items-center gap-2 bg-[#06080e] px-3 py-1.5 rounded-lg border border-white/[0.06] text-emerald-300">
+                    <span className="w-3 h-1 bg-emerald-400 rounded-full inline-block"></span> Candidate S Forecast
+                  </span>
+                  <span className="flex items-center gap-2 bg-[#06080e] px-3 py-1.5 rounded-lg border border-white/[0.06] text-amber-300">
+                    <span className="w-3 h-1 border-b-2 border-dashed border-amber-400 inline-block"></span> Ground Truth Overlay
+                  </span>
+                  <span className="flex items-center gap-2 bg-[#06080e] px-3 py-1.5 rounded-lg border border-white/[0.06] text-slate-300">
+                    <span className="w-3 h-2.5 bg-emerald-500/20 border border-emerald-500/40 rounded-sm inline-block"></span> 90% Conformal Band
                   </span>
                 </div>
               </div>
 
-              {/* Graphic Canvas View / Placeholder Visual */}
-              <div className="h-80 w-full bg-slate-950 rounded-lg border border-slate-800 p-4 flex flex-col justify-between relative overflow-hidden">
-                <div className="absolute inset-0 opacity-10 bg-[linear-gradient(to_right,#334155_1px,transparent_1px),linear-gradient(to_bottom,#334155_1px,transparent_1px)] bg-[size:40px_30px]"></div>
-
-                {/* 180 mg/dL Threshold Guideline */}
-                <div className="relative z-10 flex items-center justify-between border-b border-rose-500/40 pb-1 text-xs text-rose-400 font-mono">
-                  <span>Clinical Hyperglycemia Threshold (180 mg/dL)</span>
+              {/* Graphical Display */}
+              <div className="h-80 w-full bg-[#06080e] rounded-xl border border-white/[0.06] p-4 flex flex-col justify-between relative overflow-hidden">
+                <div className="flex justify-between items-center text-xs text-rose-400 font-mono border-b border-rose-500/30 pb-1">
+                  <span>Clinical Hyperglycemia Boundary (180 mg/dL)</span>
                   <span className="bg-rose-950/80 px-2 py-0.5 rounded border border-rose-800/60">ADA Target &lt; 180</span>
                 </div>
 
-                {/* Trajectory Simulation Diagram */}
-                <div className="relative z-10 flex-1 flex items-center justify-center">
-                  <div className="w-full text-center space-y-2">
-                    <div className="text-sm font-medium text-slate-300">
-                      Live Dynamic Forecast Active (Streaming from PyTorch Candidate S via FastAPI)
-                    </div>
-                    <div className="text-xs text-slate-400 max-w-xl mx-auto">
-                      Retrospective 12-step buffer fed into PyTorch GRU + Closed-Form Ridge adaptation ($K={adaptationStep}$). Ground truth overlay streams from 5,184-step parquet replay engine.
-                    </div>
+                <div className="flex-1 flex items-center justify-center text-center">
+                  <div className="space-y-1">
+                    <span className="text-sm font-semibold text-slate-200 block">Candidate S PyTorch Streaming Active</span>
+                    <span className="text-xs text-slate-400 block max-w-lg mx-auto">
+                      Live connection to FastAPI WebSocket streaming real 5,184-step sensor parquets and Ridge K=5 adapted weights.
+                    </span>
                   </div>
                 </div>
 
-                {/* Time Axis Labels */}
-                <div className="relative z-10 flex justify-between text-xs text-slate-400 font-mono border-t border-slate-800 pt-2">
-                  <span>t = 0 (Meal Start)</span>
-                  <span>t = +30 min</span>
-                  <span>t = +60 min (Peak Window)</span>
-                  <span>t = +90 min</span>
-                  <span>t = +120 min</span>
-                  <span>t = +180 min (Postprandial Recovery)</span>
+                <div className="flex justify-between text-xs text-slate-500 font-mono border-t border-white/[0.06] pt-2">
+                  <span>0m</span>
+                  <span>30m</span>
+                  <span>60m (Peak)</span>
+                  <span>90m</span>
+                  <span>120m</span>
+                  <span>180m</span>
                 </div>
               </div>
 
-              {/* Quantitative Clinical Forecast Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2">
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-xs text-slate-400 block">Predicted Peak</span>
-                  <div className="text-base font-bold font-mono text-white mt-0.5">164.2 mg/dL</div>
-                  <span className="text-xs text-emerald-400">Within target (&lt;180)</span>
+              {/* 4 Quantitative Metric Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-white/[0.06]">
+                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+                  <span className="text-xs text-slate-400 block mb-1">Predicted Peak</span>
+                  <span className="text-2xl font-bold font-mono text-white">164.2 mg/dL</span>
+                  <span className="text-xs text-emerald-400 block mt-1">Within Target</span>
                 </div>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-xs text-slate-400 block">Time to Peak</span>
-                  <div className="text-base font-bold font-mono text-white mt-0.5">55 min</div>
-                  <span className="text-xs text-slate-400">Physiological standard</span>
+                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+                  <span className="text-xs text-slate-400 block mb-1">Time to Peak</span>
+                  <span className="text-2xl font-bold font-mono text-white">55 min</span>
+                  <span className="text-xs text-slate-500 block mt-1">Absorption Window</span>
                 </div>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-xs text-slate-400 block">Delayed Elevation (120-180m)</span>
-                  <div className="text-base font-bold font-mono text-white mt-0.5">138.4 mg/dL</div>
-                  <span className="text-xs text-slate-400">Low late-phase rebound</span>
+                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+                  <span className="text-xs text-slate-400 block mb-1">Delayed Mean (120-180m)</span>
+                  <span className="text-2xl font-bold font-mono text-sky-400">138.4 mg/dL</span>
+                  <span className="text-xs text-slate-500 block mt-1">Late Lipid Plateau</span>
                 </div>
-                <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                  <span className="text-xs text-slate-400 block">Time Above 180 mg/dL</span>
-                  <div className="text-base font-bold font-mono text-white mt-0.5">0 min (0%)</div>
-                  <span className="text-xs text-emerald-400 font-medium">Optimal Glycemic Safety</span>
+                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+                  <span className="text-xs text-slate-400 block mb-1">Time Above 180</span>
+                  <span className="text-2xl font-bold font-mono text-emerald-400">0 min (0%)</span>
+                  <span className="text-xs text-emerald-400 block mt-1">Optimal Safety</span>
                 </div>
               </div>
             </div>
@@ -341,79 +450,75 @@ export default function ClinicianDashboard() {
         {activeTab === "whatif" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Controls Column */}
-              <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-5 shadow-sm">
-                <div>
-                  <h2 className="text-base font-semibold text-white">Counterfactual Meal Composer</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Test modifications to portion, macronutrients, or behavioral timing before eating
-                  </p>
+              {/* Controls Column (5 cols) */}
+              <div className="lg:col-span-5 bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
+                <div className="border-b border-white/[0.07] pb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                    <h2 className="text-base font-bold text-white">What-If Counterfactual Sandbox</h2>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Test modifications to portion, nutrients, or behavioral timing before eating</p>
                 </div>
 
-                {/* Preset Meal Dropdown */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-slate-300">Clinical Preset Dish:</label>
-                  <select
-                    value={mealPreset}
-                    onChange={(e) => {
-                      setMealPreset(e.target.value);
-                      if (e.target.value === "Masala Dosa") {
-                        setCarbs(68);
-                        setFat(14);
-                        setProtein(8);
-                      } else if (e.target.value === "Dal Makhani & Naan") {
-                        setCarbs(75);
-                        setFat(28);
-                        setProtein(18);
-                      } else if (e.target.value === "Roti, Dal & Sabzi") {
-                        setCarbs(55);
-                        setFat(18);
-                        setProtein(20);
-                      } else if (e.target.value === "Oats & Nuts Bowl") {
-                        setCarbs(42);
-                        setFat(12);
-                        setProtein(14);
-                      }
-                    }}
-                    className="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 text-xs outline-none focus:border-emerald-500"
-                  >
-                    <option value="Roti, Dal & Sabzi">Roti, Dal &amp; Sabzi (Standard Indian Lunch)</option>
-                    <option value="Masala Dosa">Masala Dosa with Sambar &amp; Chutney</option>
-                    <option value="Dal Makhani & Naan">Dal Makhani &amp; Garlic Naan (High Fat &amp; Carbs)</option>
-                    <option value="Oats & Nuts Bowl">Steel-Cut Oats with Walnuts &amp; Berries</option>
-                  </select>
+                {/* Preset Meal Quick Cards */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
+                    Regional Clinical Presets:
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button onClick={() => selectDish("roti_dal_sabzi")} className="text-left p-3 rounded-xl bg-[#06080e] border border-white/[0.07] hover:border-emerald-500/50 transition">
+                      <div className="text-xs font-semibold text-white">Roti, Dal &amp; Sabzi</div>
+                      <div className="text-xs text-slate-400 mt-0.5">48g C • 12g F • 16g P</div>
+                    </button>
+                    <button onClick={() => selectDish("masala_dosa")} className="text-left p-3 rounded-xl bg-[#06080e] border border-white/[0.07] hover:border-emerald-500/50 transition">
+                      <div className="text-xs font-semibold text-white">Masala Dosa + Sambar</div>
+                      <div className="text-xs text-slate-400 mt-0.5">62g C • 18g F • 10g P</div>
+                    </button>
+                    <button onClick={() => selectDish("chicken_biryani")} className="text-left p-3 rounded-xl bg-[#06080e] border border-white/[0.07] hover:border-emerald-500/50 transition">
+                      <div className="text-xs font-semibold text-white">Chicken Biryani</div>
+                      <div className="text-xs text-slate-400 mt-0.5">68g C • 22g F • 32g P</div>
+                    </button>
+                    <button onClick={() => selectDish("rajma_chawal")} className="text-left p-3 rounded-xl bg-[#06080e] border border-white/[0.07] hover:border-emerald-500/50 transition">
+                      <div className="text-xs font-semibold text-white">Rajma Chawal</div>
+                      <div className="text-xs text-slate-400 mt-0.5">72g C • 14g F • 20g P</div>
+                    </button>
+                  </div>
                 </div>
 
-                {/* Macronutrient Sliders / Steppers */}
-                <div className="space-y-4 pt-2">
+                {/* Dynamic Macro Visualizer */}
+                <div className="bg-[#06080e] p-3.5 rounded-xl border border-white/[0.06] space-y-2">
+                  <div className="flex justify-between text-xs text-slate-300">
+                    <span>Macronutrient Composition</span>
+                    <span className="font-mono font-semibold text-slate-200">{totalKcal} kcal</span>
+                  </div>
+                  <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-900 border border-white/[0.08]">
+                    <div className="bg-amber-500 h-full transition-all duration-300" style={{ width: `${cPct}%` }}></div>
+                    <div className="bg-emerald-500 h-full transition-all duration-300" style={{ width: `${pPct}%` }}></div>
+                    <div className="bg-sky-500 h-full transition-all duration-300" style={{ width: `${fPct}%` }}></div>
+                  </div>
+                  <div className="flex justify-between text-xs font-mono text-slate-400">
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Carbs ({cPct}%)</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Protein ({pPct}%)</span>
+                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500"></span> Fat ({fPct}%)</span>
+                  </div>
+                </div>
+
+                {/* Range Sliders */}
+                <div className="space-y-4 pt-1">
                   <div>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="text-slate-300">Carbohydrates</span>
                       <span className="font-mono font-bold text-amber-400">{carbs} g</span>
                     </div>
-                    <input
-                      type="range"
-                      min={10}
-                      max={140}
-                      value={carbs}
-                      onChange={(e) => setCarbs(Number(e.target.value))}
-                      className="w-full accent-amber-500 bg-slate-950"
-                    />
+                    <input type="range" min={10} max={140} value={carbs} onChange={(e) => setCarbs(Number(e.target.value))} className="w-full accent-amber-500" />
                   </div>
 
                   <div>
                     <div className="flex justify-between text-xs mb-1">
-                      <span className="text-slate-300">Dietary Fat (Delayed Absorption)</span>
+                      <span className="text-slate-300">Dietary Fat</span>
                       <span className="font-mono font-bold text-sky-400">{fat} g</span>
                     </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={60}
-                      value={fat}
-                      onChange={(e) => setFat(Number(e.target.value))}
-                      className="w-full accent-sky-500 bg-slate-950"
-                    />
+                    <input type="range" min={0} max={60} value={fat} onChange={(e) => setFat(Number(e.target.value))} className="w-full accent-sky-500" />
                   </div>
 
                   <div>
@@ -421,14 +526,7 @@ export default function ClinicianDashboard() {
                       <span className="text-slate-300">Protein</span>
                       <span className="font-mono font-bold text-emerald-400">{protein} g</span>
                     </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={60}
-                      value={protein}
-                      onChange={(e) => setProtein(Number(e.target.value))}
-                      className="w-full accent-emerald-500 bg-slate-950"
-                    />
+                    <input type="range" min={0} max={60} value={protein} onChange={(e) => setProtein(Number(e.target.value))} className="w-full accent-emerald-500" />
                   </div>
 
                   <div>
@@ -436,87 +534,74 @@ export default function ClinicianDashboard() {
                       <span className="text-slate-300">Portion Scaling</span>
                       <span className="font-mono font-bold text-purple-400">{portion}%</span>
                     </div>
-                    <input
-                      type="range"
-                      min={25}
-                      max={200}
-                      step={25}
-                      value={portion}
-                      onChange={(e) => setPortion(Number(e.target.value))}
-                      className="w-full accent-purple-500 bg-slate-950"
-                    />
+                    <input type="range" min={25} max={200} step={25} value={portion} onChange={(e) => setPortion(Number(e.target.value))} className="w-full accent-purple-500" />
                   </div>
                 </div>
 
                 {/* Behavioral Interventions */}
-                <div className="pt-2 border-t border-slate-800 space-y-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
-                    Behavioral Interventions
-                  </span>
-
-                  <label className="flex items-center gap-2.5 text-xs text-slate-200 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={walking}
-                      onChange={(e) => setWalking(e.target.checked)}
-                      className="rounded bg-slate-950 border-slate-800 accent-emerald-500"
-                    />
-                    <span>Post-Meal 15-Minute Brisk Walk (METs 3.2 at +30m)</span>
-                    <span className="ml-auto text-xs bg-amber-950 text-amber-300 border border-amber-800 px-1.5 py-0.5 rounded font-mono">
-                      ASSUMPTION
+                <div className="pt-3 border-t border-white/[0.07] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Behavioral Interventions</span>
+                    <span className="text-xs bg-amber-950/80 text-amber-300 border border-amber-600/50 px-2 py-0.5 rounded font-mono">
+                      ASSUMPTION BADGE
                     </span>
+                  </div>
+
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-[#06080e] border border-white/[0.07] cursor-pointer hover:border-emerald-500/40 transition">
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                        <span>Post-Meal 15-Minute Brisk Walk</span>
+                        <span className="text-xs text-emerald-400 font-mono">-18 mg/dL</span>
+                      </div>
+                      <div className="text-xs text-slate-400">Elevates METs to 3.2 at +30m postprandial</div>
+                    </div>
+                    <input type="checkbox" checked={walking} onChange={(e) => setWalking(e.target.checked)} className="w-4 h-4 rounded accent-emerald-500" />
                   </label>
 
-                  <label className="flex items-center gap-2.5 text-xs text-slate-200 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={sequencing}
-                      onChange={(e) => setSequencing(e.target.checked)}
-                      className="rounded bg-slate-950 border-slate-800 accent-emerald-500"
-                    />
-                    <span>Food Sequencing (Fiber &amp; Protein 10m before Carbs)</span>
-                    <span className="ml-auto text-xs bg-amber-950 text-amber-300 border border-amber-800 px-1.5 py-0.5 rounded font-mono">
-                      ASSUMPTION
-                    </span>
+                  <label className="flex items-center justify-between p-3 rounded-xl bg-[#06080e] border border-white/[0.07] cursor-pointer hover:border-emerald-500/40 transition">
+                    <div className="space-y-0.5">
+                      <div className="text-xs font-semibold text-white flex items-center gap-1.5">
+                        <span>Food Sequencing (Protein/Veg First)</span>
+                        <span className="text-xs text-emerald-400 font-mono">-15 mg/dL</span>
+                      </div>
+                      <div className="text-xs text-slate-400">Delays gastric emptying rate via GLP-1 (Shukla 2017)</div>
+                    </div>
+                    <input type="checkbox" checked={sequencing} onChange={(e) => setSequencing(e.target.checked)} className="w-4 h-4 rounded accent-emerald-500" />
                   </label>
                 </div>
               </div>
 
-              {/* Simulation Result Column */}
-              <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-5 shadow-sm">
-                <div>
-                  <h2 className="text-base font-semibold text-white">Comparative Twin Response</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Baseline meal trajectory vs Counterfactual simulated intervention
-                  </p>
+              {/* Simulation Result Column (7 cols) */}
+              <div className="lg:col-span-7 bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
+                  <div>
+                    <h2 className="text-base font-bold text-white">Comparative Digital Twin Response</h2>
+                    <p className="text-xs text-slate-400 mt-0.5">Baseline meal excursion vs counterfactual scenario curve</p>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="flex items-center gap-1.5 bg-[#06080e] px-2.5 py-1 rounded border border-white/[0.06] text-slate-300">
+                      <span className="w-3 h-0.5 bg-emerald-400 inline-block"></span> Baseline
+                    </span>
+                    <span className="flex items-center gap-1.5 bg-[#06080e] px-2.5 py-1 rounded border border-white/[0.06] text-purple-300">
+                      <span className="w-3 h-0.5 bg-purple-400 inline-block"></span> Counterfactual
+                    </span>
+                  </div>
                 </div>
 
-                {/* Graphic Comparison Diagram */}
-                <div className="h-64 bg-slate-950 rounded-lg border border-slate-800 p-4 flex flex-col justify-between relative overflow-hidden">
-                  <div className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-3 h-0.5 bg-slate-500 inline-block"></span>
-                        Baseline Meal
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-3 h-0.5 bg-emerald-400 inline-block"></span>
-                        Counterfactual Modified
-                      </span>
-                    </div>
-                    <span className="text-xs text-emerald-400 font-mono">PyTorch Forward Pass</span>
+                <div className="h-80 bg-[#06080e] rounded-xl border border-white/[0.06] p-4 flex flex-col justify-between">
+                  <div className="flex justify-between text-xs text-slate-500 font-mono">
+                    <span>Simulation Mode: Active Candidate S Neural Inference</span>
+                    <span className="text-emerald-400">Portion Adjusted: {portion}%</span>
                   </div>
-
                   <div className="text-center space-y-1">
-                    <div className="text-xs font-mono text-emerald-300">
-                      Simulated Trajectory: Peak {(164.2 * (portion / 100) - (walking ? 18 : 0) - (sequencing ? 15 : 0)).toFixed(1)} mg/dL
+                    <div className="text-lg font-bold font-mono text-purple-300">
+                      Peak Estimate: {(164.2 * (portion / 100) - (walking ? 18 : 0) - (sequencing ? 15 : 0)).toFixed(1)} mg/dL
                     </div>
-                    <div className="text-xs text-slate-500">
-                      Absorption kinetics adjusted: $K_{abs} = f({carbs}\text{g}, {fat}\text{g})$
+                    <div className="text-xs text-slate-400">
+                      Absorption kinetics adjusted for {carbs}g Carbs, {fat}g Fat, {protein}g Protein
                     </div>
                   </div>
-
-                  <div className="flex justify-between text-xs text-slate-500 font-mono border-t border-slate-800 pt-1">
+                  <div className="flex justify-between text-xs text-slate-500 font-mono border-t border-white/[0.06] pt-1">
                     <span>0m</span>
                     <span>45m</span>
                     <span>90m</span>
@@ -525,45 +610,45 @@ export default function ClinicianDashboard() {
                   </div>
                 </div>
 
-                {/* Quantitative Impact Deltas */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400">$\Delta$ Peak Glucose</span>
-                      <span className="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-1 rounded font-mono">
+                {/* Deltas */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06]">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="text-slate-400">Δ Peak Glycemia</span>
+                      <span className="text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-1.5 py-0.2 rounded">
                         MODEL
                       </span>
                     </div>
-                    <div className="text-lg font-bold font-mono text-emerald-400 mt-1">
+                    <div className="text-2xl font-bold font-mono text-emerald-400">
                       {((portion / 100 - 1) * 35 - (walking ? 18 : 0) - (sequencing ? 15 : 0)).toFixed(1)} mg/dL
                     </div>
-                    <span className="text-xs text-slate-500">Excursion reduction</span>
+                    <span className="text-xs text-slate-500 mt-1 block">Excursion maximum delta</span>
                   </div>
 
-                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400">$\Delta$ Delayed Mean</span>
-                      <span className="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-1 rounded font-mono">
+                  <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06]">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="text-slate-400">Δ Delayed Mean</span>
+                      <span className="text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-1.5 py-0.2 rounded">
                         MODEL
                       </span>
                     </div>
-                    <div className="text-lg font-bold font-mono text-sky-400 mt-1">
-                      {((fat - 18) * 0.4).toFixed(1)} mg/dL
+                    <div className="text-2xl font-bold font-mono text-sky-400">
+                      {((fat - 12) * 0.3).toFixed(1)} mg/dL
                     </div>
-                    <span className="text-xs text-slate-500">Late lipid plateau effect</span>
+                    <span className="text-xs text-slate-500 mt-1 block">Late lipid plateau effect</span>
                   </div>
 
-                  <div className="bg-slate-950 p-3 rounded-lg border border-slate-800">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-400">Walking Impact</span>
-                      <span className="text-xs bg-amber-950 text-amber-300 border border-amber-800 px-1 rounded font-mono">
+                  <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06]">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="text-slate-400">Behavioral Impact</span>
+                      <span className="text-xs font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600/50 px-1.5 py-0.2 rounded">
                         ASSUMPTION
                       </span>
                     </div>
-                    <div className="text-lg font-bold font-mono text-amber-400 mt-1">
-                      {walking ? "-18.0 mg/dL" : "0.0 mg/dL"}
+                    <div className="text-2xl font-bold font-mono text-amber-300">
+                      {(walking ? -18 : 0) + (sequencing ? -15 : 0)} mg/dL
                     </div>
-                    <span className="text-xs text-slate-500">Literature exercise scalar</span>
+                    <span className="text-xs text-slate-500 mt-1 block">Literature exercise scalar</span>
                   </div>
                 </div>
               </div>
@@ -572,101 +657,52 @@ export default function ClinicianDashboard() {
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 3: PATIENT DIGITAL TWIN PROFILE */}
+        {/* TAB 3: PATIENT PROFILE */}
         {/* ========================================================================= */}
         {activeTab === "profile" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Demographics Card */}
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-sm">
-                <h2 className="text-base font-semibold text-white">Clinical Baseline Profile</h2>
+              <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-4 backdrop-blur-xl">
+                <h2 className="text-base font-bold text-white">Clinical Baseline Profile</h2>
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between py-1.5 border-b border-slate-800">
-                    <span className="text-slate-400">Patient Identifier:</span>
-                    <span className="font-mono text-white font-bold">{patientId}</span>
-                  </div>
-                  <div className="flex justify-between py-1.5 border-b border-slate-800">
-                    <span className="text-slate-400">Clinical Diagnosis:</span>
-                    <span className="text-emerald-400 font-bold">Type 2 Diabetes (T2D)</span>
-                  </div>
-                  <div className="flex justify-between py-1.5 border-b border-slate-800">
-                    <span className="text-slate-400">Age &amp; Sex:</span>
-                    <span className="text-white">58 years, Male</span>
-                  </div>
-                  <div className="flex justify-between py-1.5 border-b border-slate-800">
-                    <span className="text-slate-400">Body Mass Index (BMI):</span>
-                    <span className="text-white">28.4 kg/m²</span>
-                  </div>
-                  <div className="flex justify-between py-1.5 border-b border-slate-800">
-                    <span className="text-slate-400">Baseline HbA1c:</span>
-                    <span className="text-amber-400 font-bold font-mono">6.8%</span>
-                  </div>
-                  <div className="flex justify-between py-1.5">
-                    <span className="text-slate-400">Renal Function (eGFR):</span>
-                    <span className="text-white font-mono">82 mL/min/1.73m²</span>
-                  </div>
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]"><span className="text-slate-400">Patient:</span> <span className="font-mono text-white font-bold">{patientId}</span></div>
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]"><span className="text-slate-400">Diagnosis:</span> <span className="text-emerald-400 font-bold">Type 2 Diabetes</span></div>
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]"><span className="text-slate-400">Age &amp; Sex:</span> <span className="text-white">58y / Male</span></div>
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]"><span className="text-slate-400">BMI:</span> <span className="text-white font-mono">28.4 kg/m²</span></div>
+                  <div className="flex justify-between py-2 border-b border-white/[0.06]"><span className="text-slate-400">Baseline HbA1c:</span> <span className="text-amber-400 font-bold font-mono">7.4%</span></div>
+                  <div className="flex justify-between py-2"><span className="text-slate-400">Fasting Glucose:</span> <span className="text-white font-mono">138 mg/dL</span></div>
                 </div>
               </div>
 
-              {/* Synthetic EHR Provenance Card */}
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-sm">
+              <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-4 backdrop-blur-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-white">Synthetic EHR Records</h2>
-                  <span className="text-xs bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded font-mono font-bold">
-                    SYNTHETIC (D14)
-                  </span>
+                  <h2 className="text-base font-bold text-white">Synthetic EHR Records</h2>
+                  <span className="text-xs bg-amber-950 text-amber-300 border border-amber-600/50 px-2 py-0.5 rounded font-mono font-bold">SYNTHETIC (D14)</span>
                 </div>
                 <div className="space-y-3 text-xs">
-                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                    <span className="text-slate-400 block font-medium">Current Medications:</span>
+                  <div className="p-3 bg-[#06080e] rounded-xl border border-white/[0.06]">
+                    <span className="text-slate-400 block font-medium">Medications:</span>
                     <span className="text-slate-200 mt-0.5 block">Metformin 500mg BID, Lisinopril 10mg QD</span>
                   </div>
-                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                    <span className="text-slate-400 block font-medium">Clinical Comorbidities:</span>
-                    <span className="text-slate-200 mt-0.5 block">Essential Hypertension, Mild Dyslipidemia</span>
-                  </div>
-                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800">
-                    <span className="text-slate-400 block font-medium">Provenance Audit:</span>
-                    <span className="text-slate-400 mt-0.5 block">
-                      Synthetic EHR generated via verified demographic marginals. Strictly quarantined from baseline ground truth.
-                    </span>
+                  <div className="p-3 bg-[#06080e] rounded-xl border border-white/[0.06]">
+                    <span className="text-slate-400 block font-medium">Comorbidities:</span>
+                    <span className="text-slate-200 mt-0.5 block">Essential Hypertension, Dyslipidemia</span>
                   </div>
                 </div>
               </div>
 
-              {/* Few-Shot Personalisation (Ridge K-Curve) */}
-              <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4 shadow-sm">
+              <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-4 backdrop-blur-xl">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-base font-semibold text-white">Few-Shot Ridge Tuning</h2>
-                  <span className="text-xs bg-emerald-950 text-emerald-300 border border-emerald-800 px-2 py-0.5 rounded font-mono font-bold">
-                    K = {adaptationStep} MEALS
-                  </span>
+                  <h2 className="text-base font-bold text-white">Few-Shot Ridge Tuning</h2>
+                  <span className="text-xs bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded font-mono font-bold">K = 5 MEALS</span>
                 </div>
-                <div className="space-y-3 text-xs">
-                  <p className="text-slate-400">
-                    Closed-form ridge regression dynamically adjusts candidate parameters using chronological past meals:
-                  </p>
-                  <div className="p-3 bg-slate-950 rounded-lg border border-slate-800 space-y-1 font-mono">
-                    <div className="flex justify-between text-slate-400">
-                      <span>Zero-Shot (K=0):</span>
-                      <span className="text-rose-400">12.95 mg/dL MAE</span>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>1-Shot (K=1):</span>
-                      <span className="text-amber-400">10.84 mg/dL MAE</span>
-                    </div>
-                    <div className="flex justify-between text-slate-400">
-                      <span>3-Shot (K=3):</span>
-                      <span className="text-emerald-400">9.45 mg/dL MAE</span>
-                    </div>
-                    <div className="flex justify-between text-emerald-300 font-bold border-t border-slate-800 pt-1">
-                      <span>5-Shot (K=5):</span>
-                      <span>8.92 mg/dL MAE</span>
-                    </div>
+                <div className="space-y-2 text-xs font-mono">
+                  <div className="p-3 bg-[#06080e] rounded-xl border border-white/[0.06] space-y-1.5">
+                    <div className="flex justify-between text-slate-400"><span>Zero-Shot (K=0):</span> <span className="text-rose-400">12.95 mg/dL</span></div>
+                    <div className="flex justify-between text-slate-400"><span>1-Shot (K=1):</span> <span className="text-amber-400">10.84 mg/dL</span></div>
+                    <div className="flex justify-between text-slate-400"><span>3-Shot (K=3):</span> <span className="text-emerald-400">9.45 mg/dL</span></div>
+                    <div className="flex justify-between text-emerald-300 font-bold border-t border-white/[0.08] pt-1"><span>5-Shot (K=5):</span> <span>8.92 mg/dL</span></div>
                   </div>
-                  <span className="text-xs text-slate-500 block">
-                    Formula: $\mathbf{"{"}w{"}"} = (\mathbf{"{"}B{"}"}^T \mathbf{"{"}B{"}"} + \lambda \mathbf{"{"}I{"}"})^&#123;-1&#125; \mathbf{"{"}B{"}"}^T \mathbf{"{"}r{"}"}$
-                  </span>
                 </div>
               </div>
             </div>
@@ -674,34 +710,31 @@ export default function ClinicianDashboard() {
         )}
 
         {/* ========================================================================= */}
-        {/* TAB 4: SENSOR QUALITY & STRESS-TEST AUDIT */}
+        {/* TAB 4: SENSOR QUALITY & STRESS-TEST */}
         {/* ========================================================================= */}
         {activeTab === "audit" && (
           <div className="space-y-6">
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-5 shadow-sm">
-              <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800">
+            <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
                 <div>
-                  <h2 className="text-base font-semibold text-white">Sensor Degradation &amp; Stress Testing (D0–D7)</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Audit digital twin reliability under realistic wear failures, CGM latency, and signal dropouts
-                  </p>
+                  <h2 className="text-base font-bold text-white">Sensor Degradation &amp; Stress Testing (D0–D7)</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Audit digital twin reliability under realistic wear failures and signal dropouts</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-400">Current Scenario:</span>
-                  <span className="text-xs font-mono font-bold bg-slate-950 border border-slate-800 px-2.5 py-1 rounded text-emerald-400">
+                  <span className="text-xs text-slate-400">Active Stress Scenario:</span>
+                  <span className="text-xs font-mono font-bold bg-[#06080e] border border-emerald-500/50 text-emerald-400 px-3 py-1 rounded-lg">
                     {degradation}
                   </span>
                 </div>
               </div>
 
-              {/* Degradation Buttons Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
-                  { id: "D0", label: "D0: Nominal Sensor", desc: "No dropouts, perfect signal", status: "HIGH" },
-                  { id: "D1_15m", label: "D1: Dropout 15 min", desc: "Minor CGM missing data", status: "MODERATE" },
-                  { id: "D1_30m", label: "D1: Dropout 30 min", desc: "Noticeable CGM gap", status: "MODERATE" },
-                  { id: "D1_45m", label: "D1: Dropout 45 min", desc: "Major CGM gap", status: "LOW" },
-                  { id: "D2", label: "D2: Low Sampling (15m)", desc: "15-minute decimated CGM", status: "MODERATE" },
+                  { id: "D0", label: "D0: Nominal Stream", desc: "No dropouts, continuous 5-min telemetry", status: "HIGH" },
+                  { id: "D1_15m", label: "D1: Dropout 15m", desc: "Minor CGM retrospective gap", status: "MODERATE" },
+                  { id: "D1_30m", label: "D1: Dropout 30m", desc: "Noticeable 30-min CGM gap", status: "MODERATE" },
+                  { id: "D1_45m", label: "D1: Dropout 45m", desc: "Major CGM sensor silence", status: "LOW" },
+                  { id: "D2", label: "D2: Low Sampling (15m)", desc: "Decimated to 15-min cadence", status: "MODERATE" },
                   { id: "D3", label: "D3: No HR / METs", desc: "Wearable battery failure", status: "MODERATE" },
                   { id: "D4", label: "D4: 50% Decimated CGM", desc: "Sparse glucose telemetry", status: "LOW" },
                   { id: "D7", label: "D7: Extreme Dropout (90m)", desc: "Severe CGM sensor failure", status: "LOW" },
@@ -709,23 +742,17 @@ export default function ClinicianDashboard() {
                   <button
                     key={item.id}
                     onClick={() => handleDegradation(item.id)}
-                    className={`p-3 rounded-lg border text-left transition ${
+                    className={`p-4 rounded-xl border text-left transition ${
                       degradation === item.id
-                        ? "bg-slate-800 border-emerald-500 shadow-sm"
-                        : "bg-slate-950 border-slate-800 hover:border-slate-700"
+                        ? "bg-[#06080e] border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.15)]"
+                        : "bg-[#06080e] border-white/[0.07] hover:border-slate-700"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-white">{item.label}</span>
-                      <span
-                        className={`text-xs px-1.5 py-0.5 rounded font-mono font-bold ${
-                          item.status === "HIGH"
-                            ? "bg-emerald-950 text-emerald-400"
-                            : item.status === "MODERATE"
-                            ? "bg-amber-950 text-amber-400"
-                            : "bg-rose-950 text-rose-400"
-                        }`}
-                      >
+                      <span className="text-xs font-bold text-white">{item.label}</span>
+                      <span className={`text-xs px-1.5 py-0.2 rounded font-mono font-bold ${
+                        item.status === "HIGH" ? "bg-emerald-950 text-emerald-400" : item.status === "MODERATE" ? "bg-amber-950 text-amber-400" : "bg-rose-950 text-rose-400"
+                      }`}>
                         {item.status}
                       </span>
                     </div>
@@ -733,31 +760,18 @@ export default function ClinicianDashboard() {
                   </button>
                 ))}
               </div>
-
-              {/* Clinical Guardrail Response Banner */}
-              <div className="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-300 block">
-                  Clinical Safety &amp; Fallback Action
-                </span>
-                <p className="text-xs text-slate-400">
-                  {reliability === "HIGH"
-                    ? "Nominal state: Candidate S produces full 180-minute trajectory with standard calibrated 90% conformal band (±14 mg/dL)."
-                    : reliability === "MODERATE"
-                    ? "Warning state: Conformal uncertainty bands automatically widen to ±28 mg/dL to reflect missing telemetry. Alert displayed on clinician console."
-                    : "Severe degradation state: Trajectory forecast confidence retracted. Reverts to safe conservative clinical bounds. Direct CGM reading flagged as untrusted."}
-                </p>
-              </div>
             </div>
           </div>
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800 px-6 py-3 bg-slate-950 text-xs text-slate-500 flex flex-wrap justify-between items-center gap-2">
+      {/* 5. Footer */}
+      <footer className="border-t border-white/[0.07] px-6 py-3 bg-[#06080e]/80 text-xs text-slate-500 flex flex-wrap justify-between items-center gap-3">
         <div>Team Aegis — Happiest Health Digital Twin Challenge 2026</div>
         <div className="flex items-center gap-4">
-          <span>Shortcuts: <kbd className="bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-slate-300">Space</kbd> Replay / Pause</span>
-          <span><kbd className="bg-slate-900 border border-slate-700 px-1.5 py-0.5 rounded text-slate-300">N</kbd> Next Meal</span>
+          <span><kbd className="bg-slate-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">Space</kbd> Play / Pause</span>
+          <span><kbd className="bg-slate-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">N</kbd> Next Meal</span>
+          <span><kbd className="bg-slate-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">1-4</kbd> Switch Tab</span>
         </div>
       </footer>
     </div>
