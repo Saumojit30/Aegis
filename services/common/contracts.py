@@ -35,6 +35,10 @@ class PredictRequest(BaseModel):
     t0: str = Field(description="ISO 8601 prediction timestamp")
     meal: MealInput
     degradation: str = Field(default="D0", description="Degradation scenario D0-D7")
+    g_t0: Optional[float] = Field(default=None, description="Current glucose at meal onset in mg/dL")
+    retrospective_sequence: Optional[List[Dict[str, Any]]] = Field(
+        default=None, description="Preceding 60-min telemetry points (up to 12 steps)"
+    )
 
 
 class IntervalBand(BaseModel):
