@@ -36,11 +36,27 @@
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
     
+    :root {
+      --bg-base: #06080e;
+      --card-base: linear-gradient(180deg, rgba(17, 23, 38, 0.75) 0%, rgba(11, 15, 25, 0.85) 100%);
+      --border-base: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-sub: #94a3b8;
+    }
+
+    html:not(.dark) {
+      --bg-base: #f8fafc;
+      --card-base: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+      --border-base: rgba(15, 23, 42, 0.08);
+      --text-main: #0f172a;
+      --text-sub: #475569;
+    }
+
     body {
-      background-color: #06080e;
-      color: #f1f5f9;
+      background-color: var(--bg-base);
+      color: var(--text-main);
       background-image: 
         radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.04) 0%, transparent 45%),
         radial-gradient(circle at 85% 25%, rgba(6, 182, 212, 0.03) 0%, transparent 45%),
@@ -50,15 +66,15 @@
 
     /* Glassmorphism surfaces */
     .glass-card {
-      background: linear-gradient(180deg, rgba(17, 23, 38, 0.75) 0%, rgba(11, 15, 25, 0.85) 100%);
+      background: var(--card-base);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+      border: 1px solid var(--border-base);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
     }
     .glass-card-hover:hover {
-      border-color: rgba(255, 255, 255, 0.14);
-      box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.8);
+      border-color: rgba(16, 185, 129, 0.3);
+      box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.7);
     }
 
     /* Navigation pill active state */
@@ -107,13 +123,11 @@
       background: #232e47;
     }
 
-    /* Shimmer subtle animation */
-    @keyframes subtlePulse {
-      0%, 100% { opacity: 0.85; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.02); }
-    }
-    .live-pulse {
-      animation: subtlePulse 3s infinite ease-in-out;
+    /* Modal Backdrop */
+    .modal-backdrop {
+      background: rgba(4, 6, 12, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
   </style>
 </head>
@@ -131,7 +145,7 @@
         Research Prototype
       </span>
       <span class="text-slate-300 text-xs">
-        Candidate S Digital Twin (Dual-Gamma Structured Absorption). <strong class="text-amber-200 font-semibold">Not medical advice. Not intended for insulin titration or clinical decision support.</strong>
+        Candidate S Digital Twin (Dual-Gamma Structured Absorption). <strong class="text-amber-200 font-semibold">Not medical advice. Not intended for insulin titration or acute clinical decisions.</strong>
       </span>
     </div>
     <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
@@ -170,17 +184,29 @@
               AEGIS <span class="text-slate-400 font-normal">Twin Suite</span>
             </h1>
             <span class="bg-carbon-800 text-cyan-400 border border-cyan-500/30 text-xs px-2 py-0.5 rounded font-mono font-semibold">
-              2026.1-PROD
+              2026.4-PROD
             </span>
           </div>
           <p class="text-xs text-slate-400">Continuous 180-Min Postprandial Glycemic Digital Twin</p>
         </div>
       </div>
 
-      <!-- Center: Digital Twin Selector & Replay Controls -->
+      <!-- Center: Command Palette Trigger & Replay Controls Cockpit -->
       <div class="flex flex-wrap items-center gap-2.5 bg-carbon-950/90 p-1.5 rounded-2xl border border-white/[0.08] shadow-inner">
+        
+        <!-- Command Palette Trigger Pill -->
+        <button onclick="openCommandPalette()" class="flex items-center gap-2 px-3 py-1.5 bg-carbon-850 hover:bg-carbon-800 border border-white/[0.08] text-slate-300 hover:text-white rounded-xl text-xs font-mono transition shadow-sm" title="Open Raycast Command Palette (Cmd+K / Ctrl+K)">
+          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <span class="hidden sm:inline">Command</span>
+          <kbd class="bg-carbon-900 border border-white/[0.1] text-emerald-400 px-1.5 py-0.2 rounded text-[11px]">⌘K</kbd>
+        </button>
+
+        <div class="h-5 w-px bg-slate-800 hidden md:block"></div>
+
         <!-- Patient Selector -->
-        <div class="flex items-center gap-2 pl-2">
+        <div class="flex items-center gap-2 pl-1">
           <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
@@ -234,8 +260,18 @@
         </div>
       </div>
 
-      <!-- Right: Real-Time Sensor Telemetry Status Pill -->
+      <!-- Right: Theme Mode Toggle & Sensor Stream Pill -->
       <div class="flex items-center gap-3">
+        <!-- Theme Toggle Button -->
+        <button onclick="toggleTheme()" class="p-2 rounded-xl bg-carbon-900 hover:bg-carbon-800 border border-white/[0.08] text-slate-300 hover:text-white transition" title="Toggle Light/Dark Theme">
+          <svg id="themeIconSun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg id="themeIconMoon" class="w-4 h-4 block dark:hidden text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+
         <div id="wsIndicator" class="flex items-center gap-2 text-xs font-mono bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.15)]">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span id="wsStatus" class="tracking-wide">LIVE SENSOR STREAM</span>
@@ -284,6 +320,7 @@
       <div class="hidden xl:flex items-center gap-4 text-xs font-mono text-slate-400">
         <span class="flex items-center gap-1.5 bg-carbon-900 border border-white/[0.06] px-2.5 py-1 rounded-lg">
           <span class="text-slate-500">Shortcuts:</span>
+          <kbd class="text-white bg-carbon-800 px-1.5 py-0.5 rounded border border-white/[0.08]">Cmd+K</kbd> Command
           <kbd class="text-white bg-carbon-800 px-1.5 py-0.5 rounded border border-white/[0.08]">Space</kbd> Play
           <kbd class="text-white bg-carbon-800 px-1.5 py-0.5 rounded border border-white/[0.08]">N</kbd> Next Meal
         </span>
@@ -304,10 +341,10 @@
       <!-- 4 Hero Biometric Telemetry Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <!-- Glucose KPI Card -->
+        <!-- Glucose KPI Card + Time In Range (TIR) Gauge -->
         <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition">
           <div class="absolute -right-4 -bottom-4 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
             <span class="flex items-center gap-1.5">
               <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
@@ -318,11 +355,26 @@
               IN RANGE
             </span>
           </div>
+
           <div class="flex items-baseline gap-2.5 my-1">
             <span id="liveGlucose" class="text-4xl font-extrabold font-mono tracking-tight text-white">136.6</span>
             <span class="text-sm font-medium text-slate-400">mg/dL</span>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+
+          <!-- Time-in-Range (TIR) Segmented Progress Mini-Bar -->
+          <div class="my-2 space-y-1">
+            <div class="flex justify-between text-[11px] font-mono text-slate-400">
+              <span class="text-emerald-400 font-semibold">TIR: 78% (Target &ge;70%)</span>
+              <span>GMI: 6.8%</span>
+            </div>
+            <div class="w-full h-1.5 rounded-full overflow-hidden flex bg-slate-900 border border-white/[0.08]">
+              <div class="bg-emerald-500 h-full" style="width: 78%;" title="In Range (70-180 mg/dL): 78%"></div>
+              <div class="bg-rose-500 h-full" style="width: 18%;" title="High (>180 mg/dL): 18%"></div>
+              <div class="bg-amber-400 h-full" style="width: 4%;" title="Low (<70 mg/dL): 4%"></div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06]">
             <span class="flex items-center gap-1 text-emerald-400 font-mono">
               <span id="glucoseTrendArrow">↗</span> <span id="glucoseVelocity">+1.2 mg/dL/min</span>
             </span>
@@ -348,7 +400,7 @@
             <span id="liveHR" class="text-4xl font-extrabold font-mono tracking-tight text-rose-300">71</span>
             <span class="text-sm font-medium text-slate-400">bpm</span>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
             <span class="text-slate-400">Resting baseline: 68 bpm</span>
             <span class="text-slate-500">Optical PPG Wearable</span>
           </div>
@@ -372,7 +424,7 @@
             <span id="liveMETs" class="text-4xl font-extrabold font-mono tracking-tight text-cyan-300">1.00</span>
             <span class="text-sm font-medium text-slate-400">METs</span>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
             <span class="text-slate-400">Desk / Rest state</span>
             <span class="text-slate-500">Accelerometry Fusion</span>
           </div>
@@ -396,8 +448,8 @@
             <div id="liveMealSummary" class="text-base font-bold text-white truncate">Awaiting Next Meal...</div>
             <div id="liveMealTime" class="text-xs font-mono text-amber-400 mt-0.5">Use 'Next Meal' to jump</div>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
-            <span class="text-emerald-400">12-Step Pre-Meal Buffer Ready</span>
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
+            <span class="text-emerald-400">12-Step Buffer Ready</span>
             <span class="text-slate-500">Parquet Engine</span>
           </div>
         </div>
@@ -405,10 +457,10 @@
       </div>
 
       <!-- Hero Visualizer: 180-Minute Calibrated Glycemic Trajectory Canvas -->
-      <div class="glass-card rounded-2xl p-6 shadow-2xl space-y-5">
+      <div class="glass-card rounded-2xl p-6 shadow-2xl space-y-4">
         
         <!-- Chart Header & Clinical Legends -->
-        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-3">
           <div>
             <div class="flex items-center gap-3">
               <h2 class="text-lg font-bold text-white tracking-tight">180-Minute Postprandial Glycemic Forecast</h2>
@@ -417,7 +469,7 @@
               </span>
             </div>
             <p class="text-xs text-slate-400 mt-1">
-              Physiological dual-gamma absorption head (Candidate S) paired with distribution-free split-conformal 90% bounds and real clinical ground truth
+              Dual-gamma structured absorption (Candidate S) with 90% split-conformal bounds and real clinical ground truth
             </p>
           </div>
 
@@ -442,32 +494,48 @@
           </div>
         </div>
 
+        <!-- Interactive Clinical Scrubber HUD Readout -->
+        <div id="scrubberHUD" class="flex flex-wrap items-center justify-between px-3.5 py-1.5 rounded-xl bg-carbon-950/80 border border-white/[0.08] text-xs font-mono text-slate-300">
+          <div class="flex items-center gap-3">
+            <span class="text-slate-400">Live Scrubber:</span>
+            <span id="hudTime" class="text-white font-bold">+55 min</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-emerald-400 font-bold" id="hudPredicted">Pred: 164.2 mg/dL</span>
+            <span class="text-slate-600">|</span>
+            <span class="text-slate-300" id="hudBounds">90% Bounds: [150.2 – 178.2]</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-amber-400 font-semibold" id="hudActual">Ground Truth: 162.0 mg/dL</span>
+            <span class="text-slate-400" id="hudDelta">(Δ -2.2)</span>
+          </div>
+        </div>
+
         <!-- The Canvas -->
-        <div class="relative h-[410px] w-full">
+        <div class="relative h-[390px] w-full">
           <canvas id="forecastChart"></canvas>
         </div>
 
         <!-- 4 Quantitative Postprandial Clinical Metric Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-white/[0.06]">
-          <div class="bg-carbon-950/80 p-4 rounded-xl border border-white/[0.06] text-center">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-white/[0.06]">
+          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
             <span class="text-xs text-slate-400 block mb-1">Predicted Peak Glucose</span>
             <span id="metricPeak" class="text-2xl font-bold font-mono text-white">-- mg/dL</span>
             <span class="text-xs text-slate-500 block mt-1">Excursion maximum</span>
           </div>
 
-          <div class="bg-carbon-950/80 p-4 rounded-xl border border-white/[0.06] text-center">
+          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
             <span class="text-xs text-slate-400 block mb-1">Time to Peak (TTP)</span>
             <span id="metricTTP" class="text-2xl font-bold font-mono text-white">-- min</span>
             <span class="text-xs text-slate-500 block mt-1">Peak absorption window</span>
           </div>
 
-          <div class="bg-carbon-950/80 p-4 rounded-xl border border-white/[0.06] text-center">
+          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
             <span class="text-xs text-slate-400 block mb-1">Delayed Mean (120–180m)</span>
             <span id="metricDelayed" class="text-2xl font-bold font-mono text-sky-400">-- mg/dL</span>
             <span class="text-xs text-slate-500 block mt-1">Late lipid plateau</span>
           </div>
 
-          <div class="bg-carbon-950/80 p-4 rounded-xl border border-white/[0.06] text-center">
+          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
             <span class="text-xs text-slate-400 block mb-1">Time Above 180 mg/dL</span>
             <span id="metricAbove" class="text-2xl font-bold font-mono text-emerald-400">-- min</span>
             <span class="text-xs text-slate-500 block mt-1">Hyperglycemia exposure</span>
@@ -500,12 +568,22 @@
 
         <!-- Left Controls Column: Interactive Meal Composer (5 Cols) -->
         <div class="lg:col-span-5 glass-card rounded-2xl p-6 shadow-2xl space-y-5">
-          <div class="border-b border-white/[0.07] pb-3">
-            <div class="flex items-center gap-2">
-              <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-              <h2 class="text-base font-bold text-white">What-If Counterfactual Sandbox</h2>
+          <div class="border-b border-white/[0.07] pb-3 flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                <h2 class="text-base font-bold text-white">What-If Counterfactual Sandbox</h2>
+              </div>
+              <p class="text-xs text-slate-400 mt-1">Simulate dietary alterations and physical activity interventions</p>
             </div>
-            <p class="text-xs text-slate-400 mt-1">Simulate dietary alterations and physical activity interventions before eating.</p>
+
+            <!-- Custom Meal Trigger Button -->
+            <button onclick="openCustomMealModal()" class="px-3 py-1.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/50 text-purple-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>+ Custom Meal</span>
+            </button>
           </div>
 
           <!-- Preset Dish Quick Cards -->
@@ -536,7 +614,7 @@
           <!-- Dynamic Macro Visualizer Bar -->
           <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] space-y-2">
             <div class="flex justify-between text-xs text-slate-300">
-              <span>Macronutrient Composition</span>
+              <span id="activeDishNameLabel" class="font-semibold text-white">Roti, Dal &amp; Sabzi</span>
               <span id="totalKcal" class="font-mono font-semibold text-slate-200">364 kcal</span>
             </div>
             <!-- Segmented Color Bar -->
@@ -913,11 +991,98 @@
   </main>
 
   <!-- ========================================================================= -->
-  <!-- 5. FOOTER & SHORTCUT AUDIT                                                -->
+  <!-- 5. RAYCAST-STYLE GLOBAL COMMAND PALETTE MODAL (CMD+K / CTRL+K)            -->
+  <!-- ========================================================================= -->
+  <div id="commandPaletteModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-start justify-center pt-24 px-4">
+    <div class="w-full max-w-xl glass-card rounded-2xl border border-white/[0.12] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Search Input Bar -->
+      <div class="p-3.5 border-b border-white/[0.08] flex items-center gap-3 bg-carbon-950/60">
+        <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          id="cmdPaletteInput"
+          oninput="filterCommandPalette()"
+          onkeydown="onPaletteKeyDown(event)"
+          placeholder="Search actions, patients, presets, or stress tests..."
+          class="bg-transparent text-white placeholder-slate-500 text-xs outline-none flex-1 font-sans"
+          autocomplete="off"
+        >
+        <kbd class="text-[11px] font-mono bg-carbon-850 text-slate-400 px-2 py-0.5 rounded border border-white/[0.08]">ESC</kbd>
+      </div>
+
+      <!-- Action Items List -->
+      <div id="cmdPaletteList" class="max-h-80 overflow-y-auto p-2 space-y-1">
+        <!-- Rendered dynamically via JS -->
+      </div>
+
+      <!-- Palette Footer -->
+      <div class="px-4 py-2 border-t border-white/[0.06] bg-carbon-950/80 text-[11px] font-mono text-slate-500 flex justify-between items-center">
+        <span>Use <kbd class="text-slate-300">↑</kbd> <kbd class="text-slate-300">↓</kbd> to navigate, <kbd class="text-slate-300">Enter</kbd> to select</span>
+        <span>Aegis Fast Triage</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 6. CUSTOM MEAL CREATOR MODAL                                              -->
+  <!-- ========================================================================= -->
+  <div id="customMealModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+    <div class="w-full max-w-md glass-card rounded-2xl border border-white/[0.12] shadow-2xl p-6 space-y-4">
+      
+      <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+          <h3 class="text-sm font-bold text-white">Create Custom Meal Input</h3>
+        </div>
+        <button onclick="closeCustomMealModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="text-slate-300 font-medium block mb-1">Dish Name / Food Item:</label>
+          <input type="text" id="customDishName" value="Paneer Butter Masala & Roti" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 outline-none focus:border-purple-500">
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="text-amber-400 font-medium block mb-1">Carbs (g):</label>
+            <input type="number" id="customCarbs" value="52" min="0" max="180" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-amber-500">
+          </div>
+          <div>
+            <label class="text-sky-400 font-medium block mb-1">Fat (g):</label>
+            <input type="number" id="customFat" value="24" min="0" max="100" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-sky-500">
+          </div>
+          <div>
+            <label class="text-emerald-400 font-medium block mb-1">Protein (g):</label>
+            <input type="number" id="customProtein" value="18" min="0" max="100" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-slate-300 font-medium block mb-1">Portion Scaling (%):</label>
+          <input type="number" id="customPortion" value="100" min="25" max="250" step="25" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-purple-500">
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2.5 pt-2 border-t border-white/[0.06]">
+        <button onclick="closeCustomMealModal()" class="px-3.5 py-1.5 rounded-xl bg-carbon-850 hover:bg-carbon-800 text-slate-300 text-xs font-medium">Cancel</button>
+        <button onclick="applyCustomMealToSandbox()" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md">Apply to Sandbox</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- 7. FOOTER & SHORTCUT AUDIT                                                -->
   <!-- ========================================================================= -->
   <footer class="border-t border-white/[0.07] px-6 py-3 bg-carbon-950/80 text-xs text-slate-500 flex flex-wrap justify-between items-center gap-3">
     <div>Team Aegis — Happiest Health Digital Twin Challenge 2026 • Dual-Gamma Structured Absorption Model</div>
     <div class="flex items-center gap-4">
+      <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">Cmd+K</kbd> Command Palette</span>
       <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">Space</kbd> Play / Pause</span>
       <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">N</kbd> Next Clinical Meal</span>
       <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">1-4</kbd> Switch View</span>
@@ -925,7 +1090,7 @@
   </footer>
 
   <!-- ========================================================================= -->
-  <!-- 6. APPLICATION LOGIC & REAL ENGINE WEBSOCKET INTEGRATION                  -->
+  <!-- 8. APPLICATION LOGIC & REAL ENGINE WEBSOCKET INTEGRATION                  -->
   <!-- ========================================================================= -->
   <script>
     // State
@@ -936,15 +1101,43 @@
     let ws = null;
     let forecastChart = null;
     let whatifChart = null;
+    let isDarkMode = true;
 
     const timeLabels = Array.from({length: 36}, (_, i) => `+${(i+1)*5}m`);
 
+    // Command Palette Actions Repository
+    const commandActions = [
+      { id: 'play', title: 'Replay: Toggle Play / Pause', cat: 'Replay', key: 'Space', run: () => togglePlayPause() },
+      { id: 'jump', title: 'Replay: Jump to Next Clinical Meal', cat: 'Replay', key: 'N', run: () => jumpToMeal() },
+      { id: 'stop', title: 'Replay: Stop & Reset Replay Stream', cat: 'Replay', key: 'S', run: () => stopReplay() },
+      
+      { id: 'p020', title: 'Twin: Switch to P020 (Type 2 Diabetes, 58y, HbA1c 7.4%)', cat: 'Twin', key: 'P20', run: () => { setPatient('P020'); } },
+      { id: 'p021', title: 'Twin: Switch to P021 (Type 2 Diabetes, 61y, HbA1c 7.8%)', cat: 'Twin', key: 'P21', run: () => { setPatient('P021'); } },
+      { id: 'p010', title: 'Twin: Switch to P010 (Prediabetes, 48y, HbA1c 6.0%)', cat: 'Twin', key: 'P10', run: () => { setPatient('P010'); } },
+      { id: 'p001', title: 'Twin: Switch to P001 (Healthy Control, 28y, HbA1c 5.2%)', cat: 'Twin', key: 'P01', run: () => { setPatient('P001'); } },
+      
+      { id: 'preset_roti', title: 'What-If: Preset Roti, Dal & Sabzi (48g C, 12g F, 16g P)', cat: 'What-If', key: 'R', run: () => { switchTab('whatif'); selectDish('roti_dal_sabzi'); } },
+      { id: 'preset_dosa', title: 'What-If: Preset Masala Dosa + Sambar (62g C, 18g F, 10g P)', cat: 'What-If', key: 'D', run: () => { switchTab('whatif'); selectDish('masala_dosa'); } },
+      { id: 'preset_biryani', title: 'What-If: Preset Chicken Biryani (68g C, 22g F, 32g P)', cat: 'What-If', key: 'B', run: () => { switchTab('whatif'); selectDish('chicken_biryani'); } },
+      { id: 'preset_rajma', title: 'What-If: Preset Rajma Chawal (72g C, 14g F, 20g P)', cat: 'What-If', key: 'RC', run: () => { switchTab('whatif'); selectDish('rajma_chawal'); } },
+      { id: 'custom_meal', title: 'What-If: Open Custom Meal Builder Modal', cat: 'What-If', key: '+', run: () => { openCustomMealModal(); } },
+
+      { id: 'deg_d0', title: 'Stress: Nominal 5-Min Telemetry (D0)', cat: 'Stress', key: 'D0', run: () => injectDegradation('D0') },
+      { id: 'deg_d1_30m', title: 'Stress: CGM Signal Dropout 30m (D1)', cat: 'Stress', key: 'D1', run: () => injectDegradation('D1_30m') },
+      { id: 'deg_d3', title: 'Stress: Wearable Disconnect (No HR/METs) (D3)', cat: 'Stress', key: 'D3', run: () => injectDegradation('D3') },
+      { id: 'deg_d4', title: 'Stress: Decimated Sparse CGM 50% (D4)', cat: 'Stress', key: 'D4', run: () => injectDegradation('D4') },
+
+      { id: 'tab_forecast', title: 'View: 1. Live Monitoring & Trajectory Forecast', cat: 'View', key: '1', run: () => switchTab('forecast') },
+      { id: 'tab_whatif', title: 'View: 2. What-If Meal Sandbox', cat: 'View', key: '2', run: () => switchTab('whatif') },
+      { id: 'tab_profile', title: 'View: 3. Patient Digital Twin Phenotype', cat: 'View', key: '3', run: () => switchTab('profile') },
+      { id: 'tab_audit', title: 'View: 4. Sensor Stress-Test Studio', cat: 'View', key: '4', run: () => switchTab('audit') },
+    ];
+    let selectedPaletteIndex = 0;
+    let filteredPaletteActions = [...commandActions];
+
     // --- Init Charts & Theme ---
     function initCharts() {
-      // 1. Forecast Chart
       const ctx1 = document.getElementById('forecastChart').getContext('2d');
-      
-      // Gradient fill for forecast curve
       const gradientForecast = ctx1.createLinearGradient(0, 0, 0, 400);
       gradientForecast.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
       gradientForecast.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
@@ -1015,8 +1208,9 @@
           plugins: {
             legend: { display: false },
             tooltip: {
+              enabled: true,
               backgroundColor: 'rgba(11, 15, 25, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
               borderWidth: 1,
               padding: 12,
               cornerRadius: 10,
@@ -1027,6 +1221,12 @@
                   return ` ${context.dataset.label}: ${Number(context.parsed.y).toFixed(1)} mg/dL`;
                 }
               }
+            }
+          },
+          onHover: (event, elements) => {
+            if (elements && elements.length > 0) {
+              const idx = elements[0].index;
+              updateScrubberHUD(idx);
             }
           },
           scales: {
@@ -1097,7 +1297,7 @@
             legend: { display: false },
             tooltip: {
               backgroundColor: 'rgba(11, 15, 25, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderColor: 'rgba(255, 255, 255, 0.12)',
               borderWidth: 1,
               padding: 12,
               cornerRadius: 10,
@@ -1119,6 +1319,31 @@
           }
         }
       });
+    }
+
+    // --- Interactive Scrubber HUD ---
+    function updateScrubberHUD(idx) {
+      if (!forecastChart) return;
+      const t = timeLabels[idx];
+      const upper = forecastChart.data.datasets[1].data[idx];
+      const lower = forecastChart.data.datasets[2].data[idx];
+      const pred = forecastChart.data.datasets[3].data[idx];
+      const act = forecastChart.data.datasets[4].data[idx];
+
+      document.getElementById('hudTime').innerText = t;
+      if (pred !== undefined) {
+        document.getElementById('hudPredicted').innerText = `Pred: ${Number(pred).toFixed(1)} mg/dL`;
+      }
+      if (lower !== undefined && upper !== undefined) {
+        document.getElementById('hudBounds').innerText = `90% Bounds: [${Number(lower).toFixed(1)} – ${Number(upper).toFixed(1)}]`;
+      }
+      if (act !== undefined) {
+        document.getElementById('hudActual').innerText = `Ground Truth: ${Number(act).toFixed(1)} mg/dL`;
+        if (pred !== undefined) {
+          const delta = act - pred;
+          document.getElementById('hudDelta').innerText = `(Δ ${delta >= 0 ? '+' : ''}${delta.toFixed(1)})`;
+        }
+      }
     }
 
     // --- WebSocket Replay Connection ---
@@ -1143,7 +1368,6 @@
             document.getElementById('liveHR').innerText = Math.round(msg.hr);
             document.getElementById('liveMETs').innerText = Number(msg.mets).toFixed(2);
 
-            // Update Glucose Status Pill
             const pill = document.getElementById('glucoseStatusPill');
             if (g > 180) {
               pill.innerText = 'HIGH (>180)';
@@ -1228,6 +1452,11 @@
       }
     }
 
+    function setPatient(pid) {
+      document.getElementById('patientSelect').value = pid;
+      onPatientChange();
+    }
+
     async function onPatientChange() {
       await stopReplay();
       loadPatientDetails();
@@ -1265,11 +1494,13 @@
       }
       forecastChart.update();
 
-      // Also update baseline in What-If chart
       if (whatifChart) {
         whatifChart.data.datasets[1].data = forecast;
         whatifChart.update();
       }
+
+      // Default HUD to peak point or 11th step (+60m)
+      updateScrubberHUD(11);
 
       if (metrics) {
         document.getElementById('metricPeak').innerText = `${metrics.peak.toFixed(1)} mg/dL`;
@@ -1300,12 +1531,16 @@
     // --- What-If Sandbox Logic ---
     function selectDish(dishKey) {
       if (dishKey === 'masala_dosa') {
+        document.getElementById('activeDishNameLabel').innerText = 'Masala Dosa + Sambar';
         setSliders(62, 18, 10);
       } else if (dishKey === 'chicken_biryani') {
+        document.getElementById('activeDishNameLabel').innerText = 'Chicken Biryani Plate';
         setSliders(68, 22, 32);
       } else if (dishKey === 'rajma_chawal') {
+        document.getElementById('activeDishNameLabel').innerText = 'Rajma Chawal';
         setSliders(72, 14, 20);
       } else {
+        document.getElementById('activeDishNameLabel').innerText = 'Roti, Dal & Sabzi';
         setSliders(48, 12, 16);
       }
       executeWhatIfSimulation();
@@ -1384,7 +1619,6 @@
           const data = await res.json();
           let simTrajectory = data.forecast || [];
 
-          // Behavioral adjustments
           if (walking) {
             simTrajectory = simTrajectory.map((v, idx) => idx > 6 ? v - 18.0 : v);
           }
@@ -1397,7 +1631,6 @@
             whatifChart.update();
           }
 
-          // Compute Deltas
           const baselinePeak = 168.0;
           const simPeak = Math.max(...simTrajectory, 120.0);
           const deltaPeak = simPeak - baselinePeak;
@@ -1416,12 +1649,36 @@
       }
     }
 
+    // --- Custom Meal Modal ---
+    function openCustomMealModal() {
+      document.getElementById('customMealModal').classList.remove('hidden');
+    }
+
+    function closeCustomMealModal() {
+      document.getElementById('customMealModal').classList.add('hidden');
+    }
+
+    function applyCustomMealToSandbox() {
+      const name = document.getElementById('customDishName').value || 'Custom Meal';
+      const c = Number(document.getElementById('customCarbs').value) || 50;
+      const f = Number(document.getElementById('customFat').value) || 15;
+      const p = Number(document.getElementById('customProtein').value) || 15;
+      const port = Number(document.getElementById('customPortion').value) || 100;
+
+      document.getElementById('activeDishNameLabel').innerText = name;
+      document.getElementById('inputPortion').value = port;
+      document.getElementById('valPortion').innerText = port + '%';
+      setSliders(c, f, p);
+      closeCustomMealModal();
+      switchTab('whatif');
+      executeWhatIfSimulation();
+    }
+
     // --- Stress Degradation Scenarios ---
     async function injectDegradation(degId) {
       activeDegradation = degId;
       document.getElementById('activeDegradationLabel').innerText = degId;
 
-      // Update button highlights
       document.querySelectorAll('.deg-card').forEach(b => {
         b.className = 'deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-emerald-500/50 transition';
       });
@@ -1432,7 +1689,6 @@
 
       await fetch(`/replay/degrade?session_id=${activeSession}&degradation=${degId}`, { method: 'POST' });
 
-      // Update safety banner
       const banner = document.getElementById('safetyNoticeText');
       if (degId === 'D0') {
         banner.innerText = 'Nominal state (D0): Candidate S produces calibrated 180-min postprandial trajectory with tight ±14 mg/dL 90% conformal bands. All telemetry signals fully verified.';
@@ -1475,9 +1731,119 @@
       }
     }
 
-    // --- Tactile Keyboard Navigation ---
+    // --- Theme Toggle (Obsidian Dark vs Paper Light) ---
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      if (isDarkMode) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      if (forecastChart) forecastChart.update();
+      if (whatifChart) whatifChart.update();
+    }
+
+    // --- Raycast Command Palette ---
+    function openCommandPalette() {
+      const modal = document.getElementById('commandPaletteModal');
+      modal.classList.remove('hidden');
+      const inp = document.getElementById('cmdPaletteInput');
+      inp.value = '';
+      filterCommandPalette();
+      inp.focus();
+    }
+
+    function closeCommandPalette() {
+      document.getElementById('commandPaletteModal').classList.add('hidden');
+    }
+
+    function filterCommandPalette() {
+      const q = (document.getElementById('cmdPaletteInput').value || '').toLowerCase().trim();
+      filteredPaletteActions = commandActions.filter(a => 
+        a.title.toLowerCase().includes(q) || a.cat.toLowerCase().includes(q)
+      );
+      selectedPaletteIndex = 0;
+      renderCommandPaletteList();
+    }
+
+    function renderCommandPaletteList() {
+      const container = document.getElementById('cmdPaletteList');
+      if (filteredPaletteActions.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">No matching clinical actions found</div>';
+        return;
+      }
+
+      container.innerHTML = filteredPaletteActions.map((item, idx) => {
+        const isSelected = idx === selectedPaletteIndex;
+        return `
+          <div 
+            onclick="executePaletteAction(${idx})"
+            class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition text-xs ${
+              isSelected 
+                ? 'bg-emerald-950/60 border border-emerald-500/50 text-white shadow-sm' 
+                : 'bg-carbon-950/60 border border-white/[0.04] text-slate-300 hover:border-white/[0.1]'
+            }"
+          >
+            <div class="flex items-center gap-2.5">
+              <span class="w-1.5 h-1.5 rounded-full ${item.cat === 'Replay' ? 'bg-emerald-400' : item.cat === 'Twin' ? 'bg-cyan-400' : item.cat === 'What-If' ? 'bg-purple-400' : item.cat === 'Stress' ? 'bg-rose-400' : 'bg-amber-400'}"></span>
+              <span>${item.title}</span>
+            </div>
+            <span class="font-mono text-[11px] bg-carbon-850 px-2 py-0.5 rounded text-slate-400 border border-white/[0.08]">${item.key}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function onPaletteKeyDown(e) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedPaletteIndex = (selectedPaletteIndex + 1) % filteredPaletteActions.length;
+        renderCommandPaletteList();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedPaletteIndex = (selectedPaletteIndex - 1 + filteredPaletteActions.length) % filteredPaletteActions.length;
+        renderCommandPaletteList();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (filteredPaletteActions[selectedPaletteIndex]) {
+          executePaletteAction(selectedPaletteIndex);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        closeCommandPalette();
+      }
+    }
+
+    function executePaletteAction(idx) {
+      const item = filteredPaletteActions[idx];
+      if (item && item.run) {
+        closeCommandPalette();
+        item.run();
+      }
+    }
+
+    // --- Global Keyboard Accelerators ---
     window.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      // Cmd+K / Ctrl+K
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        const modal = document.getElementById('commandPaletteModal');
+        if (modal.classList.contains('hidden')) {
+          openCommandPalette();
+        } else {
+          closeCommandPalette();
+        }
+        return;
+      }
+
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') {
+        if (e.key === 'Escape') {
+          closeCommandPalette();
+          closeCustomMealModal();
+        }
+        return;
+      }
+
       if (e.code === 'Space') {
         e.preventDefault();
         togglePlayPause();

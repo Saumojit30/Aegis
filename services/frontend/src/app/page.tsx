@@ -2,6 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 
+interface CommandAction {
+  id: string;
+  title: string;
+  cat: string;
+  key: string;
+  run: () => void;
+}
+
 export default function ClinicianDashboard() {
   // Navigation & View State
   const [activeTab, setActiveTab] = useState<"forecast" | "whatif" | "profile" | "audit">("forecast");
@@ -11,6 +19,19 @@ export default function ClinicianDashboard() {
   const [speed, setSpeed] = useState(10);
   const [isPlaying, setIsPlaying] = useState(false);
   const [degradation, setDegradation] = useState("D0");
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  // Command Palette State
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [paletteQuery, setPaletteQuery] = useState("");
+  const [paletteIndex, setPaletteIndex] = useState(0);
+
+  // Custom Meal Modal State
+  const [isCustomMealOpen, setIsCustomMealOpen] = useState(false);
+  const [customName, setCustomName] = useState("Paneer Butter Masala & Roti");
+  const [customCarbs, setCustomCarbs] = useState(52);
+  const [customFat, setCustomFat] = useState(24);
+  const [customProtein, setCustomProtein] = useState(18);
 
   // Biometrics Telemetry
   const [liveGlucose, setLiveGlucose] = useState(136.6);
@@ -21,6 +42,7 @@ export default function ClinicianDashboard() {
   const [reliability, setReliability] = useState<"HIGH" | "MODERATE" | "LOW">("HIGH");
 
   // What-If Sandbox State
+  const [activeDishName, setActiveDishName] = useState("Roti, Dal & Sabzi");
   const [carbs, setCarbs] = useState(48);
   const [fat, setFat] = useState(12);
   const [protein, setProtein] = useState(16);
@@ -79,20 +101,93 @@ export default function ClinicianDashboard() {
 
   const selectDish = (dish: string) => {
     if (dish === "masala_dosa") {
+      setActiveDishName("Masala Dosa + Sambar");
       setCarbs(62); setFat(18); setProtein(10);
     } else if (dish === "chicken_biryani") {
+      setActiveDishName("Chicken Biryani Plate");
       setCarbs(68); setFat(22); setProtein(32);
     } else if (dish === "rajma_chawal") {
+      setActiveDishName("Rajma Chawal");
       setCarbs(72); setFat(14); setProtein(20);
     } else {
+      setActiveDishName("Roti, Dal & Sabzi");
       setCarbs(48); setFat(12); setProtein(16);
     }
   };
 
-  // Keyboard Shortcuts (Space, N, 1-4)
+  const applyCustomMeal = () => {
+    setActiveDishName(customName);
+    setCarbs(customCarbs);
+    setFat(customFat);
+    setProtein(customProtein);
+    setIsCustomMealOpen(false);
+    setActiveTab("whatif");
+  };
+
+  // Command Palette Actions
+  const actions: CommandAction[] = [
+    { id: "play", title: "Replay: Toggle Play / Pause Stream", cat: "Replay", key: "Space", run: () => (isPlaying ? handlePause() : handleStart()) },
+    { id: "jump", title: "Replay: Jump to Next Clinical Meal", cat: "Replay", key: "N", run: handleJumpNextMeal },
+    { id: "p020", title: "Twin: Switch to P020 (Type 2 Diabetes, 58y)", cat: "Twin", key: "P20", run: () => setPatientId("P020") },
+    { id: "p021", title: "Twin: Switch to P021 (Type 2 Diabetes, 61y)", cat: "Twin", key: "P21", run: () => setPatientId("P021") },
+    { id: "p010", title: "Twin: Switch to P010 (Prediabetes, 48y)", cat: "Twin", key: "P10", run: () => setPatientId("P010") },
+    { id: "p001", title: "Twin: Switch to P001 (Healthy Control, 28y)", cat: "Twin", key: "P01", run: () => setPatientId("P001") },
+    { id: "preset_roti", title: "What-If: Roti, Dal & Sabzi", cat: "What-If", key: "R", run: () => { setActiveTab("whatif"); selectDish("roti_dal_sabzi"); } },
+    { id: "preset_dosa", title: "What-If: Masala Dosa + Sambar", cat: "What-If", key: "D", run: () => { setActiveTab("whatif"); selectDish("masala_dosa"); } },
+    { id: "preset_biryani", title: "What-If: Chicken Biryani", cat: "What-If", key: "B", run: () => { setActiveTab("whatif"); selectDish("chicken_biryani"); } },
+    { id: "custom_modal", title: "What-If: Open Custom Meal Builder Modal", cat: "What-If", key: "+", run: () => setIsCustomMealOpen(true) },
+    { id: "deg_d0", title: "Stress: Nominal 5-Min Telemetry (D0)", cat: "Stress", key: "D0", run: () => handleDegradation("D0") },
+    { id: "deg_d1", title: "Stress: 30m Signal Dropout (D1)", cat: "Stress", key: "D1", run: () => handleDegradation("D1_30m") },
+    { id: "deg_d3", title: "Stress: No Wearable HR/METs (D3)", cat: "Stress", key: "D3", run: () => handleDegradation("D3") },
+    { id: "tab_1", title: "View: 1. Live Forecast & Monitoring", cat: "View", key: "1", run: () => setActiveTab("forecast") },
+    { id: "tab_2", title: "View: 2. What-If Meal Sandbox", cat: "View", key: "2", run: () => setActiveTab("whatif") },
+    { id: "tab_3", title: "View: 3. Patient Digital Twin Phenotype", cat: "View", key: "3", run: () => setActiveTab("profile") },
+    { id: "tab_4", title: "View: 4. Sensor Stress-Test Studio", cat: "View", key: "4", run: () => setActiveTab("audit") },
+  ];
+
+  const filteredActions = actions.filter((a) =>
+    a.title.toLowerCase().includes(paletteQuery.toLowerCase()) ||
+    a.cat.toLowerCase().includes(paletteQuery.toLowerCase())
+  );
+
+  // Keyboard Shortcuts (Cmd+K, Space, N, 1-4)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) return;
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsPaletteOpen((prev) => !prev);
+        setPaletteQuery("");
+        setPaletteIndex(0);
+        return;
+      }
+
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
+        if (e.key === "Escape") {
+          setIsPaletteOpen(false);
+          setIsCustomMealOpen(false);
+        }
+        return;
+      }
+
+      if (isPaletteOpen) {
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          setPaletteIndex((prev) => (prev + 1) % (filteredActions.length || 1));
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          setPaletteIndex((prev) => (prev - 1 + (filteredActions.length || 1)) % (filteredActions.length || 1));
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          if (filteredActions[paletteIndex]) {
+            filteredActions[paletteIndex].run();
+            setIsPaletteOpen(false);
+          }
+        } else if (e.key === "Escape") {
+          setIsPaletteOpen(false);
+        }
+        return;
+      }
+
       if (e.code === "Space") {
         e.preventDefault();
         if (isPlaying) handlePause();
@@ -112,10 +207,10 @@ export default function ClinicianDashboard() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isPlaying, patientId, speed, degradation]);
+  }, [isPlaying, patientId, speed, degradation, isPaletteOpen, filteredActions, paletteIndex]);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#06080e] text-slate-100 font-sans selection:bg-emerald-500/30">
+    <div className={`flex flex-col min-h-screen ${isDarkMode ? "bg-[#06080e] text-slate-100" : "bg-slate-50 text-slate-900"} font-sans selection:bg-emerald-500/30`}>
       
       {/* 1. Clinical Research & Governance Bar */}
       <aside className="bg-[#0b0f19]/90 border-b border-amber-500/20 text-amber-200/90 px-6 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-inner">
@@ -157,7 +252,7 @@ export default function ClinicianDashboard() {
                   AEGIS <span className="text-slate-400 font-normal">Twin Suite</span>
                 </h1>
                 <span className="bg-slate-800 text-cyan-400 border border-cyan-500/30 text-xs px-2 py-0.5 rounded font-mono font-semibold">
-                  2026.1-PROD
+                  2026.4-PROD
                 </span>
               </div>
               <p className="text-xs text-slate-400">Continuous 180-Min Postprandial Glycemic Digital Twin</p>
@@ -166,7 +261,19 @@ export default function ClinicianDashboard() {
 
           {/* Replay Controls Cockpit */}
           <div className="flex flex-wrap items-center gap-2.5 bg-[#06080e]/90 p-1.5 rounded-2xl border border-white/[0.08] shadow-inner">
-            <div className="flex items-center gap-2 pl-2">
+            
+            {/* Command Palette Trigger */}
+            <button
+              onClick={() => setIsPaletteOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-[#111726] hover:bg-[#182033] border border-white/[0.08] text-slate-300 hover:text-white rounded-xl text-xs font-mono transition"
+            >
+              <span>Command</span>
+              <kbd className="bg-[#06080e] border border-white/[0.1] text-emerald-400 px-1.5 py-0.2 rounded text-[11px]">⌘K</kbd>
+            </button>
+
+            <div className="h-5 w-px bg-slate-800 hidden md:block"></div>
+
+            <div className="flex items-center gap-2 pl-1">
               <span className="text-xs text-slate-400 font-medium">Twin:</span>
               <select
                 value={patientId}
@@ -219,10 +326,20 @@ export default function ClinicianDashboard() {
             </div>
           </div>
 
-          {/* Right Status Beacon */}
-          <div className="flex items-center gap-2 text-xs font-mono bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="tracking-wide">LIVE SENSOR STREAM</span>
+          {/* Right Status Beacon & Theme Toggle */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsDarkMode((prev) => !prev)}
+              className="p-2 rounded-xl bg-[#06080e] border border-white/[0.08] text-slate-300 hover:text-white transition"
+              title="Toggle Theme"
+            >
+              {isDarkMode ? "🌙" : "☀️"}
+            </button>
+
+            <div className="flex items-center gap-2 text-xs font-mono bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.15)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="tracking-wide">LIVE SENSOR STREAM</span>
+            </div>
           </div>
 
         </div>
@@ -277,9 +394,9 @@ export default function ClinicianDashboard() {
           <div className="hidden xl:flex items-center gap-4 text-xs font-mono text-slate-400">
             <span className="flex items-center gap-1.5 bg-[#0b0f19] border border-white/[0.06] px-2.5 py-1 rounded-lg">
               <span className="text-slate-500">Shortcuts:</span>
+              <kbd className="text-white bg-slate-800 px-1.5 py-0.5 rounded border border-white/[0.08]">Cmd+K</kbd> Command
               <kbd className="text-white bg-slate-800 px-1.5 py-0.5 rounded border border-white/[0.08]">Space</kbd> Play
               <kbd className="text-white bg-slate-800 px-1.5 py-0.5 rounded border border-white/[0.08]">N</kbd> Next Meal
-              <kbd className="text-white bg-slate-800 px-1.5 py-0.5 rounded border border-white/[0.08]">1-4</kbd> Switch Tab
             </span>
           </div>
         </div>
@@ -287,15 +404,13 @@ export default function ClinicianDashboard() {
 
       {/* 4. Main Body Content */}
       <main className="flex-1 p-6 max-w-[1720px] w-full mx-auto">
-        {/* ========================================================================= */}
         {/* TAB 1: LIVE FORECAST & MONITORING */}
-        {/* ========================================================================= */}
         {activeTab === "forecast" && (
           <div className="space-y-6">
-            {/* 4 Hero KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Glucose KPI Card + TIR Segmented Bar */}
               <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-5 relative overflow-hidden backdrop-blur-xl shadow-xl">
-                <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
                   <span>Current Glycemia (CGM)</span>
                   <span className="bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full font-mono text-xs">
                     IN RANGE
@@ -305,7 +420,19 @@ export default function ClinicianDashboard() {
                   <span className="text-4xl font-extrabold font-mono tracking-tight text-white">{liveGlucose}</span>
                   <span className="text-sm font-medium text-slate-400">mg/dL</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                {/* TIR Bar */}
+                <div className="my-2 space-y-1">
+                  <div className="flex justify-between text-[11px] font-mono text-slate-400">
+                    <span className="text-emerald-400 font-semibold">TIR: 78% (Target &ge;70%)</span>
+                    <span>GMI: 6.8%</span>
+                  </div>
+                  <div className="w-full h-1.5 rounded-full overflow-hidden flex bg-slate-900 border border-white/[0.08]">
+                    <div className="bg-emerald-500 h-full" style={{ width: "78%" }}></div>
+                    <div className="bg-rose-500 h-full" style={{ width: "18%" }}></div>
+                    <div className="bg-amber-400 h-full" style={{ width: "4%" }}></div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06]">
                   <span className="text-emerald-400 font-mono">↗ +1.2 mg/dL/min</span>
                   <span className="text-slate-500">Dexcom G6 5-min</span>
                 </div>
@@ -322,7 +449,7 @@ export default function ClinicianDashboard() {
                   <span className="text-4xl font-extrabold font-mono tracking-tight text-rose-300">{liveHR}</span>
                   <span className="text-sm font-medium text-slate-400">bpm</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
                   <span>Baseline: 68 bpm</span>
                   <span className="text-slate-500">Optical PPG Wearable</span>
                 </div>
@@ -339,7 +466,7 @@ export default function ClinicianDashboard() {
                   <span className="text-4xl font-extrabold font-mono tracking-tight text-cyan-300">{liveMETs.toFixed(2)}</span>
                   <span className="text-sm font-medium text-slate-400">METs</span>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
                   <span>Rest / Desk Activity</span>
                   <span className="text-slate-500">Accelerometry Fusion</span>
                 </div>
@@ -356,7 +483,7 @@ export default function ClinicianDashboard() {
                   <div className="text-base font-bold text-white truncate">{lastMeal}</div>
                   <div className="text-xs font-mono text-amber-400 mt-0.5">{lastMealMacros}</div>
                 </div>
-                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-2">
+                <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
                   <span className="text-emerald-400">12-Step Buffer Ready</span>
                   <span className="text-slate-500">Parquet Engine</span>
                 </div>
@@ -364,8 +491,8 @@ export default function ClinicianDashboard() {
             </div>
 
             {/* Trajectory Canvas Card */}
-            <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
+            <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-4 backdrop-blur-xl">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-3">
                 <div>
                   <div className="flex items-center gap-3">
                     <h2 className="text-lg font-bold text-white tracking-tight">180-Minute Postprandial Glycemic Forecast</h2>
@@ -374,7 +501,7 @@ export default function ClinicianDashboard() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">
-                    Candidate S structured absorption model with 90% conformal bands and true recorded ground truth
+                    Candidate S structured absorption model with 90% conformal bounds and real recorded ground truth
                   </p>
                 </div>
 
@@ -391,8 +518,23 @@ export default function ClinicianDashboard() {
                 </div>
               </div>
 
-              {/* Graphical Display */}
-              <div className="h-80 w-full bg-[#06080e] rounded-xl border border-white/[0.06] p-4 flex flex-col justify-between relative overflow-hidden">
+              {/* Scrubber HUD Bar */}
+              <div className="flex flex-wrap items-center justify-between px-3.5 py-1.5 rounded-xl bg-[#06080e] border border-white/[0.08] text-xs font-mono text-slate-300">
+                <div className="flex items-center gap-3">
+                  <span className="text-slate-400">Live Scrubber:</span>
+                  <span className="text-white font-bold">+55 min</span>
+                  <span className="text-slate-600">|</span>
+                  <span className="text-emerald-400 font-bold">Pred: 164.2 mg/dL</span>
+                  <span className="text-slate-600">|</span>
+                  <span className="text-slate-300">90% Bounds: [150.2 – 178.2]</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-amber-400 font-semibold">Ground Truth: 162.0 mg/dL</span>
+                  <span className="text-slate-400">(Δ -2.2)</span>
+                </div>
+              </div>
+
+              <div className="h-80 w-full bg-[#06080e] rounded-xl border border-white/[0.06] p-4 flex flex-col justify-between">
                 <div className="flex justify-between items-center text-xs text-rose-400 font-mono border-b border-rose-500/30 pb-1">
                   <span>Clinical Hyperglycemia Boundary (180 mg/dL)</span>
                   <span className="bg-rose-950/80 px-2 py-0.5 rounded border border-rose-800/60">ADA Target &lt; 180</span>
@@ -402,7 +544,7 @@ export default function ClinicianDashboard() {
                   <div className="space-y-1">
                     <span className="text-sm font-semibold text-slate-200 block">Candidate S PyTorch Streaming Active</span>
                     <span className="text-xs text-slate-400 block max-w-lg mx-auto">
-                      Live connection to FastAPI WebSocket streaming real 5,184-step sensor parquets and Ridge K=5 adapted weights.
+                      Streaming real 5,184-step sensor parquets and Ridge K=5 adapted weights.
                     </span>
                   </div>
                 </div>
@@ -418,23 +560,23 @@ export default function ClinicianDashboard() {
               </div>
 
               {/* 4 Quantitative Metric Cards */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-3 border-t border-white/[0.06]">
-                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-white/[0.06]">
+                <div className="bg-[#06080e] p-3.5 rounded-xl border border-white/[0.06] text-center">
                   <span className="text-xs text-slate-400 block mb-1">Predicted Peak</span>
                   <span className="text-2xl font-bold font-mono text-white">164.2 mg/dL</span>
                   <span className="text-xs text-emerald-400 block mt-1">Within Target</span>
                 </div>
-                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+                <div className="bg-[#06080e] p-3.5 rounded-xl border border-white/[0.06] text-center">
                   <span className="text-xs text-slate-400 block mb-1">Time to Peak</span>
                   <span className="text-2xl font-bold font-mono text-white">55 min</span>
                   <span className="text-xs text-slate-500 block mt-1">Absorption Window</span>
                 </div>
-                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+                <div className="bg-[#06080e] p-3.5 rounded-xl border border-white/[0.06] text-center">
                   <span className="text-xs text-slate-400 block mb-1">Delayed Mean (120-180m)</span>
                   <span className="text-2xl font-bold font-mono text-sky-400">138.4 mg/dL</span>
                   <span className="text-xs text-slate-500 block mt-1">Late Lipid Plateau</span>
                 </div>
-                <div className="bg-[#06080e] p-4 rounded-xl border border-white/[0.06] text-center">
+                <div className="bg-[#06080e] p-3.5 rounded-xl border border-white/[0.06] text-center">
                   <span className="text-xs text-slate-400 block mb-1">Time Above 180</span>
                   <span className="text-2xl font-bold font-mono text-emerald-400">0 min (0%)</span>
                   <span className="text-xs text-emerald-400 block mt-1">Optimal Safety</span>
@@ -444,20 +586,26 @@ export default function ClinicianDashboard() {
           </div>
         )}
 
-        {/* ========================================================================= */}
         {/* TAB 2: INTERACTIVE WHAT-IF MEAL SANDBOX */}
-        {/* ========================================================================= */}
         {activeTab === "whatif" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              {/* Controls Column (5 cols) */}
               <div className="lg:col-span-5 bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
-                <div className="border-b border-white/[0.07] pb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-                    <h2 className="text-base font-bold text-white">What-If Counterfactual Sandbox</h2>
+                <div className="border-b border-white/[0.07] pb-3 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
+                      <h2 className="text-base font-bold text-white">What-If Counterfactual Sandbox</h2>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">Test modifications to portion, nutrients, or behavioral timing</p>
                   </div>
-                  <p className="text-xs text-slate-400 mt-1">Test modifications to portion, nutrients, or behavioral timing before eating</p>
+
+                  <button
+                    onClick={() => setIsCustomMealOpen(true)}
+                    className="px-3 py-1.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/50 text-purple-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition"
+                  >
+                    <span>+ Custom Meal</span>
+                  </button>
                 </div>
 
                 {/* Preset Meal Quick Cards */}
@@ -488,7 +636,7 @@ export default function ClinicianDashboard() {
                 {/* Dynamic Macro Visualizer */}
                 <div className="bg-[#06080e] p-3.5 rounded-xl border border-white/[0.06] space-y-2">
                   <div className="flex justify-between text-xs text-slate-300">
-                    <span>Macronutrient Composition</span>
+                    <span className="font-semibold text-white">{activeDishName}</span>
                     <span className="font-mono font-semibold text-slate-200">{totalKcal} kcal</span>
                   </div>
                   <div className="w-full h-3 rounded-full overflow-hidden flex bg-slate-900 border border-white/[0.08]">
@@ -497,9 +645,9 @@ export default function ClinicianDashboard() {
                     <div className="bg-sky-500 h-full transition-all duration-300" style={{ width: `${fPct}%` }}></div>
                   </div>
                   <div className="flex justify-between text-xs font-mono text-slate-400">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> Carbs ({cPct}%)</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Protein ({pPct}%)</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-sky-500"></span> Fat ({fPct}%)</span>
+                    <span>Carbs ({cPct}%)</span>
+                    <span>Protein ({pPct}%)</span>
+                    <span>Fat ({fPct}%)</span>
                   </div>
                 </div>
 
@@ -571,7 +719,7 @@ export default function ClinicianDashboard() {
                 </div>
               </div>
 
-              {/* Simulation Result Column (7 cols) */}
+              {/* Simulation Result Column */}
               <div className="lg:col-span-7 bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
                 <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
                   <div>
@@ -598,7 +746,7 @@ export default function ClinicianDashboard() {
                       Peak Estimate: {(164.2 * (portion / 100) - (walking ? 18 : 0) - (sequencing ? 15 : 0)).toFixed(1)} mg/dL
                     </div>
                     <div className="text-xs text-slate-400">
-                      Absorption kinetics adjusted for {carbs}g Carbs, {fat}g Fat, {protein}g Protein
+                      Adjusted for {carbs}g Carbs, {fat}g Fat, {protein}g Protein
                     </div>
                   </div>
                   <div className="flex justify-between text-xs text-slate-500 font-mono border-t border-white/[0.06] pt-1">
@@ -656,9 +804,7 @@ export default function ClinicianDashboard() {
           </div>
         )}
 
-        {/* ========================================================================= */}
         {/* TAB 3: PATIENT PROFILE */}
-        {/* ========================================================================= */}
         {activeTab === "profile" && (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -709,9 +855,7 @@ export default function ClinicianDashboard() {
           </div>
         )}
 
-        {/* ========================================================================= */}
         {/* TAB 4: SENSOR QUALITY & STRESS-TEST */}
-        {/* ========================================================================= */}
         {activeTab === "audit" && (
           <div className="space-y-6">
             <div className="bg-[#0b0f19]/80 border border-white/[0.07] rounded-2xl p-6 shadow-2xl space-y-5 backdrop-blur-xl">
@@ -765,13 +909,89 @@ export default function ClinicianDashboard() {
         )}
       </main>
 
-      {/* 5. Footer */}
+      {/* 5. Command Palette Modal */}
+      {isPaletteOpen && (
+        <div className="fixed inset-0 z-50 bg-[#04060c]/85 backdrop-blur-md flex items-start justify-center pt-24 px-4">
+          <div className="w-full max-w-xl bg-[#0b0f19] rounded-2xl border border-white/[0.12] shadow-2xl overflow-hidden">
+            <div className="p-3.5 border-b border-white/[0.08] flex items-center gap-3 bg-[#06080e]/60">
+              <input
+                type="text"
+                autoFocus
+                value={paletteQuery}
+                onChange={(e) => { setPaletteQuery(e.target.value); setPaletteIndex(0); }}
+                placeholder="Search actions, patients, presets, or stress tests..."
+                className="bg-transparent text-white placeholder-slate-500 text-xs outline-none flex-1 font-sans"
+              />
+              <kbd className="text-[11px] font-mono bg-[#111726] text-slate-400 px-2 py-0.5 rounded border border-white/[0.08]">ESC</kbd>
+            </div>
+            <div className="max-h-80 overflow-y-auto p-2 space-y-1">
+              {filteredActions.length === 0 ? (
+                <div className="text-xs text-slate-500 text-center py-6">No matching clinical actions</div>
+              ) : (
+                filteredActions.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    onClick={() => { item.run(); setIsPaletteOpen(false); }}
+                    className={`flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition text-xs ${
+                      idx === paletteIndex ? "bg-emerald-950/60 border border-emerald-500/50 text-white" : "bg-[#06080e]/60 border border-white/[0.04] text-slate-300 hover:border-white/[0.1]"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      <span>{item.title}</span>
+                    </div>
+                    <span className="font-mono text-[11px] bg-[#111726] px-2 py-0.5 rounded text-slate-400 border border-white/[0.08]">{item.key}</span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Custom Meal Modal */}
+      {isCustomMealOpen && (
+        <div className="fixed inset-0 z-50 bg-[#04060c]/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-[#0b0f19] rounded-2xl border border-white/[0.12] shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+              <h3 className="text-sm font-bold text-white">Create Custom Meal Input</h3>
+              <button onClick={() => setIsCustomMealOpen(false)} className="text-slate-400 hover:text-white text-xs">✕</button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-300 font-medium block mb-1">Dish Name:</label>
+                <input type="text" value={customName} onChange={(e) => setCustomName(e.target.value)} className="w-full bg-[#06080e] border border-white/[0.08] text-white rounded-xl p-2.5 outline-none" />
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="text-amber-400 font-medium block mb-1">Carbs (g):</label>
+                  <input type="number" value={customCarbs} onChange={(e) => setCustomCarbs(Number(e.target.value))} className="w-full bg-[#06080e] border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none" />
+                </div>
+                <div>
+                  <label className="text-sky-400 font-medium block mb-1">Fat (g):</label>
+                  <input type="number" value={customFat} onChange={(e) => setCustomFat(Number(e.target.value))} className="w-full bg-[#06080e] border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none" />
+                </div>
+                <div>
+                  <label className="text-emerald-400 font-medium block mb-1">Protein (g):</label>
+                  <input type="number" value={customProtein} onChange={(e) => setCustomProtein(Number(e.target.value))} className="w-full bg-[#06080e] border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-white/[0.06]">
+              <button onClick={() => setIsCustomMealOpen(false)} className="px-3.5 py-1.5 rounded-xl bg-[#111726] text-slate-300 text-xs">Cancel</button>
+              <button onClick={applyCustomMeal} className="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold">Apply to Sandbox</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 7. Footer */}
       <footer className="border-t border-white/[0.07] px-6 py-3 bg-[#06080e]/80 text-xs text-slate-500 flex flex-wrap justify-between items-center gap-3">
         <div>Team Aegis — Happiest Health Digital Twin Challenge 2026</div>
         <div className="flex items-center gap-4">
+          <span><kbd className="bg-slate-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">Cmd+K</kbd> Command</span>
           <span><kbd className="bg-slate-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">Space</kbd> Play / Pause</span>
           <span><kbd className="bg-slate-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">N</kbd> Next Meal</span>
-          <span><kbd className="bg-slate-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">1-4</kbd> Switch Tab</span>
         </div>
       </footer>
     </div>
