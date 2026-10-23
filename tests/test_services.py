@@ -173,3 +173,45 @@ def test_replay_lifecycle(client):
     stop_res = client.post("/replay/stop?session_id=s_test")
     assert stop_res.status_code == 200
     assert stop_res.json()["status"] == "STOPPED"
+
+
+def test_replay_jump_to_next_meal_and_real_data(client):
+    start_res = client.post("/replay/start?session_id=s_jump&patient_id=P020&speed=10")
+    assert start_res.status_code == 200
+    assert start_res.json()["total_steps"] == 864  # Real 72 hours of 5-min intervals
+
+    jump_res = client.post("/replay/jump?session_id=s_jump")
+    assert jump_res.status_code == 200
+    jump_state = jump_res.json()
+    assert jump_state["cursor_idx"] > 0
+    # Stop session
+    client.post("/replay/stop?session_id=s_jump")
+
+
+def test_predict_with_real_retrospective_sequence(client):
+    # Pass 12 real telemetry points
+    seq_pts = [
+        {"glucose": 138.0 + i * 0.5, "hr": 70.0 + i, "mets": 1.1, "glucose_missing": False}
+        for i in range(12)
+    ]
+    payload = {
+        "patient_id": "P020",
+        "session_id": "real_seq_test",
+        "t0": "2026-10-01T08:00:00Z",
+        "g_t0": 144.0,
+        "retrospective_sequence": seq_pts,
+        "meal": {
+            "carbs_g": 65.0,
+            "protein_g": 22.0,
+            "fat_g": 18.0,
+            "fiber_g": 5.0,
+            "meal_type": "breakfast",
+        },
+        "degradation": "D0",
+    }
+    response = client.post("/predict", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["glucose"]) == 36
+    assert data["glucose"][0] > 140.0  # Grounded in g_t0 = 144.0
+    assert data["metrics"]["peak"] >= 144.0

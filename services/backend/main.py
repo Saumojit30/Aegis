@@ -147,13 +147,29 @@ def get_patient_state(patient_id: str, db: Session = Depends(get_db)):
 
     meal_count = db.query(MealModel).filter(MealModel.patient_id == patient_id).count()
 
+    # Retrieve real telemetry from series or active session
+    curr_g, curr_hr, curr_mets = 120.0, 72.0, 1.0
+    series = replay_engine.get_patient_series(patient_id)
+    if series:
+        curr_g = series[0]["glucose"]
+        curr_hr = series[0]["hr"]
+        curr_mets = series[0]["mets"]
+
+    # Check if active session overrides
+    for state in replay_engine.sessions.values():
+        if state.patient_id == patient_id:
+            curr_g = state.current_glucose
+            curr_hr = state.current_hr
+            curr_mets = state.current_mets
+            break
+
     return {
         "patient_id": patient_id,
         "profile": p.to_dict()["profile"],
         "stream": {
-            "last_glucose": 124.0,
-            "hr": 74.0,
-            "mets": 1.15,
+            "last_glucose": curr_g,
+            "hr": curr_hr,
+            "mets": curr_mets,
             "anchor_age_min": 0.0,
         },
         "personalisation": {
@@ -337,6 +353,14 @@ async def resume_replay(session_id: str = "default"):
 @app.post("/replay/stop")
 async def stop_replay(session_id: str = "default"):
     state = replay_engine.stop_session(session_id)
+    if not state:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return state.to_dict()
+
+
+@app.post("/replay/jump")
+async def jump_replay(session_id: str = "default"):
+    state = replay_engine.jump_to_next_meal(session_id)
     if not state:
         raise HTTPException(status_code=404, detail="Session not found")
     return state.to_dict()
