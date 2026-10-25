@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aegis — Type 2 Diabetes Digital Twin Platform (2026)</title>
+  <title>Aegis — Type 2 Diabetes Digital Twin Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
@@ -11,22 +11,6 @@
       darkMode: 'class',
       theme: {
         extend: {
-          colors: {
-            carbon: {
-              950: '#06080e',
-              900: '#0b0f19',
-              850: '#111726',
-              800: '#182033',
-              700: '#232e47',
-            },
-            clinical: {
-              emerald: '#10b981',
-              cyan: '#06b6d4',
-              amber: '#f59e0b',
-              rose: '#f43f5e',
-              purple: '#8b5cf6',
-            }
-          },
           fontFamily: {
             sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
             mono: ['JetBrains Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
@@ -36,71 +20,77 @@
     }
   </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-    
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
     :root {
-      --bg-base: #06080e;
-      --card-base: linear-gradient(180deg, rgba(17, 23, 38, 0.75) 0%, rgba(11, 15, 25, 0.85) 100%);
-      --border-base: rgba(255, 255, 255, 0.08);
-      --text-main: #f1f5f9;
-      --text-sub: #94a3b8;
+      --bg-canvas: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f1f5f9;
+      --border-main: #e2e8f0;
+      --border-subtle: #cbd5e1;
+      --text-main: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+      --nav-active-bg: #0f172a;
+      --nav-active-text: #ffffff;
     }
 
-    html:not(.dark) {
-      --bg-base: #f8fafc;
-      --card-base: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-      --border-base: rgba(15, 23, 42, 0.08);
-      --text-main: #0f172a;
-      --text-sub: #475569;
+    html.dark {
+      --bg-canvas: #0d1117;
+      --bg-card: #161b22;
+      --bg-card-subtle: #0d1117;
+      --border-main: #30363d;
+      --border-subtle: #21262d;
+      --text-main: #f0f6fc;
+      --text-secondary: #8b949e;
+      --text-muted: #6e7681;
+      --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+      --nav-active-bg: #f0f6fc;
+      --nav-active-text: #0d1117;
     }
 
     body {
-      background-color: var(--bg-base);
+      background-color: var(--bg-canvas);
       color: var(--text-main);
-      background-image: 
-        radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.04) 0%, transparent 45%),
-        radial-gradient(circle at 85% 25%, rgba(6, 182, 212, 0.03) 0%, transparent 45%),
-        radial-gradient(circle at 50% 85%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
-      background-attachment: fixed;
+      font-family: 'Inter', sans-serif;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-    /* Glassmorphism surfaces */
-    .glass-card {
-      background: var(--card-base);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid var(--border-base);
-      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-    }
-    .glass-card-hover:hover {
-      border-color: rgba(16, 185, 129, 0.3);
-      box-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.7);
+    .clean-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-main);
+      box-shadow: var(--shadow-card);
+      border-radius: 12px;
+      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
-    /* Navigation pill active state */
-    .nav-pill.active {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(6, 182, 212, 0.12) 100%);
-      color: #ffffff;
-      border: 1px solid rgba(16, 185, 129, 0.5);
-      box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+    .clean-card:hover {
+      border-color: var(--border-subtle);
     }
 
-    /* Range slider custom thumb */
+    .nav-tab.active {
+      background-color: var(--nav-active-bg);
+      color: var(--nav-active-text);
+      font-weight: 600;
+    }
+
+    /* Range slider custom track */
     input[type=range] {
       -webkit-appearance: none;
-      background: #182033;
-      height: 6px;
+      background: var(--border-main);
+      height: 4px;
       border-radius: 9999px;
     }
     input[type=range]::-webkit-slider-thumb {
       -webkit-appearance: none;
-      height: 18px;
-      width: 18px;
+      height: 16px;
+      width: 16px;
       border-radius: 50%;
       background: #10b981;
       cursor: pointer;
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
-      border: 2px solid #ffffff;
+      border: 2px solid var(--bg-card);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       transition: transform 0.1s ease;
     }
     input[type=range]::-webkit-slider-thumb:hover {
@@ -113,144 +103,168 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #06080e;
+      background: var(--bg-canvas);
     }
     ::-webkit-scrollbar-thumb {
-      background: #182033;
-      border-radius: 9999px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #232e47;
+      background: var(--border-main);
+      border-radius: 4px;
     }
 
     /* Modal Backdrop */
     .modal-backdrop {
-      background: rgba(4, 6, 12, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+    html.dark .modal-backdrop {
+      background: rgba(0, 0, 0, 0.75);
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-emerald-500/30 selection:text-white">
+<body class="min-h-screen flex flex-col antialiased">
 
   <!-- ========================================================================= -->
-  <!-- 1. CLINICAL GOVERNANCE & RESEARCH PROVENANCE BAR                          -->
+  <!-- 1. CLINICAL GOVERNANCE BANNER                                             -->
   <!-- ========================================================================= -->
-  <aside aria-label="Clinical Disclaimer" class="bg-carbon-950/90 border-b border-amber-500/20 text-amber-200/90 px-6 py-2 text-xs flex flex-wrap items-center justify-between gap-3 shadow-inner">
-    <div class="flex items-center gap-3">
-      <span class="inline-flex items-center gap-1.5 font-bold tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded text-xs font-mono">
-        <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-        </svg>
+  <aside aria-label="Clinical Disclaimer" class="bg-amber-500/10 border-b border-amber-500/20 text-amber-800 dark:text-amber-300 px-6 py-2 text-xs flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-2.5">
+      <span class="inline-flex items-center gap-1 font-semibold uppercase tracking-wider bg-amber-500 text-slate-950 px-2 py-0.5 rounded text-[11px] font-mono">
         Research Prototype
       </span>
-      <span class="text-slate-300 text-xs">
-        Candidate S Digital Twin (Dual-Gamma Structured Absorption). <strong class="text-amber-200 font-semibold">Not medical advice. Not intended for insulin titration or acute clinical decisions.</strong>
+      <span>
+        Candidate S Digital Twin (Dual-Gamma Structured Absorption). <strong>Not medical advice. Not for acute clinical interventions or insulin titration.</strong>
       </span>
     </div>
-    <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
-      <span class="flex items-center gap-1.5">
-        <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Split-Conformal 90%
-      </span>
-      <span class="text-slate-600">•</span>
+    <div class="flex items-center gap-4 text-xs font-mono text-slate-500 dark:text-slate-400">
+      <span>Split-Conformal 90%</span>
+      <span>•</span>
       <span>Ridge $K=5$ Personalised</span>
-      <span class="text-slate-600">•</span>
-      <span class="text-emerald-400 font-semibold">Gate G2 Audit Passed</span>
+      <span>•</span>
+      <span class="text-emerald-600 dark:text-emerald-400 font-semibold">Gate G2 Audit Passed</span>
     </div>
   </aside>
 
   <!-- ========================================================================= -->
-  <!-- 2. HIGH-TECH 2026 HEADER & REPLAY COCKPIT                                -->
+  <!-- 2. FIGMA & OPENROUTER INSPIRED HEADER                                      -->
   <!-- ========================================================================= -->
-  <header class="bg-carbon-900/80 border-b border-white/[0.08] px-6 py-3.5 sticky top-0 z-40 backdrop-blur-xl shadow-lg">
+  <header class="bg-[var(--bg-card)] border-b border-[var(--border-main)] px-6 py-3 sticky top-0 z-40 transition-colors">
     <div class="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-4">
       
-      <!-- Brand & Identity -->
-      <div class="flex items-center gap-3.5">
-        <div class="relative flex items-center justify-center">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600/30 to-cyan-500/20 border border-emerald-500/40 flex items-center justify-center shadow-[0_0_20px_rgba(16,185,129,0.25)]">
-            <svg class="w-6 h-6 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <span class="absolute -top-1 -right-1 flex h-3 w-3">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-          </span>
+      <!-- Brand & Product Identity -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-emerald-600 dark:bg-emerald-500 flex items-center justify-center text-white font-bold text-sm shadow-sm">
+          AE
         </div>
         <div>
-          <div class="flex items-center gap-2.5">
-            <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-2">
-              AEGIS <span class="text-slate-400 font-normal">Twin Suite</span>
-            </h1>
-            <span class="bg-carbon-800 text-cyan-400 border border-cyan-500/30 text-xs px-2 py-0.5 rounded font-mono font-semibold">
-              2026.4-PROD
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm font-bold text-[var(--text-main)] tracking-tight">AEGIS</h1>
+            <span class="text-[11px] text-[var(--text-secondary)] font-mono bg-[var(--bg-card-subtle)] px-2 py-0.5 rounded border border-[var(--border-main)]">
+              Digital Twin v1.2
             </span>
           </div>
-          <p class="text-xs text-slate-400">Continuous 180-Min Postprandial Glycemic Digital Twin</p>
+          <p class="text-xs text-[var(--text-secondary)]">Postprandial Glycemic Forecast &amp; Counterfactual Simulation</p>
         </div>
       </div>
 
-      <!-- Center: Command Palette Trigger & Replay Controls Cockpit -->
-      <div class="flex flex-wrap items-center gap-2.5 bg-carbon-950/90 p-1.5 rounded-2xl border border-white/[0.08] shadow-inner">
+      <!-- Center: Segmented Navigation (Figma/OpenRouter style) -->
+      <nav aria-label="Dashboard Views" class="flex items-center bg-[var(--bg-card-subtle)] p-1 rounded-lg border border-[var(--border-main)] text-xs font-medium">
+        <button onclick="switchTab('forecast')" id="tabBtn-forecast" class="nav-tab active px-3.5 py-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-main)] transition">
+          1. Live Forecast
+        </button>
+        <button onclick="switchTab('whatif')" id="tabBtn-whatif" class="nav-tab px-3.5 py-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-main)] transition">
+          2. What-If Sandbox
+        </button>
+        <button onclick="switchTab('profile')" id="tabBtn-profile" class="nav-tab px-3.5 py-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-main)] transition">
+          3. Patient Profile
+        </button>
+        <button onclick="switchTab('audit')" id="tabBtn-audit" class="nav-tab px-3.5 py-1.5 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-main)] transition">
+          4. Sensor Quality
+        </button>
+      </nav>
+
+      <!-- Right: Utility Controls (Theme Toggle, Command, Sensor Beacon) -->
+      <div class="flex items-center gap-2.5">
         
-        <!-- Command Palette Trigger Pill -->
-        <button onclick="openCommandPalette()" class="flex items-center gap-2 px-3 py-1.5 bg-carbon-850 hover:bg-carbon-800 border border-white/[0.08] text-slate-300 hover:text-white rounded-xl text-xs font-mono transition shadow-sm" title="Open Raycast Command Palette (Cmd+K / Ctrl+K)">
-          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <!-- Command Palette Trigger -->
+        <button onclick="openCommandPalette()" class="flex items-center gap-2 px-2.5 py-1.5 bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] border border-[var(--border-main)] text-[var(--text-secondary)] hover:text-[var(--text-main)] rounded-lg text-xs font-mono transition shadow-sm" title="Search commands (Cmd+K / Ctrl+K)">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-          <span class="hidden sm:inline">Command</span>
-          <kbd class="bg-carbon-900 border border-white/[0.1] text-emerald-400 px-1.5 py-0.2 rounded text-[11px]">⌘K</kbd>
+          <span class="hidden sm:inline">Search</span>
+          <kbd class="bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[10px]">⌘K</kbd>
         </button>
 
-        <div class="h-5 w-px bg-slate-800 hidden md:block"></div>
+        <!-- Figma-Style Dark / Light Mode Switcher -->
+        <div class="flex items-center bg-[var(--bg-card-subtle)] p-0.5 rounded-lg border border-[var(--border-main)] text-xs">
+          <button id="themeBtnLight" onclick="setTheme('light')" class="px-2 py-1 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-main)] transition flex items-center gap-1" title="Light Theme">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </button>
+          <button id="themeBtnDark" onclick="setTheme('dark')" class="px-2 py-1 rounded-md text-[var(--text-secondary)] hover:text-[var(--text-main)] transition flex items-center gap-1" title="Dark Theme">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          </button>
+        </div>
 
-        <!-- Patient Selector -->
-        <div class="flex items-center gap-2 pl-1">
-          <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        <!-- Live Streaming Status Beacon -->
+        <div id="wsIndicator" class="flex items-center gap-1.5 text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-lg">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="wsStatus">LIVE STREAM</span>
+        </div>
+
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- 3. FIGMA CANVAS SUB-TOOLBAR (REPLAY TRANSPORT & PATIENT SELECTOR)          -->
+  <!-- ========================================================================= -->
+  <div class="bg-[var(--bg-card)] border-b border-[var(--border-main)] px-6 py-2.5 text-xs">
+    <div class="max-w-[1720px] mx-auto flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Patient Selector Dropdown -->
+      <div class="flex items-center gap-2">
+        <label for="patientSelect" class="text-[var(--text-secondary)] font-medium">Digital Twin:</label>
+        <select id="patientSelect" onchange="onPatientChange()" class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg px-2.5 py-1 text-xs font-medium outline-none focus:border-emerald-500 cursor-pointer">
+          <option value="P020" selected>P020 (Type 2 Diabetes • 58y, HbA1c 7.4%, Fasting 138)</option>
+          <option value="P021">P021 (Type 2 Diabetes • 61y, HbA1c 7.8%, Fasting 145)</option>
+          <option value="P010">P010 (Prediabetes • 48y, HbA1c 6.0%, Fasting 108)</option>
+          <option value="P011">P011 (Prediabetes • 52y, HbA1c 6.2%, Fasting 112)</option>
+          <option value="P001">P001 (Healthy Control • 28y, HbA1c 5.2%, Fasting 92)</option>
+          <option value="P002">P002 (Healthy Control • 34y, HbA1c 5.4%, Fasting 96)</option>
+        </select>
+      </div>
+
+      <!-- Replay Controls Transport Bar -->
+      <div class="flex items-center gap-2">
+        <button id="btnPlayPause" onclick="togglePlayPause()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-sm" title="Shortcut: Spacebar">
+          <svg id="playIconSvg" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
           </svg>
-          <select id="patientSelect" onchange="onPatientChange()" class="bg-carbon-850 hover:bg-carbon-800 border border-white/[0.08] text-white rounded-xl px-3 py-1.5 text-xs font-medium focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer transition">
-            <option value="P020" selected>P020 (Type 2 Diabetes • 58y, HbA1c 7.4%, Fasting 138)</option>
-            <option value="P021">P021 (Type 2 Diabetes • 61y, HbA1c 7.8%, Fasting 145)</option>
-            <option value="P010">P010 (Prediabetes • 48y, HbA1c 6.0%, Fasting 108)</option>
-            <option value="P011">P011 (Prediabetes • 52y, HbA1c 6.2%, Fasting 112)</option>
-            <option value="P001">P001 (Healthy Control • 28y, HbA1c 5.2%, Fasting 92)</option>
-            <option value="P002">P002 (Healthy Control • 34y, HbA1c 5.4%, Fasting 96)</option>
-          </select>
-        </div>
+          <span id="playText">Play</span>
+        </button>
 
-        <div class="h-5 w-px bg-slate-800 hidden md:block"></div>
+        <button id="btnJump" onclick="jumpToMeal()" class="px-3 py-1 bg-[var(--bg-card-subtle)] hover:bg-[var(--border-main)] border border-[var(--border-main)] text-[var(--text-main)] font-medium rounded-lg text-xs flex items-center gap-1.5 transition" title="Shortcut: N">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+          </svg>
+          <span>Next Meal <kbd class="font-mono text-[10px] bg-[var(--border-main)] px-1 py-0.2 rounded ml-0.5">N</kbd></span>
+        </button>
 
-        <!-- Playback Actions -->
-        <div class="flex items-center gap-1.5">
-          <button id="btnPlayPause" onclick="togglePlayPause()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(16,185,129,0.3)]" title="Shortcut: Spacebar">
-            <svg id="playIconSvg" class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
-            <span id="playText">Start Stream</span>
-          </button>
+        <button id="btnStop" onclick="stopReplay()" class="px-2.5 py-1 bg-[var(--bg-card-subtle)] hover:bg-rose-500/10 border border-[var(--border-main)] text-rose-600 dark:text-rose-400 font-medium rounded-lg text-xs transition" title="Reset Replay Cursor">
+          <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+            <path d="M6 6h12v12H6z"/>
+          </svg>
+        </button>
 
-          <button id="btnJump" onclick="jumpToMeal()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-sm" title="Jump to next clinical meal (Shortcut: N)">
-            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
-            </svg>
-            <span>Next Meal <kbd class="font-mono text-[11px] bg-indigo-900/60 px-1 py-0.2 rounded ml-0.5">N</kbd></span>
-          </button>
-
-          <button id="btnStop" onclick="stopReplay()" class="bg-carbon-850 hover:bg-carbon-800 text-rose-400 hover:text-rose-300 border border-white/[0.06] px-2.5 py-1.5 rounded-xl text-xs font-medium transition" title="Reset replay cursor">
-            <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
-              <path d="M6 6h12v12H6z"/>
-            </svg>
-          </button>
-        </div>
-
-        <div class="h-5 w-px bg-slate-800 hidden md:block"></div>
+        <div class="h-4 w-px bg-[var(--border-main)] mx-1"></div>
 
         <!-- Speed Selector -->
-        <div class="flex items-center gap-1.5 pr-2">
-          <span class="text-xs text-slate-400 font-medium">Speed:</span>
-          <select id="speedSelect" onchange="changeSpeed()" class="bg-carbon-850 border border-white/[0.08] text-cyan-400 rounded-lg px-2 py-1 text-xs font-mono font-semibold outline-none cursor-pointer">
+        <div class="flex items-center gap-1.5 text-[var(--text-secondary)]">
+          <span>Speed:</span>
+          <select id="speedSelect" onchange="changeSpeed()" class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded px-1.5 py-0.5 text-xs font-mono outline-none cursor-pointer">
             <option value="1">1x</option>
             <option value="5">5x</option>
             <option value="10" selected>10x</option>
@@ -260,299 +274,214 @@
         </div>
       </div>
 
-      <!-- Right: Theme Mode Toggle & Sensor Stream Pill -->
-      <div class="flex items-center gap-3">
-        <!-- Theme Toggle Button -->
-        <button onclick="toggleTheme()" class="p-2 rounded-xl bg-carbon-900 hover:bg-carbon-800 border border-white/[0.08] text-slate-300 hover:text-white transition" title="Toggle Light/Dark Theme">
-          <svg id="themeIconSun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 9h-1m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-          </svg>
-          <svg id="themeIconMoon" class="w-4 h-4 block dark:hidden text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-          </svg>
-        </button>
-
-        <div id="wsIndicator" class="flex items-center gap-2 text-xs font-mono bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="wsStatus" class="tracking-wide">LIVE SENSOR STREAM</span>
-        </div>
-      </div>
-
     </div>
-  </header>
+  </div>
 
   <!-- ========================================================================= -->
-  <!-- 3. FLOATING SEGMENTED VIEW NAVIGATION (2026 LINEAR/VERCEL STYLE)         -->
+  <!-- 4. MAIN CONTENT WORKSPACE                                                 -->
   <!-- ========================================================================= -->
-  <nav aria-label="Dashboard Views" class="sticky top-[69px] z-30 px-6 py-2.5 bg-carbon-950/70 backdrop-blur-xl border-b border-white/[0.06]">
-    <div class="max-w-[1720px] mx-auto flex items-center justify-between gap-4">
-      <div class="flex items-center gap-2 bg-carbon-900/90 p-1 rounded-xl border border-white/[0.07] text-xs font-medium">
-        <button onclick="switchTab('forecast')" id="tabBtn-forecast" class="nav-pill active px-4 py-2 rounded-lg transition flex items-center gap-2 text-slate-300">
-          <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-          </svg>
-          <span class="font-semibold">Live Monitoring &amp; Forecast</span>
-        </button>
-
-        <button onclick="switchTab('whatif')" id="tabBtn-whatif" class="nav-pill px-4 py-2 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-carbon-800">
-          <svg class="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-          </svg>
-          <span class="font-semibold">What-If Meal Sandbox</span>
-        </button>
-
-        <button onclick="switchTab('profile')" id="tabBtn-profile" class="nav-pill px-4 py-2 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-carbon-800">
-          <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-          </svg>
-          <span class="font-semibold">Digital Twin Phenotype</span>
-        </button>
-
-        <button onclick="switchTab('audit')" id="tabBtn-audit" class="nav-pill px-4 py-2 rounded-lg transition flex items-center gap-2 text-slate-400 hover:text-white hover:bg-carbon-800">
-          <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          <span class="font-semibold">Sensor Stress-Test Studio</span>
-        </button>
-      </div>
-
-      <!-- Quick Action Badges -->
-      <div class="hidden xl:flex items-center gap-4 text-xs font-mono text-slate-400">
-        <span class="flex items-center gap-1.5 bg-carbon-900 border border-white/[0.06] px-2.5 py-1 rounded-lg">
-          <span class="text-slate-500">Shortcuts:</span>
-          <kbd class="text-white bg-carbon-800 px-1.5 py-0.5 rounded border border-white/[0.08]">Cmd+K</kbd> Command
-          <kbd class="text-white bg-carbon-800 px-1.5 py-0.5 rounded border border-white/[0.08]">Space</kbd> Play
-          <kbd class="text-white bg-carbon-800 px-1.5 py-0.5 rounded border border-white/[0.08]">N</kbd> Next Meal
-        </span>
-      </div>
-    </div>
-  </nav>
-
-  <!-- ========================================================================= -->
-  <!-- 4. MAIN WORKSPACE CONTAINER                                               -->
-  <!-- ========================================================================= -->
-  <main class="flex-1 p-6 max-w-[1720px] w-full mx-auto">
+  <main class="flex-1 p-6 max-w-[1720px] w-full mx-auto space-y-6">
 
     <!-- ======================================================================= -->
-    <!-- TAB 1: LIVE MONITORING & CANDIDATE S FORECAST                           -->
+    <!-- TAB 1: LIVE FORECAST & MONITORING VIEW                                  -->
     <!-- ======================================================================= -->
     <section id="tab-forecast" class="space-y-6">
       
-      <!-- 4 Hero Biometric Telemetry Cards -->
+      <!-- Clean Bento KPI Strip -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <!-- Glucose KPI Card + Time In Range (TIR) Gauge -->
-        <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition">
-          <div class="absolute -right-4 -bottom-4 w-28 h-28 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
-            <span class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-              </svg>
-              Current Glycemia (CGM)
-            </span>
-            <span id="glucoseStatusPill" class="bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full font-mono text-xs">
+        <!-- Glucose KPI Card + Clean TIR Bar -->
+        <div class="clean-card p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+            <span>Current Glycemia (CGM)</span>
+            <span id="glucoseStatusPill" class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold">
               IN RANGE
             </span>
           </div>
 
-          <div class="flex items-baseline gap-2.5 my-1">
-            <span id="liveGlucose" class="text-4xl font-extrabold font-mono tracking-tight text-white">136.6</span>
-            <span class="text-sm font-medium text-slate-400">mg/dL</span>
+          <div class="flex items-baseline gap-2">
+            <span id="liveGlucose" class="text-3xl font-bold font-mono tracking-tight text-[var(--text-main)]">136.6</span>
+            <span class="text-xs text-[var(--text-secondary)]">mg/dL</span>
           </div>
 
-          <!-- Time-in-Range (TIR) Segmented Progress Mini-Bar -->
-          <div class="my-2 space-y-1">
-            <div class="flex justify-between text-[11px] font-mono text-slate-400">
-              <span class="text-emerald-400 font-semibold">TIR: 78% (Target &ge;70%)</span>
+          <!-- Time-in-Range (TIR) Segmented Clean Bar -->
+          <div class="space-y-1 pt-1">
+            <div class="flex justify-between text-[11px] font-mono text-[var(--text-secondary)]">
+              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">TIR: 78% (Target &ge;70%)</span>
               <span>GMI: 6.8%</span>
             </div>
-            <div class="w-full h-1.5 rounded-full overflow-hidden flex bg-slate-900 border border-white/[0.08]">
-              <div class="bg-emerald-500 h-full" style="width: 78%;" title="In Range (70-180 mg/dL): 78%"></div>
-              <div class="bg-rose-500 h-full" style="width: 18%;" title="High (>180 mg/dL): 18%"></div>
-              <div class="bg-amber-400 h-full" style="width: 4%;" title="Low (<70 mg/dL): 4%"></div>
+            <div class="w-full h-1.5 rounded-full overflow-hidden flex bg-[var(--border-main)]">
+              <div class="bg-emerald-500 h-full" style="width: 78%;" title="In Range: 78%"></div>
+              <div class="bg-rose-500 h-full" style="width: 18%;" title="High: 18%"></div>
+              <div class="bg-amber-400 h-full" style="width: 4%;" title="Low: 4%"></div>
             </div>
           </div>
 
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06]">
-            <span class="flex items-center gap-1 text-emerald-400 font-mono">
+          <div class="flex items-center justify-between text-xs text-[var(--text-secondary)] pt-2 border-t border-[var(--border-main)]">
+            <span class="text-emerald-600 dark:text-emerald-400 font-mono font-medium">
               <span id="glucoseTrendArrow">↗</span> <span id="glucoseVelocity">+1.2 mg/dL/min</span>
             </span>
-            <span class="text-slate-500">Dexcom G6 (5-min)</span>
+            <span class="text-[var(--text-muted)]">Dexcom G6</span>
           </div>
         </div>
 
         <!-- Heart Rate KPI Card -->
-        <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition">
-          <div class="absolute -right-4 -bottom-4 w-28 h-28 bg-rose-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
-            <span class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
-              Resting &amp; Active HR
-            </span>
-            <span class="bg-carbon-800 text-slate-300 border border-white/[0.08] px-2 py-0.5 rounded-full font-mono text-xs">
+        <div class="clean-card p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+            <span>Resting &amp; Active HR</span>
+            <span class="bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)] px-2 py-0.5 rounded-full font-mono text-[11px]">
               NORMAL
             </span>
           </div>
-          <div class="flex items-baseline gap-2.5 my-1">
-            <span id="liveHR" class="text-4xl font-extrabold font-mono tracking-tight text-rose-300">71</span>
-            <span class="text-sm font-medium text-slate-400">bpm</span>
+
+          <div class="flex items-baseline gap-2">
+            <span id="liveHR" class="text-3xl font-bold font-mono tracking-tight text-rose-500 dark:text-rose-400">71</span>
+            <span class="text-xs text-[var(--text-secondary)]">bpm</span>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
-            <span class="text-slate-400">Resting baseline: 68 bpm</span>
-            <span class="text-slate-500">Optical PPG Wearable</span>
+
+          <div class="text-xs text-[var(--text-secondary)] pt-3 border-t border-[var(--border-main)] flex justify-between items-center">
+            <span>Resting baseline: 68 bpm</span>
+            <span class="text-[var(--text-muted)]">Optical PPG</span>
           </div>
         </div>
 
         <!-- Metabolic Exertion (METs) -->
-        <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition">
-          <div class="absolute -right-4 -bottom-4 w-28 h-28 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
-            <span class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-              </svg>
-              Metabolic Exertion
-            </span>
-            <span class="bg-cyan-950/70 text-cyan-300 border border-cyan-600/40 px-2 py-0.5 rounded-full font-mono text-xs">
+        <div class="clean-card p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+            <span>Metabolic Exertion</span>
+            <span class="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded-full font-mono text-[11px]">
               SEDENTARY
             </span>
           </div>
-          <div class="flex items-baseline gap-2.5 my-1">
-            <span id="liveMETs" class="text-4xl font-extrabold font-mono tracking-tight text-cyan-300">1.00</span>
-            <span class="text-sm font-medium text-slate-400">METs</span>
+
+          <div class="flex items-baseline gap-2">
+            <span id="liveMETs" class="text-3xl font-bold font-mono tracking-tight text-cyan-600 dark:text-cyan-400">1.00</span>
+            <span class="text-xs text-[var(--text-secondary)]">METs</span>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
-            <span class="text-slate-400">Desk / Rest state</span>
-            <span class="text-slate-500">Accelerometry Fusion</span>
+
+          <div class="text-xs text-[var(--text-secondary)] pt-3 border-t border-[var(--border-main)] flex justify-between items-center">
+            <span>Desk / Rest State</span>
+            <span class="text-[var(--text-muted)]">Accelerometry</span>
           </div>
         </div>
 
         <!-- Ingested Meal & Buffer -->
-        <div class="glass-card glass-card-hover rounded-2xl p-5 relative overflow-hidden transition">
-          <div class="absolute -right-4 -bottom-4 w-28 h-28 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
-          <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-2">
-            <span class="flex items-center gap-1.5">
-              <svg class="w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Active Clinical Meal
-            </span>
-            <span class="bg-amber-950/70 text-amber-300 border border-amber-600/40 px-2 py-0.5 rounded-full font-mono text-xs">
+        <div class="clean-card p-4 space-y-2">
+          <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+            <span>Active Clinical Meal</span>
+            <span class="bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-mono text-[11px]">
               RECORDED
             </span>
           </div>
-          <div class="my-1">
-            <div id="liveMealSummary" class="text-base font-bold text-white truncate">Awaiting Next Meal...</div>
-            <div id="liveMealTime" class="text-xs font-mono text-amber-400 mt-0.5">Use 'Next Meal' to jump</div>
+
+          <div>
+            <div id="liveMealSummary" class="text-sm font-bold text-[var(--text-main)] truncate">Awaiting Next Meal...</div>
+            <div id="liveMealTime" class="text-xs font-mono text-amber-600 dark:text-amber-400 mt-0.5">Use 'Next Meal' to jump</div>
           </div>
-          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-white/[0.06] mt-4">
-            <span class="text-emerald-400">12-Step Buffer Ready</span>
-            <span class="text-slate-500">Parquet Engine</span>
+
+          <div class="text-xs text-[var(--text-secondary)] pt-3 border-t border-[var(--border-main)] flex justify-between items-center">
+            <span class="text-emerald-600 dark:text-emerald-400">12-Step Buffer Ready</span>
+            <span class="text-[var(--text-muted)]">Parquet Replay</span>
           </div>
         </div>
 
       </div>
 
-      <!-- Hero Visualizer: 180-Minute Calibrated Glycemic Trajectory Canvas -->
-      <div class="glass-card rounded-2xl p-6 shadow-2xl space-y-4">
+      <!-- Main Clean Trajectory Visualizer -->
+      <div class="clean-card p-6 space-y-4">
         
-        <!-- Chart Header & Clinical Legends -->
-        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-3">
+        <!-- Chart Header & Clean Legends -->
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-main)] pb-3">
           <div>
-            <div class="flex items-center gap-3">
-              <h2 class="text-lg font-bold text-white tracking-tight">180-Minute Postprandial Glycemic Forecast</h2>
-              <span id="reliabilityBadge" class="bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 text-xs font-bold font-mono px-3 py-1 rounded-full uppercase shadow-sm">
+            <div class="flex items-center gap-2.5">
+              <h2 class="text-base font-bold text-[var(--text-main)] tracking-tight">180-Minute Postprandial Glucose Forecast</h2>
+              <span id="reliabilityBadge" class="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono px-2.5 py-0.5 rounded-full uppercase">
                 HIGH CONFIDENCE
               </span>
             </div>
-            <p class="text-xs text-slate-400 mt-1">
-              Dual-gamma structured absorption (Candidate S) with 90% split-conformal bounds and real clinical ground truth
+            <p class="text-xs text-[var(--text-secondary)] mt-0.5">
+              Candidate S dual-gamma structured model with 90% conformal bands and recorded clinical ground truth
             </p>
           </div>
 
-          <!-- Modern Custom Legends -->
-          <div class="flex flex-wrap items-center gap-3.5 text-xs">
-            <div class="flex items-center gap-2 bg-carbon-900 px-3 py-1.5 rounded-lg border border-white/[0.06]">
-              <span class="w-3.5 h-1 bg-emerald-400 inline-block rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
-              <span class="text-emerald-300 font-semibold">Candidate S Forecast</span>
+          <!-- Clean Legends -->
+          <div class="flex flex-wrap items-center gap-3 text-xs">
+            <div class="flex items-center gap-1.5 text-[var(--text-secondary)]">
+              <span class="w-3 h-0.5 bg-emerald-500 inline-block rounded-full"></span>
+              <span>Candidate S Forecast</span>
             </div>
-            <div class="flex items-center gap-2 bg-carbon-900 px-3 py-1.5 rounded-lg border border-white/[0.06]">
-              <span class="w-3.5 h-1 border-b-2 border-dashed border-amber-400 inline-block"></span>
-              <span class="text-amber-300 font-semibold">Observed Ground Truth</span>
+            <div class="flex items-center gap-1.5 text-[var(--text-secondary)]">
+              <span class="w-3 h-0.5 border-b border-dashed border-amber-500 inline-block"></span>
+              <span>Observed Ground Truth</span>
             </div>
-            <div class="flex items-center gap-2 bg-carbon-900 px-3 py-1.5 rounded-lg border border-white/[0.06]">
-              <span class="w-3.5 h-2.5 bg-emerald-500/20 border border-emerald-500/50 inline-block rounded-sm"></span>
-              <span class="text-slate-300">90% Conformal Band</span>
+            <div class="flex items-center gap-1.5 text-[var(--text-secondary)]">
+              <span class="w-3 h-2 bg-emerald-500/20 border border-emerald-500/40 inline-block rounded-sm"></span>
+              <span>90% Conformal Band</span>
             </div>
-            <div class="flex items-center gap-2 bg-carbon-900 px-3 py-1.5 rounded-lg border border-white/[0.06]">
-              <span class="w-3.5 h-1 border-b-2 border-dashed border-rose-500 inline-block"></span>
-              <span class="text-rose-400">180 mg/dL Threshold</span>
+            <div class="flex items-center gap-1.5 text-[var(--text-secondary)]">
+              <span class="w-3 h-0.5 border-b border-dashed border-rose-500 inline-block"></span>
+              <span>180 mg/dL Threshold</span>
             </div>
           </div>
         </div>
 
-        <!-- Interactive Clinical Scrubber HUD Readout -->
-        <div id="scrubberHUD" class="flex flex-wrap items-center justify-between px-3.5 py-1.5 rounded-xl bg-carbon-950/80 border border-white/[0.08] text-xs font-mono text-slate-300">
+        <!-- Scrubber Readout Bar -->
+        <div id="scrubberHUD" class="flex flex-wrap items-center justify-between px-3.5 py-1.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-xs font-mono text-[var(--text-secondary)]">
           <div class="flex items-center gap-3">
-            <span class="text-slate-400">Live Scrubber:</span>
-            <span id="hudTime" class="text-white font-bold">+55 min</span>
-            <span class="text-slate-600">|</span>
-            <span class="text-emerald-400 font-bold" id="hudPredicted">Pred: 164.2 mg/dL</span>
-            <span class="text-slate-600">|</span>
-            <span class="text-slate-300" id="hudBounds">90% Bounds: [150.2 – 178.2]</span>
+            <span class="text-[var(--text-muted)]">Scrubber:</span>
+            <span id="hudTime" class="text-[var(--text-main)] font-bold">+55 min</span>
+            <span>|</span>
+            <span class="text-emerald-600 dark:text-emerald-400 font-bold" id="hudPredicted">Pred: 164.2 mg/dL</span>
+            <span>|</span>
+            <span id="hudBounds">90% Bounds: [150.2 – 178.2]</span>
           </div>
           <div class="flex items-center gap-3">
-            <span class="text-amber-400 font-semibold" id="hudActual">Ground Truth: 162.0 mg/dL</span>
-            <span class="text-slate-400" id="hudDelta">(Δ -2.2)</span>
+            <span class="text-amber-600 dark:text-amber-400 font-semibold" id="hudActual">Ground Truth: 162.0 mg/dL</span>
+            <span id="hudDelta">(Δ -2.2)</span>
           </div>
         </div>
 
-        <!-- The Canvas -->
-        <div class="relative h-[390px] w-full">
+        <!-- Chart Canvas -->
+        <div class="relative h-[380px] w-full">
           <canvas id="forecastChart"></canvas>
         </div>
 
-        <!-- 4 Quantitative Postprandial Clinical Metric Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-white/[0.06]">
-          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
-            <span class="text-xs text-slate-400 block mb-1">Predicted Peak Glucose</span>
-            <span id="metricPeak" class="text-2xl font-bold font-mono text-white">-- mg/dL</span>
-            <span class="text-xs text-slate-500 block mt-1">Excursion maximum</span>
+        <!-- 4 Metric Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-[var(--border-main)]">
+          <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
+            <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Predicted Peak</span>
+            <span id="metricPeak" class="text-xl font-bold font-mono text-[var(--text-main)]">-- mg/dL</span>
+            <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Excursion Max</span>
           </div>
 
-          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
-            <span class="text-xs text-slate-400 block mb-1">Time to Peak (TTP)</span>
-            <span id="metricTTP" class="text-2xl font-bold font-mono text-white">-- min</span>
-            <span class="text-xs text-slate-500 block mt-1">Peak absorption window</span>
+          <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
+            <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Time to Peak (TTP)</span>
+            <span id="metricTTP" class="text-xl font-bold font-mono text-[var(--text-main)]">-- min</span>
+            <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Peak Window</span>
           </div>
 
-          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
-            <span class="text-xs text-slate-400 block mb-1">Delayed Mean (120–180m)</span>
-            <span id="metricDelayed" class="text-2xl font-bold font-mono text-sky-400">-- mg/dL</span>
-            <span class="text-xs text-slate-500 block mt-1">Late lipid plateau</span>
+          <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
+            <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Delayed Mean (120–180m)</span>
+            <span id="metricDelayed" class="text-xl font-bold font-mono text-cyan-600 dark:text-cyan-400">-- mg/dL</span>
+            <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Late Lipid Plateau</span>
           </div>
 
-          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] text-center">
-            <span class="text-xs text-slate-400 block mb-1">Time Above 180 mg/dL</span>
-            <span id="metricAbove" class="text-2xl font-bold font-mono text-emerald-400">-- min</span>
-            <span class="text-xs text-slate-500 block mt-1">Hyperglycemia exposure</span>
+          <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
+            <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Time Above 180 mg/dL</span>
+            <span id="metricAbove" class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">-- min</span>
+            <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Hyperglycemia Exposure</span>
           </div>
         </div>
 
-        <!-- Diagnostic Rationale & Sensor State Banner -->
-        <div id="diagnosticCard" class="bg-carbon-950/90 border border-white/[0.08] rounded-xl p-4 text-xs text-slate-300 flex items-start gap-3">
-          <div class="p-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 mt-0.5">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+        <!-- Diagnostic Rationale Banner -->
+        <div id="diagnosticCard" class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] rounded-lg p-3 text-xs text-[var(--text-secondary)] flex items-start gap-2.5">
+          <svg class="w-4 h-4 text-cyan-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           <div>
-            <span class="text-white font-semibold block text-xs mb-0.5">Clinical Reliability Assessment &amp; Physiological Inductive Bias</span>
-            <span id="diagnosticText" class="text-slate-400">
-              Sensor stream nominal. Candidate S executing dual-gamma kinetic forward pass conditioned on 60-min pre-meal velocity and few-shot Ridge adaptation ($K=5$).
+            <strong class="text-[var(--text-main)] block mb-0.5">Clinical Reliability Assessment:</strong>
+            <span id="diagnosticText">
+              Sensor stream nominal. Candidate S executing dual-gamma forward pass conditioned on 60-min pre-meal velocity and Ridge K=5 adaptation.
             </span>
           </div>
         </div>
@@ -566,134 +495,124 @@
     <section id="tab-whatif" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <!-- Left Controls Column: Interactive Meal Composer (5 Cols) -->
-        <div class="lg:col-span-5 glass-card rounded-2xl p-6 shadow-2xl space-y-5">
-          <div class="border-b border-white/[0.07] pb-3 flex items-center justify-between">
+        <!-- Left Controls Column (5 cols) -->
+        <div class="lg:col-span-5 clean-card p-5 space-y-4">
+          <div class="border-b border-[var(--border-main)] pb-3 flex items-center justify-between">
             <div>
-              <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-                <h2 class="text-base font-bold text-white">What-If Counterfactual Sandbox</h2>
-              </div>
-              <p class="text-xs text-slate-400 mt-1">Simulate dietary alterations and physical activity interventions</p>
+              <h2 class="text-sm font-bold text-[var(--text-main)]">What-If Counterfactual Sandbox</h2>
+              <p class="text-xs text-[var(--text-secondary)] mt-0.5">Simulate dietary alterations and physical activity</p>
             </div>
 
-            <!-- Custom Meal Trigger Button -->
-            <button onclick="openCustomMealModal()" class="px-3 py-1.5 bg-purple-950/80 hover:bg-purple-900 border border-purple-500/50 text-purple-200 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition shadow-sm">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
+            <button onclick="openCustomMealModal()" class="px-2.5 py-1 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-600 dark:text-purple-400 text-xs font-semibold rounded-lg flex items-center gap-1 transition">
               <span>+ Custom Meal</span>
             </button>
           </div>
 
           <!-- Preset Dish Quick Cards -->
-          <div class="space-y-2">
-            <label class="text-xs font-semibold uppercase tracking-wider text-slate-400 block">
-              Regional Clinical Meal Presets:
+          <div class="space-y-1.5">
+            <label class="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] block">
+              Regional Clinical Presets:
             </label>
             <div class="grid grid-cols-2 gap-2">
-              <button onclick="selectDish('roti_dal_sabzi')" class="dish-card text-left p-3 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-emerald-500/50 transition">
-                <div class="text-xs font-semibold text-white">Roti, Dal &amp; Sabzi</div>
-                <div class="text-[11px] text-slate-400 mt-1">48g C • 12g F • 16g P</div>
+              <button onclick="selectDish('roti_dal_sabzi')" class="text-left p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-emerald-500/50 transition">
+                <div class="text-xs font-semibold text-[var(--text-main)]">Roti, Dal &amp; Sabzi</div>
+                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">48g C • 12g F • 16g P</div>
               </button>
-              <button onclick="selectDish('masala_dosa')" class="dish-card text-left p-3 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-emerald-500/50 transition">
-                <div class="text-xs font-semibold text-white">Masala Dosa + Sambar</div>
-                <div class="text-[11px] text-slate-400 mt-1">62g C • 18g F • 10g P</div>
+              <button onclick="selectDish('masala_dosa')" class="text-left p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-emerald-500/50 transition">
+                <div class="text-xs font-semibold text-[var(--text-main)]">Masala Dosa + Sambar</div>
+                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">62g C • 18g F • 10g P</div>
               </button>
-              <button onclick="selectDish('chicken_biryani')" class="dish-card text-left p-3 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-emerald-500/50 transition">
-                <div class="text-xs font-semibold text-white">Chicken Biryani</div>
-                <div class="text-[11px] text-slate-400 mt-1">68g C • 22g F • 32g P</div>
+              <button onclick="selectDish('chicken_biryani')" class="text-left p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-emerald-500/50 transition">
+                <div class="text-xs font-semibold text-[var(--text-main)]">Chicken Biryani Plate</div>
+                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">68g C • 22g F • 32g P</div>
               </button>
-              <button onclick="selectDish('rajma_chawal')" class="dish-card text-left p-3 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-emerald-500/50 transition">
-                <div class="text-xs font-semibold text-white">Rajma Chawal</div>
-                <div class="text-[11px] text-slate-400 mt-1">72g C • 14g F • 20g P</div>
+              <button onclick="selectDish('rajma_chawal')" class="text-left p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-emerald-500/50 transition">
+                <div class="text-xs font-semibold text-[var(--text-main)]">Rajma Chawal</div>
+                <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">72g C • 14g F • 20g P</div>
               </button>
             </div>
           </div>
 
-          <!-- Dynamic Macro Visualizer Bar -->
-          <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] space-y-2">
-            <div class="flex justify-between text-xs text-slate-300">
-              <span id="activeDishNameLabel" class="font-semibold text-white">Roti, Dal &amp; Sabzi</span>
-              <span id="totalKcal" class="font-mono font-semibold text-slate-200">364 kcal</span>
+          <!-- Dynamic Macro Visualizer -->
+          <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] space-y-2">
+            <div class="flex justify-between text-xs text-[var(--text-main)]">
+              <span id="activeDishNameLabel" class="font-semibold">Roti, Dal &amp; Sabzi</span>
+              <span id="totalKcal" class="font-mono font-semibold text-emerald-600 dark:text-emerald-400">364 kcal</span>
             </div>
-            <!-- Segmented Color Bar -->
-            <div class="w-full h-3 rounded-full overflow-hidden flex bg-carbon-900 border border-white/[0.08]">
+            <div class="w-full h-2.5 rounded-full overflow-hidden flex bg-[var(--border-main)]">
               <div id="barCarbs" class="bg-amber-500 h-full transition-all duration-300" style="width: 53%;"></div>
               <div id="barProtein" class="bg-emerald-500 h-full transition-all duration-300" style="width: 18%;"></div>
-              <div id="barFat" class="bg-sky-500 h-full transition-all duration-300" style="width: 29%;"></div>
+              <div id="barFat" class="bg-cyan-500 h-full transition-all duration-300" style="width: 29%;"></div>
             </div>
-            <div class="flex justify-between text-xs font-mono text-slate-400">
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Carbs</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Protein</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-sky-500"></span> Fat</span>
+            <div class="flex justify-between text-xs font-mono text-[var(--text-secondary)]">
+              <span>Carbs</span>
+              <span>Protein</span>
+              <span>Fat</span>
             </div>
           </div>
 
           <!-- Sliders -->
-          <div class="space-y-4 pt-1">
+          <div class="space-y-3.5 pt-1">
             <div>
-              <div class="flex justify-between text-xs mb-1.5">
-                <span class="text-slate-300 font-medium">Carbohydrates (Fast Glucose Peak)</span>
-                <span id="valCarbs" class="font-mono font-bold text-amber-400">48 g</span>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--text-secondary)] font-medium">Carbohydrates</span>
+                <span id="valCarbs" class="font-mono font-bold text-amber-500">48 g</span>
               </div>
               <input type="range" id="inputCarbs" min="10" max="140" value="48" oninput="onMacroSliderChange()" class="w-full accent-amber-500 cursor-pointer">
             </div>
 
             <div>
-              <div class="flex justify-between text-xs mb-1.5">
-                <span class="text-slate-300 font-medium">Dietary Fat (Delayed Absorption Plateau)</span>
-                <span id="valFat" class="font-mono font-bold text-sky-400">12 g</span>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--text-secondary)] font-medium">Dietary Fat</span>
+                <span id="valFat" class="font-mono font-bold text-cyan-500">12 g</span>
               </div>
-              <input type="range" id="inputFat" min="0" max="60" value="12" oninput="onMacroSliderChange()" class="w-full accent-sky-500 cursor-pointer">
+              <input type="range" id="inputFat" min="0" max="60" value="12" oninput="onMacroSliderChange()" class="w-full accent-cyan-500 cursor-pointer">
             </div>
 
             <div>
-              <div class="flex justify-between text-xs mb-1.5">
-                <span class="text-slate-300 font-medium">Protein (Insulinotropic Modifier)</span>
-                <span id="valProtein" class="font-mono font-bold text-emerald-400">16 g</span>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--text-secondary)] font-medium">Protein</span>
+                <span id="valProtein" class="font-mono font-bold text-emerald-500">16 g</span>
               </div>
               <input type="range" id="inputProtein" min="0" max="60" value="16" oninput="onMacroSliderChange()" class="w-full accent-emerald-500 cursor-pointer">
             </div>
 
             <div>
-              <div class="flex justify-between text-xs mb-1.5">
-                <span class="text-slate-300 font-medium">Portion Scaling Factor</span>
-                <span id="valPortion" class="font-mono font-bold text-purple-400">100%</span>
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-[var(--text-secondary)] font-medium">Portion Scaling</span>
+                <span id="valPortion" class="font-mono font-bold text-purple-500">100%</span>
               </div>
-              <input type="range" id="inputPortion" min="25" max="200" step="25" value="100" oninput="onMacroSliderChange()" class="w-full accent-purple-500 cursor-pointer">
+              <input type="range" id="inputPortion" min={25} max={200} step={25} value={100} oninput="onMacroSliderChange()" class="w-full accent-purple-500 cursor-pointer">
             </div>
           </div>
 
           <!-- Behavioral Interventions -->
-          <div class="pt-3 border-t border-white/[0.07] space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Behavioral Interventions</span>
-              <span class="text-xs bg-amber-950/80 text-amber-300 border border-amber-600/50 px-2 py-0.5 rounded font-mono">
-                ASSUMPTION BADGE
+          <div class="pt-2 border-t border-[var(--border-main)] space-y-2">
+            <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
+              <span class="font-semibold uppercase tracking-wider">Behavioral Interventions</span>
+              <span class="text-[11px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 px-1.5 py-0.2 rounded">
+                ASSUMPTION
               </span>
             </div>
 
-            <!-- Walk Toggle -->
-            <label class="flex items-center justify-between p-3 rounded-xl bg-carbon-950/80 border border-white/[0.07] cursor-pointer hover:border-emerald-500/40 transition">
-              <div class="space-y-0.5">
-                <div class="text-xs font-semibold text-white flex items-center gap-1.5">
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] cursor-pointer hover:border-[var(--border-subtle)] transition">
+              <div>
+                <div class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-1.5">
                   <span>Post-Meal 15-Minute Brisk Walk</span>
-                  <span class="text-xs text-emerald-400 font-mono">-18 mg/dL</span>
+                  <span class="text-xs text-emerald-600 dark:text-emerald-400 font-mono">-18 mg/dL</span>
                 </div>
-                <div class="text-[11px] text-slate-400">Elevates METs to 3.2 at +30m postprandial</div>
+                <div class="text-[11px] text-[var(--text-secondary)]">Elevates METs to 3.2 at +30m</div>
               </div>
               <input type="checkbox" id="checkWalk" onchange="executeWhatIfSimulation()" class="w-4 h-4 rounded accent-emerald-500 cursor-pointer">
             </label>
 
-            <!-- Sequencing Toggle -->
-            <label class="flex items-center justify-between p-3 rounded-xl bg-carbon-950/80 border border-white/[0.07] cursor-pointer hover:border-emerald-500/40 transition">
-              <div class="space-y-0.5">
-                <div class="text-xs font-semibold text-white flex items-center gap-1.5">
-                  <span>Food Sequencing (Protein/Veg First)</span>
-                  <span class="text-xs text-emerald-400 font-mono">-15 mg/dL</span>
+            <label class="flex items-center justify-between p-2.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] cursor-pointer hover:border-[var(--border-subtle)] transition">
+              <div>
+                <div class="text-xs font-semibold text-[var(--text-main)] flex items-center gap-1.5">
+                  <span>Food Sequencing (Veg/Protein First)</span>
+                  <span class="text-xs text-emerald-600 dark:text-emerald-400 font-mono">-15 mg/dL</span>
                 </div>
-                <div class="text-[11px] text-slate-400">Delays gastric emptying rate via GLP-1 (Shukla 2017)</div>
+                <div class="text-[11px] text-[var(--text-secondary)]">Delays gastric emptying via GLP-1</div>
               </div>
               <input type="checkbox" id="checkSeq" onchange="executeWhatIfSimulation()" class="w-4 h-4 rounded accent-emerald-500 cursor-pointer">
             </label>
@@ -701,184 +620,148 @@
 
         </div>
 
-        <!-- Right Simulation Visualizer Column (7 Cols) -->
-        <div class="lg:col-span-7 glass-card rounded-2xl p-6 shadow-2xl space-y-5">
-          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
+        <!-- Right Simulation Chart Column (7 cols) -->
+        <div class="lg:col-span-7 clean-card p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-main)] pb-3">
             <div>
-              <h2 class="text-base font-bold text-white">Comparative Digital Twin Response</h2>
-              <p class="text-xs text-slate-400 mt-0.5">Baseline meal excursion vs counterfactual scenario curve</p>
+              <h2 class="text-sm font-bold text-[var(--text-main)]">Comparative Twin Trajectory</h2>
+              <p class="text-xs text-[var(--text-secondary)] mt-0.5">Baseline meal vs simulated counterfactual</p>
             </div>
             
             <div class="flex items-center gap-3 text-xs">
-              <div class="flex items-center gap-2 bg-carbon-900 px-3 py-1.5 rounded-lg border border-white/[0.06]">
-                <span class="w-3.5 h-1 bg-emerald-400 inline-block rounded-full"></span>
-                <span class="text-slate-300">Baseline Meal</span>
-              </div>
-              <div class="flex items-center gap-2 bg-carbon-900 px-3 py-1.5 rounded-lg border border-white/[0.06]">
-                <span class="w-3.5 h-1 border-b-2 border-dashed border-purple-400 inline-block"></span>
-                <span class="text-purple-300 font-semibold">Simulated Counterfactual</span>
-              </div>
+              <span class="flex items-center gap-1.5 text-[var(--text-secondary)]">
+                <span class="w-3 h-0.5 bg-emerald-500 inline-block"></span> Baseline Meal
+              </span>
+              <span class="flex items-center gap-1.5 text-purple-600 dark:text-purple-400 font-semibold">
+                <span class="w-3 h-0.5 border-b border-dashed border-purple-500 inline-block"></span> Counterfactual
+              </span>
             </div>
           </div>
 
-          <!-- Canvas -->
           <div class="relative h-[380px] w-full">
             <canvas id="whatifChart"></canvas>
           </div>
 
           <!-- Quantitative Delta Cards -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
-            
-            <div class="bg-carbon-950/80 p-4 rounded-xl border border-white/[0.06]">
-              <div class="flex items-center justify-between text-xs mb-1">
-                <span class="text-slate-400">Δ Peak Glycemia</span>
-                <span class="text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-1.5 py-0.2 rounded">
-                  MODEL-DRIVEN
-                </span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-[var(--border-main)]">
+            <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)]">
+              <div class="flex items-center justify-between text-xs mb-0.5">
+                <span class="text-[var(--text-secondary)]">Δ Peak Glycemia</span>
+                <span class="text-[11px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1 rounded">MODEL</span>
               </div>
-              <div id="whatifDeltaPeak" class="text-2xl font-bold font-mono text-emerald-400">-24.0 mg/dL</div>
-              <span class="text-xs text-slate-500 mt-1 block">Candidate S forward pass</span>
+              <div id="whatifDeltaPeak" class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">-24.0 mg/dL</div>
+              <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Excursion reduction</span>
             </div>
 
-            <div class="bg-carbon-950/80 p-4 rounded-xl border border-white/[0.06]">
-              <div class="flex items-center justify-between text-xs mb-1">
-                <span class="text-slate-400">Δ Delayed Excursion</span>
-                <span class="text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-1.5 py-0.2 rounded">
-                  MODEL-DRIVEN
-                </span>
+            <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)]">
+              <div class="flex items-center justify-between text-xs mb-0.5">
+                <span class="text-[var(--text-secondary)]">Δ Delayed Mean</span>
+                <span class="text-[11px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1 rounded">MODEL</span>
               </div>
-              <div id="whatifDeltaDelayed" class="text-2xl font-bold font-mono text-sky-400">+4.2 mg/dL</div>
-              <span class="text-xs text-slate-500 mt-1 block">Late-phase lipid attenuation</span>
+              <div id="whatifDeltaDelayed" class="text-xl font-bold font-mono text-cyan-600 dark:text-cyan-400">+4.2 mg/dL</div>
+              <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Lipid plateau delta</span>
             </div>
 
-            <div class="bg-carbon-950/80 p-4 rounded-xl border border-white/[0.06]">
-              <div class="flex items-center justify-between text-xs mb-1">
-                <span class="text-slate-400">Behavioral Impact</span>
-                <span class="text-xs font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600/50 px-1.5 py-0.2 rounded">
-                  ASSUMPTION
-                </span>
+            <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)]">
+              <div class="flex items-center justify-between text-xs mb-0.5">
+                <span class="text-[var(--text-secondary)]">Behavioral Impact</span>
+                <span class="text-[11px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1 rounded">ASSUMPTION</span>
               </div>
-              <div id="whatifBehaviorDelta" class="text-2xl font-bold font-mono text-amber-300">-18.0 mg/dL</div>
-              <span class="text-xs text-slate-500 mt-1 block">15-min post-meal walking</span>
+              <div id="whatifBehaviorDelta" class="text-xl font-bold font-mono text-amber-600 dark:text-amber-400">-18.0 mg/dL</div>
+              <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Exercise attenuation</span>
             </div>
-
           </div>
-
         </div>
 
       </div>
     </section>
 
     <!-- ======================================================================= -->
-    <!-- TAB 3: PATIENT DIGITAL TWIN PHENOTYPE & EHR                             -->
+    <!-- TAB 3: PATIENT DIGITAL TWIN PROFILE                                     -->
     <!-- ======================================================================= -->
     <section id="tab-profile" class="hidden space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <!-- Demographics & Clinical Profile -->
-        <div class="glass-card rounded-2xl p-6 shadow-2xl space-y-5">
-          <div class="flex items-center justify-between border-b border-white/[0.07] pb-3">
-            <h2 class="text-base font-bold text-white">Clinical Baseline Profile</h2>
-            <span id="profGroupBadge" class="text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full">
+        <div class="clean-card p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
+            <h2 class="text-sm font-bold text-[var(--text-main)]">Clinical Baseline Profile</h2>
+            <span class="text-[11px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold">
               T2D COHORT
             </span>
           </div>
 
-          <div class="space-y-3 text-xs">
-            <div class="flex justify-between py-2 border-b border-white/[0.06]">
-              <span class="text-slate-400 font-medium">Patient Identifier:</span>
-              <span id="profPatientId" class="font-mono text-white font-bold text-sm">P020</span>
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between py-1.5 border-b border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)]">Patient Identifier:</span>
+              <span id="profPatientId" class="font-mono font-bold text-[var(--text-main)]">P020</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-white/[0.06]">
-              <span class="text-slate-400 font-medium">Cohort Category:</span>
-              <span id="profGroup" class="text-emerald-400 font-semibold">Type 2 Diabetes</span>
+            <div class="flex justify-between py-1.5 border-b border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)]">Diagnosis:</span>
+              <span id="profGroup" class="text-emerald-600 dark:text-emerald-400 font-semibold">Type 2 Diabetes</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-white/[0.06]">
-              <span class="text-slate-400 font-medium">Age &amp; Sex:</span>
-              <span id="profAgeSex" class="text-white font-medium">58y / Male</span>
+            <div class="flex justify-between py-1.5 border-b border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)]">Age &amp; Sex:</span>
+              <span id="profAgeSex" class="text-[var(--text-main)]">58y / Male</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-white/[0.06]">
-              <span class="text-slate-400 font-medium">Body Mass Index (BMI):</span>
-              <span id="profBMI" class="font-mono text-white">28.4 kg/m²</span>
+            <div class="flex justify-between py-1.5 border-b border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)]">Body Mass Index (BMI):</span>
+              <span id="profBMI" class="font-mono text-[var(--text-main)]">28.4 kg/m²</span>
             </div>
-            <div class="flex justify-between py-2 border-b border-white/[0.06]">
-              <span class="text-slate-400 font-medium">Baseline HbA1c:</span>
-              <span id="profHbA1c" class="font-mono text-amber-400 font-bold text-sm">7.4%</span>
+            <div class="flex justify-between py-1.5 border-b border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)]">Baseline HbA1c:</span>
+              <span id="profHbA1c" class="font-mono text-amber-600 dark:text-amber-400 font-bold">7.4%</span>
             </div>
-            <div class="flex justify-between py-2">
-              <span class="text-slate-400 font-medium">Fasting Blood Glucose:</span>
-              <span id="profFasting" class="font-mono text-white font-semibold">138.0 mg/dL</span>
+            <div class="flex justify-between py-1.5">
+              <span class="text-[var(--text-secondary)]">Fasting Glucose:</span>
+              <span id="profFasting" class="font-mono text-[var(--text-main)]">138.0 mg/dL</span>
             </div>
           </div>
         </div>
 
-        <!-- Synthetic EHR Provenance Quarantined -->
-        <div class="glass-card rounded-2xl p-6 shadow-2xl space-y-5">
-          <div class="flex items-center justify-between border-b border-white/[0.07] pb-3">
-            <h2 class="text-base font-bold text-white">Synthetic EHR Records</h2>
-            <span class="text-xs font-mono font-bold bg-amber-950 text-amber-300 border border-amber-600/50 px-2 py-0.5 rounded-full">
+        <div class="clean-card p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
+            <h2 class="text-sm font-bold text-[var(--text-main)]">Synthetic EHR Records</h2>
+            <span class="text-[11px] font-mono bg-amber-500/10 text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded-full font-bold">
               SYNTHETIC (D14)
             </span>
           </div>
 
-          <div class="space-y-3.5 text-xs">
-            <div class="p-3.5 bg-carbon-950/80 rounded-xl border border-white/[0.06] space-y-1">
-              <span class="text-slate-400 font-medium block">Current Pharmacotherapy:</span>
-              <span class="text-slate-200 font-semibold block">Metformin 500mg BID, Lisinopril 10mg QD</span>
-              <span class="text-slate-500 text-[11px] block">No exogenous insulin prescribed</span>
+          <div class="space-y-2.5 text-xs">
+            <div class="p-2.5 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)] block font-medium">Medications:</span>
+              <span class="text-[var(--text-main)] font-semibold block mt-0.5">Metformin 500mg BID, Lisinopril 10mg QD</span>
             </div>
-
-            <div class="p-3.5 bg-carbon-950/80 rounded-xl border border-white/[0.06] space-y-1">
-              <span class="text-slate-400 font-medium block">Documented Comorbidities:</span>
-              <span class="text-slate-200 font-semibold block">Essential Hypertension, Mild Dyslipidemia</span>
-              <span class="text-slate-500 text-[11px] block">eGFR: 82 mL/min/1.73m² (Normal renal status)</span>
+            <div class="p-2.5 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)] block font-medium">Comorbidities:</span>
+              <span class="text-[var(--text-main)] font-semibold block mt-0.5">Essential Hypertension, Mild Dyslipidemia</span>
             </div>
-
-            <div class="p-3.5 bg-carbon-950/80 rounded-xl border border-white/[0.06] space-y-1">
-              <span class="text-slate-400 font-medium block">Provenance &amp; Data Quarantine:</span>
-              <span class="text-slate-400 block">
-                Synthetic EHR features generated via demographic marginals. Strictly isolated from live CGM sensor ground truth.
-              </span>
+            <div class="p-2.5 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)]">
+              <span class="text-[var(--text-secondary)] block font-medium">Provenance:</span>
+              <span class="text-[var(--text-muted)] block mt-0.5">Demographically generated. Strictly quarantined from live sensor ground truth.</span>
             </div>
           </div>
         </div>
 
-        <!-- Dynamic Ridge Personalisation K-Curve -->
-        <div class="glass-card rounded-2xl p-6 shadow-2xl space-y-5">
-          <div class="flex items-center justify-between border-b border-white/[0.07] pb-3">
-            <h2 class="text-base font-bold text-white">Few-Shot Ridge Tuning</h2>
-            <span class="text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full">
+        <div class="clean-card p-5 space-y-3">
+          <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
+            <h2 class="text-sm font-bold text-[var(--text-main)]">Few-Shot Ridge Tuning</h2>
+            <span class="text-[11px] font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-2 py-0.5 rounded-full font-bold">
               K = 5 MEALS
             </span>
           </div>
 
-          <div class="space-y-3 text-xs">
-            <p class="text-slate-400">
-              Closed-form regularized adaptation dynamically minimizes patient residual error across historical meal curves:
-            </p>
-
-            <div class="bg-carbon-950/80 p-3.5 rounded-xl border border-white/[0.06] space-y-2 font-mono">
-              <div class="flex justify-between text-slate-400">
-                <span>Zero-Shot (K=0):</span>
-                <span class="text-rose-400">12.95 mg/dL MAE</span>
-              </div>
-              <div class="flex justify-between text-slate-400">
-                <span>1-Shot (K=1):</span>
-                <span class="text-amber-400">10.84 mg/dL MAE</span>
-              </div>
-              <div class="flex justify-between text-slate-400">
-                <span>3-Shot (K=3):</span>
-                <span class="text-emerald-400">9.45 mg/dL MAE</span>
-              </div>
-              <div class="flex justify-between text-emerald-300 font-bold border-t border-white/[0.08] pt-1.5">
-                <span>5-Shot (K=5):</span>
-                <span>8.92 mg/dL MAE (-31.1%)</span>
+          <div class="space-y-2 text-xs font-mono">
+            <div class="p-2.5 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)] space-y-1.5">
+              <div class="flex justify-between text-[var(--text-secondary)]"><span>Zero-Shot (K=0):</span> <span class="text-rose-500">12.95 mg/dL MAE</span></div>
+              <div class="flex justify-between text-[var(--text-secondary)]"><span>1-Shot (K=1):</span> <span class="text-amber-500">10.84 mg/dL MAE</span></div>
+              <div class="flex justify-between text-[var(--text-secondary)]"><span>3-Shot (K=3):</span> <span class="text-emerald-500">9.45 mg/dL MAE</span></div>
+              <div class="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold border-t border-[var(--border-main)] pt-1">
+                <span>5-Shot (K=5):</span> <span>8.92 mg/dL MAE</span>
               </div>
             </div>
-
-            <div class="text-[11px] text-slate-500 font-mono">
-              w = (B<sup>T</sup>B + λI)<sup>-1</sup> B<sup>T</sup>r | λ = 10.0
-            </div>
+            <span class="text-[11px] text-[var(--text-muted)] block">
+              Formula: w = (B<sup>T</sup>B + λI)<sup>-1</sup> B<sup>T</sup>r | λ = 10.0
+            </span>
           </div>
         </div>
 
@@ -886,102 +769,94 @@
     </section>
 
     <!-- ======================================================================= -->
-    <!-- TAB 4: SENSOR QUALITY & STRESS-TEST STUDIO (D0–D7)                       -->
+    <!-- TAB 4: SENSOR QUALITY & STRESS STUDIO                                    -->
     <!-- ======================================================================= -->
     <section id="tab-audit" class="hidden space-y-6">
-      <div class="glass-card rounded-2xl p-6 shadow-2xl space-y-6">
+      <div class="clean-card p-6 space-y-4">
         
-        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-white/[0.07] pb-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-main)] pb-3">
           <div>
-            <h2 class="text-base font-bold text-white">Sensor Degradation &amp; Stress Testing (D0–D7)</h2>
-            <p class="text-xs text-slate-400 mt-0.5">
-              Stress-test digital twin reliability under realistic wear failures, CGM latency, and signal dropouts
-            </p>
+            <h2 class="text-sm font-bold text-[var(--text-main)]">Sensor Degradation &amp; Stress Testing (D0–D7)</h2>
+            <p class="text-xs text-[var(--text-secondary)] mt-0.5">Test twin reliability under wear failures, signal latency, and dropouts</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400">Active Stress Scenario:</span>
-            <span id="activeDegradationLabel" class="text-xs font-mono font-bold bg-carbon-950 border border-emerald-500/50 text-emerald-400 px-3 py-1 rounded-lg">
+            <span class="text-xs text-[var(--text-secondary)]">Active Scenario:</span>
+            <span id="activeDegradationLabel" class="text-xs font-mono font-bold bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded">
               D0 (Nominal)
             </span>
           </div>
         </div>
 
-        <!-- 8 Degradation Scenarios Cards Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-          
-          <button onclick="injectDegradation('D0')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.15)] transition" id="deg-D0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <button onclick="injectDegradation('D0')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-emerald-500/60 shadow-sm transition" id="deg-D0">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D0: Nominal Stream</span>
-              <span class="text-xs font-mono font-bold bg-emerald-950 text-emerald-400 px-1.5 py-0.2 rounded">HIGH</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D0: Nominal</span>
+              <span class="text-[10px] font-mono font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.2 rounded">HIGH</span>
             </div>
-            <p class="text-xs text-slate-400">No dropouts, continuous 5-min CGM + HR/METs telemetry.</p>
+            <p class="text-xs text-[var(--text-secondary)]">Continuous 5-min CGM + Wearable stream.</p>
           </button>
 
-          <button onclick="injectDegradation('D1_15m')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-amber-500/50 transition" id="deg-D1_15m">
+          <button onclick="injectDegradation('D1_15m')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition" id="deg-D1_15m">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D1: Dropout 15m</span>
-              <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D1: Dropout 15m</span>
+              <span class="text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
             </div>
-            <p class="text-xs text-slate-400">CGM signal gap for 15 min prior to meal start.</p>
+            <p class="text-xs text-[var(--text-secondary)]">15-min CGM gap before meal.</p>
           </button>
 
-          <button onclick="injectDegradation('D1_30m')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-amber-500/50 transition" id="deg-D1_30m">
+          <button onclick="injectDegradation('D1_30m')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition" id="deg-D1_30m">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D1: Dropout 30m</span>
-              <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D1: Dropout 30m</span>
+              <span class="text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
             </div>
-            <p class="text-xs text-slate-400">Noticeable 30-min retrospective CGM gap.</p>
+            <p class="text-xs text-[var(--text-secondary)]">30-min retrospective CGM gap.</p>
           </button>
 
-          <button onclick="injectDegradation('D1_45m')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-rose-500/50 transition" id="deg-D1_45m">
+          <button onclick="injectDegradation('D1_45m')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition" id="deg-D1_45m">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D1: Dropout 45m</span>
-              <span class="text-xs font-mono font-bold bg-rose-950 text-rose-400 px-1.5 py-0.2 rounded">LOW</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D1: Dropout 45m</span>
+              <span class="text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 px-1.5 py-0.2 rounded">LOW</span>
             </div>
-            <p class="text-xs text-slate-400">Major sensor silence. Only 15 min buffer available.</p>
+            <p class="text-xs text-[var(--text-secondary)]">Major 45-min sensor silence.</p>
           </button>
 
-          <button onclick="injectDegradation('D2')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-amber-500/50 transition" id="deg-D2">
+          <button onclick="injectDegradation('D2')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition" id="deg-D2">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D2: Decimated CGM (15m)</span>
-              <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D2: Decimated 15m</span>
+              <span class="text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
             </div>
-            <p class="text-xs text-slate-400">Decimated from 5-min to 15-min sampling cadence.</p>
+            <p class="text-xs text-[var(--text-secondary)]">Decimated to 15-min sampling cadence.</p>
           </button>
 
-          <button onclick="injectDegradation('D3')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-amber-500/50 transition" id="deg-D3">
+          <button onclick="injectDegradation('D3')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition" id="deg-D3">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D3: Missing HR &amp; METs</span>
-              <span class="text-xs font-mono font-bold bg-amber-950 text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D3: No HR / METs</span>
+              <span class="text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded">MODERATE</span>
             </div>
-            <p class="text-xs text-slate-400">Wearable battery dead. Zero physiological exertion data.</p>
+            <p class="text-xs text-[var(--text-secondary)]">Wearable battery depleted.</p>
           </button>
 
-          <button onclick="injectDegradation('D4')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-rose-500/50 transition" id="deg-D4">
+          <button onclick="injectDegradation('D4')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition" id="deg-D4">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D4: 50% Decimated CGM</span>
-              <span class="text-xs font-mono font-bold bg-rose-950 text-rose-400 px-1.5 py-0.2 rounded">LOW</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D4: 50% Sparse CGM</span>
+              <span class="text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 px-1.5 py-0.2 rounded">LOW</span>
             </div>
-            <p class="text-xs text-slate-400">Severe downsampling across all 12 buffer steps.</p>
+            <p class="text-xs text-[var(--text-secondary)]">Sparse packet telemetry.</p>
           </button>
 
-          <button onclick="injectDegradation('D7')" class="deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-rose-500/50 transition" id="deg-D7">
+          <button onclick="injectDegradation('D7')" class="deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition" id="deg-D7">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-bold text-white">D7: Total Dropout (90m)</span>
-              <span class="text-xs font-mono font-bold bg-rose-950 text-rose-400 px-1.5 py-0.2 rounded">LOW</span>
+              <span class="text-xs font-bold text-[var(--text-main)]">D7: Total Loss 90m</span>
+              <span class="text-[10px] font-mono font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 px-1.5 py-0.2 rounded">LOW</span>
             </div>
-            <p class="text-xs text-slate-400">Complete sensor loss. Baseline glucose fallback only.</p>
+            <p class="text-xs text-[var(--text-secondary)]">Complete loss of sensor signal.</p>
           </button>
-
         </div>
 
-        <!-- Clinical Safety Action Banner -->
-        <div class="bg-carbon-950/90 border border-white/[0.08] rounded-xl p-4 text-xs text-slate-300 space-y-2">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-200 block">
-            Clinical Safety &amp; Fallback Action
-          </span>
-          <p id="safetyNoticeText" class="text-slate-400">
-            Nominal state (D0): Candidate S produces calibrated 180-min postprandial trajectory with tight ±14 mg/dL 90% conformal bands. All telemetry signals fully verified.
+        <div class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] rounded-lg p-3 text-xs text-[var(--text-secondary)] space-y-1">
+          <span class="font-semibold text-[var(--text-main)] block">Clinical Safety &amp; Fallback Action:</span>
+          <p id="safetyNoticeText">
+            Nominal state (D0): Candidate S produces calibrated 180-min postprandial trajectory with tight ±14 mg/dL 90% conformal bands.
           </p>
         </div>
 
@@ -991,14 +866,14 @@
   </main>
 
   <!-- ========================================================================= -->
-  <!-- 5. RAYCAST-STYLE GLOBAL COMMAND PALETTE MODAL (CMD+K / CTRL+K)            -->
+  <!-- 5. RAYCAST-STYLE GLOBAL COMMAND PALETTE MODAL                             -->
   <!-- ========================================================================= -->
   <div id="commandPaletteModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-start justify-center pt-24 px-4">
-    <div class="w-full max-w-xl glass-card rounded-2xl border border-white/[0.12] shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div class="w-full max-w-xl clean-card border border-[var(--border-subtle)] shadow-2xl overflow-hidden animate-in fade-in duration-100">
       
-      <!-- Search Input Bar -->
-      <div class="p-3.5 border-b border-white/[0.08] flex items-center gap-3 bg-carbon-950/60">
-        <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <!-- Search Input -->
+      <div class="p-3 border-b border-[var(--border-main)] flex items-center gap-2.5 bg-[var(--bg-card-subtle)]">
+        <svg class="w-4 h-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -1006,24 +881,22 @@
           id="cmdPaletteInput"
           oninput="filterCommandPalette()"
           onkeydown="onPaletteKeyDown(event)"
-          placeholder="Search actions, patients, presets, or stress tests..."
-          class="bg-transparent text-white placeholder-slate-500 text-xs outline-none flex-1 font-sans"
+          placeholder="Search clinical commands, switch patient, or jump to meal..."
+          class="bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-xs outline-none flex-1 font-sans"
           autocomplete="off"
         >
-        <kbd class="text-[11px] font-mono bg-carbon-850 text-slate-400 px-2 py-0.5 rounded border border-white/[0.08]">ESC</kbd>
+        <kbd class="text-[10px] font-mono bg-[var(--bg-card)] border border-[var(--border-main)] text-[var(--text-secondary)] px-1.5 py-0.5 rounded">ESC</kbd>
       </div>
 
-      <!-- Action Items List -->
-      <div id="cmdPaletteList" class="max-h-80 overflow-y-auto p-2 space-y-1">
+      <!-- Actions List -->
+      <div id="cmdPaletteList" class="max-h-72 overflow-y-auto p-2 space-y-1">
         <!-- Rendered dynamically via JS -->
       </div>
 
-      <!-- Palette Footer -->
-      <div class="px-4 py-2 border-t border-white/[0.06] bg-carbon-950/80 text-[11px] font-mono text-slate-500 flex justify-between items-center">
-        <span>Use <kbd class="text-slate-300">↑</kbd> <kbd class="text-slate-300">↓</kbd> to navigate, <kbd class="text-slate-300">Enter</kbd> to select</span>
-        <span>Aegis Fast Triage</span>
+      <div class="px-3.5 py-1.5 border-t border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[11px] font-mono text-[var(--text-muted)] flex justify-between items-center">
+        <span>Use <kbd>↑</kbd> <kbd>↓</kbd> to navigate, <kbd>Enter</kbd> to select</span>
+        <span>Aegis Command</span>
       </div>
-
     </div>
   </div>
 
@@ -1031,66 +904,63 @@
   <!-- 6. CUSTOM MEAL CREATOR MODAL                                              -->
   <!-- ========================================================================= -->
   <div id="customMealModal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
-    <div class="w-full max-w-md glass-card rounded-2xl border border-white/[0.12] shadow-2xl p-6 space-y-4">
+    <div class="w-full max-w-md clean-card border border-[var(--border-subtle)] shadow-2xl p-5 space-y-4">
       
-      <div class="flex items-center justify-between border-b border-white/[0.08] pb-3">
-        <div class="flex items-center gap-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span>
-          <h3 class="text-sm font-bold text-white">Create Custom Meal Input</h3>
-        </div>
-        <button onclick="closeCustomMealModal()" class="text-slate-400 hover:text-white text-xs">✕</button>
+      <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
+        <h3 class="text-sm font-bold text-[var(--text-main)]">Custom Meal Nutrition Input</h3>
+        <button onclick="closeCustomMealModal()" class="text-[var(--text-secondary)] hover:text-[var(--text-main)] text-xs">✕</button>
       </div>
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="text-slate-300 font-medium block mb-1">Dish Name / Food Item:</label>
-          <input type="text" id="customDishName" value="Paneer Butter Masala & Roti" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 outline-none focus:border-purple-500">
+          <label class="text-[var(--text-secondary)] font-medium block mb-1">Dish Name:</label>
+          <input type="text" id="customDishName" value="Paneer Butter Masala & Roti" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 outline-none focus:border-purple-500">
         </div>
 
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-3 gap-2.5">
           <div>
-            <label class="text-amber-400 font-medium block mb-1">Carbs (g):</label>
-            <input type="number" id="customCarbs" value="52" min="0" max="180" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-amber-500">
+            <label class="text-amber-500 font-medium block mb-1">Carbs (g):</label>
+            <input type="number" id="customCarbs" value="52" min="0" max="180" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none">
           </div>
           <div>
-            <label class="text-sky-400 font-medium block mb-1">Fat (g):</label>
-            <input type="number" id="customFat" value="24" min="0" max="100" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-sky-500">
+            <label class="text-cyan-500 font-medium block mb-1">Fat (g):</label>
+            <input type="number" id="customFat" value="24" min="0" max="100" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none">
           </div>
           <div>
-            <label class="text-emerald-400 font-medium block mb-1">Protein (g):</label>
-            <input type="number" id="customProtein" value="18" min="0" max="100" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-emerald-500">
+            <label class="text-emerald-500 font-medium block mb-1">Protein (g):</label>
+            <input type="number" id="customProtein" value="18" min="0" max="100" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none">
           </div>
         </div>
 
         <div>
-          <label class="text-slate-300 font-medium block mb-1">Portion Scaling (%):</label>
-          <input type="number" id="customPortion" value="100" min="25" max="250" step="25" class="w-full bg-carbon-950 border border-white/[0.08] text-white rounded-xl p-2.5 font-mono outline-none focus:border-purple-500">
+          <label class="text-[var(--text-secondary)] font-medium block mb-1">Portion Scaling (%):</label>
+          <input type="number" id="customPortion" value="100" min="25" max="250" step="25" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none">
         </div>
       </div>
 
-      <div class="flex justify-end gap-2.5 pt-2 border-t border-white/[0.06]">
-        <button onclick="closeCustomMealModal()" class="px-3.5 py-1.5 rounded-xl bg-carbon-850 hover:bg-carbon-800 text-slate-300 text-xs font-medium">Cancel</button>
-        <button onclick="applyCustomMealToSandbox()" class="px-4 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-md">Apply to Sandbox</button>
+      <div class="flex justify-end gap-2 pt-2 border-t border-[var(--border-main)]">
+        <button onclick="closeCustomMealModal()" class="px-3 py-1 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-secondary)] text-xs">Cancel</button>
+        <button onclick="applyCustomMealToSandbox()" class="px-3.5 py-1 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold">Apply to Sandbox</button>
       </div>
 
     </div>
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 7. FOOTER & SHORTCUT AUDIT                                                -->
+  <!-- 7. FOOTER                                                                 -->
   <!-- ========================================================================= -->
-  <footer class="border-t border-white/[0.07] px-6 py-3 bg-carbon-950/80 text-xs text-slate-500 flex flex-wrap justify-between items-center gap-3">
+  <footer class="border-t border-[var(--border-main)] px-6 py-3 bg-[var(--bg-card)] text-xs text-[var(--text-secondary)] flex flex-wrap justify-between items-center gap-3">
     <div>Team Aegis — Happiest Health Digital Twin Challenge 2026 • Dual-Gamma Structured Absorption Model</div>
     <div class="flex items-center gap-4">
-      <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">Cmd+K</kbd> Command Palette</span>
-      <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">Space</kbd> Play / Pause</span>
-      <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">N</kbd> Next Clinical Meal</span>
-      <span><kbd class="bg-carbon-900 border border-white/[0.08] px-1.5 py-0.5 rounded text-slate-300">1-4</kbd> Switch View</span>
+      <span><kbd class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] px-1.5 py-0.5 rounded text-[var(--text-main)]">Cmd+K</kbd> Command</span>
+      <span><kbd class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] px-1.5 py-0.5 rounded text-[var(--text-main)]">Space</kbd> Play / Pause</span>
+      <span><kbd class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] px-1.5 py-0.5 rounded text-[var(--text-main)]">N</kbd> Next Meal</span>
+      <span><kbd class="bg-[var(--bg-card-subtle)] border border-[var(--border-main)] px-1.5 py-0.5 rounded text-[var(--text-main)]">1-4</kbd> Switch View</span>
     </div>
   </footer>
 
   <!-- ========================================================================= -->
-  <!-- 8. APPLICATION LOGIC & REAL ENGINE WEBSOCKET INTEGRATION                  -->
+  <!-- 8. JAVASCRIPT ENGINE WITH DYNAMIC DARK/LIGHT THEME SUPPORT                -->
   <!-- ========================================================================= -->
   <script>
     // State
@@ -1101,47 +971,107 @@
     let ws = null;
     let forecastChart = null;
     let whatifChart = null;
-    let isDarkMode = true;
+    let currentTheme = 'dark';
 
     const timeLabels = Array.from({length: 36}, (_, i) => `+${(i+1)*5}m`);
 
-    // Command Palette Actions Repository
+    // Command Palette Actions
     const commandActions = [
       { id: 'play', title: 'Replay: Toggle Play / Pause', cat: 'Replay', key: 'Space', run: () => togglePlayPause() },
       { id: 'jump', title: 'Replay: Jump to Next Clinical Meal', cat: 'Replay', key: 'N', run: () => jumpToMeal() },
-      { id: 'stop', title: 'Replay: Stop & Reset Replay Stream', cat: 'Replay', key: 'S', run: () => stopReplay() },
+      { id: 'stop', title: 'Replay: Stop & Reset Replay', cat: 'Replay', key: 'S', run: () => stopReplay() },
       
-      { id: 'p020', title: 'Twin: Switch to P020 (Type 2 Diabetes, 58y, HbA1c 7.4%)', cat: 'Twin', key: 'P20', run: () => { setPatient('P020'); } },
-      { id: 'p021', title: 'Twin: Switch to P021 (Type 2 Diabetes, 61y, HbA1c 7.8%)', cat: 'Twin', key: 'P21', run: () => { setPatient('P021'); } },
-      { id: 'p010', title: 'Twin: Switch to P010 (Prediabetes, 48y, HbA1c 6.0%)', cat: 'Twin', key: 'P10', run: () => { setPatient('P010'); } },
-      { id: 'p001', title: 'Twin: Switch to P001 (Healthy Control, 28y, HbA1c 5.2%)', cat: 'Twin', key: 'P01', run: () => { setPatient('P001'); } },
+      { id: 'theme_light', title: 'Theme: Switch to Figma Paper Light Mode', cat: 'Theme', key: 'L', run: () => setTheme('light') },
+      { id: 'theme_dark', title: 'Theme: Switch to OpenRouter Dark Mode', cat: 'Theme', key: 'D', run: () => setTheme('dark') },
+
+      { id: 'p020', title: 'Twin: Switch to P020 (Type 2 Diabetes, 58y, HbA1c 7.4%)', cat: 'Twin', key: 'P20', run: () => setPatient('P020') },
+      { id: 'p021', title: 'Twin: Switch to P021 (Type 2 Diabetes, 61y, HbA1c 7.8%)', cat: 'Twin', key: 'P21', run: () => setPatient('P021') },
+      { id: 'p010', title: 'Twin: Switch to P010 (Prediabetes, 48y, HbA1c 6.0%)', cat: 'Twin', key: 'P10', run: () => setPatient('P010') },
+      { id: 'p001', title: 'Twin: Switch to P001 (Healthy Control, 28y, HbA1c 5.2%)', cat: 'Twin', key: 'P01', run: () => setPatient('P001') },
       
-      { id: 'preset_roti', title: 'What-If: Preset Roti, Dal & Sabzi (48g C, 12g F, 16g P)', cat: 'What-If', key: 'R', run: () => { switchTab('whatif'); selectDish('roti_dal_sabzi'); } },
-      { id: 'preset_dosa', title: 'What-If: Preset Masala Dosa + Sambar (62g C, 18g F, 10g P)', cat: 'What-If', key: 'D', run: () => { switchTab('whatif'); selectDish('masala_dosa'); } },
-      { id: 'preset_biryani', title: 'What-If: Preset Chicken Biryani (68g C, 22g F, 32g P)', cat: 'What-If', key: 'B', run: () => { switchTab('whatif'); selectDish('chicken_biryani'); } },
-      { id: 'preset_rajma', title: 'What-If: Preset Rajma Chawal (72g C, 14g F, 20g P)', cat: 'What-If', key: 'RC', run: () => { switchTab('whatif'); selectDish('rajma_chawal'); } },
-      { id: 'custom_meal', title: 'What-If: Open Custom Meal Builder Modal', cat: 'What-If', key: '+', run: () => { openCustomMealModal(); } },
+      { id: 'preset_roti', title: 'What-If: Preset Roti, Dal & Sabzi', cat: 'What-If', key: 'R', run: () => { switchTab('whatif'); selectDish('roti_dal_sabzi'); } },
+      { id: 'preset_dosa', title: 'What-If: Preset Masala Dosa + Sambar', cat: 'What-If', key: 'D', run: () => { switchTab('whatif'); selectDish('masala_dosa'); } },
+      { id: 'preset_biryani', title: 'What-If: Preset Chicken Biryani', cat: 'What-If', key: 'B', run: () => { switchTab('whatif'); selectDish('chicken_biryani'); } },
+      { id: 'preset_rajma', title: 'What-If: Preset Rajma Chawal', cat: 'What-If', key: 'RC', run: () => { switchTab('whatif'); selectDish('rajma_chawal'); } },
+      { id: 'custom_meal', title: 'What-If: Open Custom Meal Builder', cat: 'What-If', key: '+', run: () => openCustomMealModal() },
 
       { id: 'deg_d0', title: 'Stress: Nominal 5-Min Telemetry (D0)', cat: 'Stress', key: 'D0', run: () => injectDegradation('D0') },
-      { id: 'deg_d1_30m', title: 'Stress: CGM Signal Dropout 30m (D1)', cat: 'Stress', key: 'D1', run: () => injectDegradation('D1_30m') },
-      { id: 'deg_d3', title: 'Stress: Wearable Disconnect (No HR/METs) (D3)', cat: 'Stress', key: 'D3', run: () => injectDegradation('D3') },
+      { id: 'deg_d1_30m', title: 'Stress: 30-min Signal Dropout (D1)', cat: 'Stress', key: 'D1', run: () => injectDegradation('D1_30m') },
+      { id: 'deg_d3', title: 'Stress: Missing HR & METs (D3)', cat: 'Stress', key: 'D3', run: () => injectDegradation('D3') },
       { id: 'deg_d4', title: 'Stress: Decimated Sparse CGM 50% (D4)', cat: 'Stress', key: 'D4', run: () => injectDegradation('D4') },
 
-      { id: 'tab_forecast', title: 'View: 1. Live Monitoring & Trajectory Forecast', cat: 'View', key: '1', run: () => switchTab('forecast') },
+      { id: 'tab_forecast', title: 'View: 1. Live Monitoring & Forecast', cat: 'View', key: '1', run: () => switchTab('forecast') },
       { id: 'tab_whatif', title: 'View: 2. What-If Meal Sandbox', cat: 'View', key: '2', run: () => switchTab('whatif') },
-      { id: 'tab_profile', title: 'View: 3. Patient Digital Twin Phenotype', cat: 'View', key: '3', run: () => switchTab('profile') },
-      { id: 'tab_audit', title: 'View: 4. Sensor Stress-Test Studio', cat: 'View', key: '4', run: () => switchTab('audit') },
+      { id: 'tab_profile', title: 'View: 3. Patient Digital Twin Profile', cat: 'View', key: '3', run: () => switchTab('profile') },
+      { id: 'tab_audit', title: 'View: 4. Sensor Quality & Stress', cat: 'View', key: '4', run: () => switchTab('audit') },
     ];
     let selectedPaletteIndex = 0;
     let filteredPaletteActions = [...commandActions];
 
-    // --- Init Charts & Theme ---
-    function initCharts() {
-      const ctx1 = document.getElementById('forecastChart').getContext('2d');
-      const gradientForecast = ctx1.createLinearGradient(0, 0, 0, 400);
-      gradientForecast.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
-      gradientForecast.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+    // --- Theme Engine (Light / Dark) ---
+    function setTheme(theme) {
+      currentTheme = theme;
+      localStorage.setItem('aegis_theme', theme);
 
+      const html = document.documentElement;
+      const btnLight = document.getElementById('themeBtnLight');
+      const btnDark = document.getElementById('themeBtnDark');
+
+      if (theme === 'dark') {
+        html.classList.add('dark');
+        btnDark.classList.add('bg-[var(--border-main)]', 'text-[var(--text-main)]');
+        btnLight.classList.remove('bg-[var(--border-main)]', 'text-[var(--text-main)]');
+      } else {
+        html.classList.remove('dark');
+        btnLight.classList.add('bg-[var(--border-main)]', 'text-[var(--text-main)]');
+        btnDark.classList.remove('bg-[var(--border-main)]', 'text-[var(--text-main)]');
+      }
+
+      updateChartsTheme();
+    }
+
+    function initTheme() {
+      const saved = localStorage.getItem('aegis_theme');
+      if (saved) {
+        setTheme(saved);
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        setTheme('light');
+      } else {
+        setTheme('dark');
+      }
+    }
+
+    function updateChartsTheme() {
+      const isDark = currentTheme === 'dark';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)';
+      const tickColor = isDark ? '#8b949e' : '#64748b';
+      const tooltipBg = isDark ? '#161b22' : '#ffffff';
+      const tooltipBorder = isDark ? '#30363d' : '#cbd5e1';
+      const tooltipTitle = isDark ? '#f0f6fc' : '#0f172a';
+      const tooltipBody = isDark ? '#c9d1d9' : '#334155';
+
+      [forecastChart, whatifChart].forEach(c => {
+        if (!c) return;
+        c.options.scales.x.grid.color = gridColor;
+        c.options.scales.x.ticks.color = tickColor;
+        c.options.scales.y.grid.color = gridColor;
+        c.options.scales.y.ticks.color = tickColor;
+        c.options.plugins.tooltip.backgroundColor = tooltipBg;
+        c.options.plugins.tooltip.borderColor = tooltipBorder;
+        c.options.plugins.tooltip.titleColor = tooltipTitle;
+        c.options.plugins.tooltip.bodyColor = tooltipBody;
+        c.update();
+      });
+    }
+
+    // --- Init Charts ---
+    function initCharts() {
+      const isDark = currentTheme === 'dark';
+      const gridColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)';
+      const tickColor = isDark ? '#8b949e' : '#64748b';
+
+      // 1. Forecast Chart
+      const ctx1 = document.getElementById('forecastChart').getContext('2d');
       forecastChart = new Chart(ctx1, {
         type: 'line',
         data: {
@@ -1150,48 +1080,47 @@
             {
               label: 'Threshold 180 mg/dL',
               data: Array(36).fill(180),
-              borderColor: 'rgba(244, 63, 94, 0.7)',
+              borderColor: 'rgba(244, 63, 94, 0.65)',
               borderWidth: 1.5,
-              borderDash: [5, 5],
+              borderDash: [4, 4],
               pointRadius: 0,
               fill: false,
             },
             {
               label: 'Conformal Upper (90%)',
               data: [],
-              borderColor: 'rgba(16, 185, 129, 0.35)',
+              borderColor: 'rgba(16, 185, 129, 0.3)',
               borderWidth: 1,
               pointRadius: 0,
               fill: '+1',
-              backgroundColor: 'rgba(16, 185, 129, 0.10)',
-              tension: 0.35,
+              backgroundColor: 'rgba(16, 185, 129, 0.08)',
+              tension: 0.3,
             },
             {
               label: 'Conformal Lower (90%)',
               data: [],
-              borderColor: 'rgba(16, 185, 129, 0.35)',
+              borderColor: 'rgba(16, 185, 129, 0.3)',
               borderWidth: 1,
               pointRadius: 0,
               fill: false,
-              tension: 0.35,
+              tension: 0.3,
             },
             {
               label: 'Candidate S Forecast',
               data: [],
               borderColor: '#10b981',
-              backgroundColor: gradientForecast,
-              borderWidth: 3,
+              borderWidth: 2.5,
               pointRadius: 0,
-              tension: 0.35,
-              fill: true,
+              tension: 0.3,
+              fill: false,
             },
             {
               label: 'Observed Ground Truth',
               data: [],
               borderColor: '#f59e0b',
               backgroundColor: '#f59e0b',
-              borderWidth: 2,
-              borderDash: [5, 4],
+              borderWidth: 1.8,
+              borderDash: [4, 4],
               pointRadius: 2.5,
               pointBackgroundColor: '#f59e0b',
               tension: 0.2,
@@ -1201,47 +1130,39 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false,
-          },
+          interaction: { mode: 'index', intersect: false },
           plugins: {
             legend: { display: false },
             tooltip: {
               enabled: true,
-              backgroundColor: 'rgba(11, 15, 25, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.12)',
               borderWidth: 1,
-              padding: 12,
-              cornerRadius: 10,
-              titleFont: { family: 'JetBrains Mono', size: 12, weight: 'bold' },
+              padding: 10,
+              cornerRadius: 8,
+              titleFont: { family: 'JetBrains Mono', size: 12, weight: '600' },
               bodyFont: { family: 'JetBrains Mono', size: 12 },
               callbacks: {
-                label: function(context) {
-                  return ` ${context.dataset.label}: ${Number(context.parsed.y).toFixed(1)} mg/dL`;
-                }
+                label: (ctx) => ` ${ctx.dataset.label}: ${Number(ctx.parsed.y).toFixed(1)} mg/dL`
               }
             }
           },
           onHover: (event, elements) => {
             if (elements && elements.length > 0) {
-              const idx = elements[0].index;
-              updateScrubberHUD(idx);
+              updateScrubberHUD(elements[0].index);
             }
           },
           scales: {
             x: {
-              grid: { color: 'rgba(255, 255, 255, 0.04)' },
-              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 11 } }
+              grid: { color: gridColor },
+              ticks: { color: tickColor, font: { family: 'JetBrains Mono', size: 11 } }
             },
             y: {
               min: 80,
               max: 240,
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              grid: { color: gridColor },
               ticks: { 
-                color: '#94a3b8', 
+                color: tickColor, 
                 font: { family: 'JetBrains Mono', size: 11 },
-                callback: function(value) { return value + ' mg/dL'; }
+                callback: (v) => v + ' mg/dL'
               }
             }
           }
@@ -1258,9 +1179,9 @@
             {
               label: 'Threshold 180 mg/dL',
               data: Array(36).fill(180),
-              borderColor: 'rgba(244, 63, 94, 0.7)',
+              borderColor: 'rgba(244, 63, 94, 0.65)',
               borderWidth: 1.5,
-              borderDash: [5, 5],
+              borderDash: [4, 4],
               pointRadius: 0,
               fill: false,
             },
@@ -1268,60 +1189,54 @@
               label: 'Baseline Meal',
               data: [],
               borderColor: '#10b981',
-              backgroundColor: '#10b981',
-              borderWidth: 2.5,
+              borderWidth: 2,
               pointRadius: 0,
-              tension: 0.35,
+              tension: 0.3,
             },
             {
               label: 'Simulated Counterfactual',
               data: [],
-              borderColor: '#c084fc',
-              backgroundColor: 'rgba(192, 132, 252, 0.1)',
-              borderWidth: 3,
-              borderDash: [5, 4],
+              borderColor: '#a855f7',
+              borderWidth: 2.5,
+              borderDash: [4, 4],
               pointRadius: 0,
-              tension: 0.35,
-              fill: true,
+              tension: 0.3,
             }
           ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          interaction: {
-            mode: 'index',
-            intersect: false,
-          },
+          interaction: { mode: 'index', intersect: false },
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: 'rgba(11, 15, 25, 0.95)',
-              borderColor: 'rgba(255, 255, 255, 0.12)',
               borderWidth: 1,
-              padding: 12,
-              cornerRadius: 10,
-              titleFont: { family: 'JetBrains Mono', size: 12, weight: 'bold' },
+              padding: 10,
+              cornerRadius: 8,
+              titleFont: { family: 'JetBrains Mono', size: 12, weight: '600' },
               bodyFont: { family: 'JetBrains Mono', size: 12 },
             }
           },
           scales: {
             x: {
-              grid: { color: 'rgba(255, 255, 255, 0.04)' },
-              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 11 } }
+              grid: { color: gridColor },
+              ticks: { color: tickColor, font: { family: 'JetBrains Mono', size: 11 } }
             },
             y: {
               min: 80,
               max: 240,
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 11 } }
+              grid: { color: gridColor },
+              ticks: { color: tickColor, font: { family: 'JetBrains Mono', size: 11 } }
             }
           }
         }
       });
+
+      updateChartsTheme();
     }
 
-    // --- Interactive Scrubber HUD ---
+    // --- Scrubber HUD Readout ---
     function updateScrubberHUD(idx) {
       if (!forecastChart) return;
       const t = timeLabels[idx];
@@ -1346,7 +1261,7 @@
       }
     }
 
-    // --- WebSocket Replay Connection ---
+    // --- WebSocket Stream ---
     function connectWebSocket() {
       const loc = window.location;
       const wsProto = loc.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -1355,8 +1270,8 @@
       ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
-        document.getElementById('wsStatus').innerText = 'LIVE SENSOR STREAM';
-        document.getElementById('wsIndicator').className = 'flex items-center gap-2 text-xs font-mono bg-emerald-950/40 border border-emerald-500/40 text-emerald-400 px-3.5 py-1.5 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.15)]';
+        document.getElementById('wsStatus').innerText = 'LIVE STREAM';
+        document.getElementById('wsIndicator').className = 'flex items-center gap-1.5 text-xs font-mono bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 rounded-lg';
       };
 
       ws.onmessage = (event) => {
@@ -1371,13 +1286,13 @@
             const pill = document.getElementById('glucoseStatusPill');
             if (g > 180) {
               pill.innerText = 'HIGH (>180)';
-              pill.className = 'bg-rose-950/80 text-rose-300 border border-rose-600/50 px-2 py-0.5 rounded-full font-mono text-xs';
+              pill.className = 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold';
             } else if (g < 70) {
               pill.innerText = 'LOW (<70)';
-              pill.className = 'bg-rose-950/80 text-rose-300 border border-rose-600/50 px-2 py-0.5 rounded-full font-mono text-xs';
+              pill.className = 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold';
             } else {
               pill.innerText = 'IN RANGE';
-              pill.className = 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/50 px-2 py-0.5 rounded-full font-mono text-xs';
+              pill.className = 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono text-[11px] font-semibold';
             }
           } else if (msg.type === 'MEAL_EVENT') {
             if (msg.meal) {
@@ -1396,7 +1311,7 @@
 
       ws.onclose = () => {
         document.getElementById('wsStatus').innerText = 'RECONNECTING...';
-        document.getElementById('wsIndicator').className = 'flex items-center gap-2 text-xs font-mono bg-carbon-850 border border-white/[0.08] text-slate-400 px-3.5 py-1.5 rounded-full';
+        document.getElementById('wsIndicator').className = 'flex items-center gap-1.5 text-xs font-mono bg-slate-500/10 border border-slate-500/30 text-[var(--text-secondary)] px-2.5 py-1.5 rounded-lg';
         setTimeout(connectWebSocket, 3000);
       };
     }
@@ -1416,8 +1331,8 @@
       const res = await fetch(`/replay/start?session_id=${activeSession}&patient_id=${patient}&speed=${speed}&degradation=${activeDegradation}`, { method: 'POST' });
       if (res.ok) {
         isPlaying = true;
-        document.getElementById('playText').innerText = 'Pause Stream';
-        document.getElementById('btnPlayPause').className = 'bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(245,158,11,0.3)]';
+        document.getElementById('playText').innerText = 'Pause';
+        document.getElementById('btnPlayPause').className = 'px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-sm';
       }
     }
 
@@ -1425,24 +1340,24 @@
       const res = await fetch(`/replay/pause?session_id=${activeSession}`, { method: 'POST' });
       if (res.ok) {
         isPlaying = false;
-        document.getElementById('playText').innerText = 'Resume Stream';
-        document.getElementById('btnPlayPause').className = 'bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+        document.getElementById('playText').innerText = 'Resume';
+        document.getElementById('btnPlayPause').className = 'px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-sm';
       }
     }
 
     async function stopReplay() {
       await fetch(`/replay/stop?session_id=${activeSession}`, { method: 'POST' });
       isPlaying = false;
-      document.getElementById('playText').innerText = 'Start Stream';
-      document.getElementById('btnPlayPause').className = 'bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+      document.getElementById('playText').innerText = 'Play';
+      document.getElementById('btnPlayPause').className = 'px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-sm';
     }
 
     async function jumpToMeal() {
       const res = await fetch(`/replay/jump?session_id=${activeSession}`, { method: 'POST' });
       if (res.ok) {
         isPlaying = true;
-        document.getElementById('playText').innerText = 'Pause Stream';
-        document.getElementById('btnPlayPause').className = 'bg-amber-600 hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-[0_0_15px_rgba(245,158,11,0.3)]';
+        document.getElementById('playText').innerText = 'Pause';
+        document.getElementById('btnPlayPause').className = 'px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white font-medium rounded-lg text-xs flex items-center gap-1.5 transition shadow-sm';
       }
     }
 
@@ -1462,7 +1377,7 @@
       loadPatientDetails();
     }
 
-    // --- Load Patient Details ---
+    // --- Patient Details ---
     async function loadPatientDetails() {
       const pid = document.getElementById('patientSelect').value;
       try {
@@ -1499,7 +1414,6 @@
         whatifChart.update();
       }
 
-      // Default HUD to peak point or 11th step (+60m)
       updateScrubberHUD(11);
 
       if (metrics) {
@@ -1515,11 +1429,11 @@
         badge.innerText = `${lbl} CONFIDENCE`;
 
         if (lbl === 'HIGH') {
-          badge.className = 'bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 text-xs font-bold font-mono px-3 py-1 rounded-full uppercase shadow-sm';
+          badge.className = 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold font-mono px-2.5 py-0.5 rounded-full uppercase';
         } else if (lbl === 'MODERATE') {
-          badge.className = 'bg-amber-950/80 text-amber-300 border border-amber-500/60 text-xs font-bold font-mono px-3 py-1 rounded-full uppercase shadow-sm';
+          badge.className = 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-bold font-mono px-2.5 py-0.5 rounded-full uppercase';
         } else {
-          badge.className = 'bg-rose-950/80 text-rose-300 border border-rose-500/60 text-xs font-bold font-mono px-3 py-1 rounded-full uppercase shadow-sm';
+          badge.className = 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold font-mono px-2.5 py-0.5 rounded-full uppercase';
         }
 
         if (reliability.reasons && reliability.reasons.length > 0) {
@@ -1528,7 +1442,7 @@
       }
     }
 
-    // --- What-If Sandbox Logic ---
+    // --- What-If Sandbox ---
     function selectDish(dishKey) {
       if (dishKey === 'masala_dosa') {
         document.getElementById('activeDishNameLabel').innerText = 'Masala Dosa + Sambar';
@@ -1636,7 +1550,7 @@
           const deltaPeak = simPeak - baselinePeak;
           const peakElem = document.getElementById('whatifDeltaPeak');
           peakElem.innerText = `${deltaPeak >= 0 ? '+' : ''}${deltaPeak.toFixed(1)} mg/dL`;
-          peakElem.className = deltaPeak <= 0 ? 'text-2xl font-bold font-mono text-emerald-400' : 'text-2xl font-bold font-mono text-rose-400';
+          peakElem.className = deltaPeak <= 0 ? 'text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400' : 'text-xl font-bold font-mono text-rose-600 dark:text-rose-400';
 
           const delayedDelta = (scaledFat - 15.0) * 0.3;
           document.getElementById('whatifDeltaDelayed').innerText = `${delayedDelta >= 0 ? '+' : ''}${delayedDelta.toFixed(1)} mg/dL`;
@@ -1680,22 +1594,22 @@
       document.getElementById('activeDegradationLabel').innerText = degId;
 
       document.querySelectorAll('.deg-card').forEach(b => {
-        b.className = 'deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-white/[0.07] hover:border-emerald-500/50 transition';
+        b.className = 'deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-[var(--border-main)] hover:border-[var(--border-subtle)] transition';
       });
       const activeBtn = document.getElementById(`deg-${degId}`);
       if (activeBtn) {
-        activeBtn.className = 'deg-card text-left p-4 rounded-xl bg-carbon-950/80 border border-emerald-500/60 shadow-[0_0_15px_rgba(16,185,129,0.15)] transition';
+        activeBtn.className = 'deg-card text-left p-3.5 rounded-lg bg-[var(--bg-card-subtle)] border border-emerald-500/60 shadow-sm transition';
       }
 
       await fetch(`/replay/degrade?session_id=${activeSession}&degradation=${degId}`, { method: 'POST' });
 
       const banner = document.getElementById('safetyNoticeText');
       if (degId === 'D0') {
-        banner.innerText = 'Nominal state (D0): Candidate S produces calibrated 180-min postprandial trajectory with tight ±14 mg/dL 90% conformal bands. All telemetry signals fully verified.';
+        banner.innerText = 'Nominal state (D0): Candidate S produces calibrated 180-min postprandial trajectory with tight ±14 mg/dL 90% conformal bands.';
       } else if (degId.startsWith('D1') || degId === 'D3') {
-        banner.innerText = `Degraded state (${degId}): Conformal prediction bands dynamically widen to ±28 mg/dL to maintain ≥90% empirical coverage. Clinician warning flags active.`;
+        banner.innerText = `Degraded state (${degId}): Conformal prediction bands dynamically widen to ±28 mg/dL to maintain ≥90% empirical coverage.`;
       } else {
-        banner.innerText = `Severe sensor failure (${degId}): Model confidence retracted. Reverts to conservative population boundary [110, 190 mg/dL]. Not reliable for clinical guidance.`;
+        banner.innerText = `Severe sensor failure (${degId}): Model confidence retracted. Reverts to conservative population boundary [110, 190 mg/dL].`;
       }
     }
 
@@ -1731,19 +1645,7 @@
       }
     }
 
-    // --- Theme Toggle (Obsidian Dark vs Paper Light) ---
-    function toggleTheme() {
-      isDarkMode = !isDarkMode;
-      if (isDarkMode) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      if (forecastChart) forecastChart.update();
-      if (whatifChart) whatifChart.update();
-    }
-
-    // --- Raycast Command Palette ---
+    // --- Command Palette ---
     function openCommandPalette() {
       const modal = document.getElementById('commandPaletteModal');
       modal.classList.remove('hidden');
@@ -1769,7 +1671,7 @@
     function renderCommandPaletteList() {
       const container = document.getElementById('cmdPaletteList');
       if (filteredPaletteActions.length === 0) {
-        container.innerHTML = '<div class="text-xs text-slate-500 text-center py-6">No matching clinical actions found</div>';
+        container.innerHTML = '<div class="text-xs text-[var(--text-muted)] text-center py-6">No matching actions</div>';
         return;
       }
 
@@ -1778,17 +1680,17 @@
         return `
           <div 
             onclick="executePaletteAction(${idx})"
-            class="flex items-center justify-between p-2.5 rounded-xl cursor-pointer transition text-xs ${
+            class="flex items-center justify-between p-2 rounded-lg cursor-pointer transition text-xs ${
               isSelected 
-                ? 'bg-emerald-950/60 border border-emerald-500/50 text-white shadow-sm' 
-                : 'bg-carbon-950/60 border border-white/[0.04] text-slate-300 hover:border-white/[0.1]'
+                ? 'bg-emerald-500/10 border border-emerald-500/40 text-[var(--text-main)] font-medium' 
+                : 'bg-[var(--bg-card)] border border-[var(--border-main)] text-[var(--text-secondary)] hover:text-[var(--text-main)]'
             }"
           >
-            <div class="flex items-center gap-2.5">
-              <span class="w-1.5 h-1.5 rounded-full ${item.cat === 'Replay' ? 'bg-emerald-400' : item.cat === 'Twin' ? 'bg-cyan-400' : item.cat === 'What-If' ? 'bg-purple-400' : item.cat === 'Stress' ? 'bg-rose-400' : 'bg-amber-400'}"></span>
+            <div class="flex items-center gap-2">
+              <span class="w-1.5 h-1.5 rounded-full ${item.cat === 'Replay' ? 'bg-emerald-500' : item.cat === 'Twin' ? 'bg-cyan-500' : item.cat === 'Theme' ? 'bg-amber-500' : item.cat === 'What-If' ? 'bg-purple-500' : 'bg-rose-500'}"></span>
               <span>${item.title}</span>
             </div>
-            <span class="font-mono text-[11px] bg-carbon-850 px-2 py-0.5 rounded text-slate-400 border border-white/[0.08]">${item.key}</span>
+            <span class="font-mono text-[10px] bg-[var(--bg-card-subtle)] px-1.5 py-0.5 rounded border border-[var(--border-main)]">${item.key}</span>
           </div>
         `;
       }).join('');
@@ -1824,15 +1726,11 @@
 
     // --- Global Keyboard Accelerators ---
     window.addEventListener('keydown', (e) => {
-      // Cmd+K / Ctrl+K
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         const modal = document.getElementById('commandPaletteModal');
-        if (modal.classList.contains('hidden')) {
-          openCommandPalette();
-        } else {
-          closeCommandPalette();
-        }
+        if (modal.classList.contains('hidden')) openCommandPalette();
+        else closeCommandPalette();
         return;
       }
 
@@ -1861,8 +1759,9 @@
       }
     });
 
-    // --- Onload Initialization ---
+    // --- Onload Init ---
     window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
       initCharts();
       connectWebSocket();
       loadPatientDetails();
