@@ -38,15 +38,28 @@ MEAL_TYPES = ["breakfast", "lunch", "dinner", "snack"]
 
 def extract_static_features(patient_profile: Dict[str, Any] | pd.Series) -> np.ndarray:
     """Extract standardized 8-dimensional static clinical feature vector."""
-    age = float(patient_profile.get("age", POPULATION_MEANS["age"]))
-    sex_str = str(patient_profile.get("sex", "female")).lower()
+
+    def _safe_float(key: str, default: float) -> float:
+        val = patient_profile.get(key)
+        if val is None:
+            return default
+        try:
+            f = float(val)
+            if math.isnan(f) or math.isinf(f):
+                return default
+            return f
+        except (ValueError, TypeError):
+            return default
+
+    age = _safe_float("age", POPULATION_MEANS["age"])
+    sex_str = str(patient_profile.get("sex", "female") or "female").lower()
     sex_val = 1.0 if sex_str in ["male", "m"] else 0.0
-    bmi = float(patient_profile.get("bmi", POPULATION_MEANS["bmi"]))
-    hba1c = float(patient_profile.get("hba1c", POPULATION_MEANS["hba1c"]))
-    fg = float(patient_profile.get("fasting_glucose", POPULATION_MEANS["fasting_glucose"]))
-    fi = float(patient_profile.get("fasting_insulin", POPULATION_MEANS["fasting_insulin"]))
-    tg = float(patient_profile.get("triglycerides", POPULATION_MEANS["triglycerides"]))
-    hdl = float(patient_profile.get("hdl", POPULATION_MEANS["hdl"]))
+    bmi = _safe_float("bmi", POPULATION_MEANS["bmi"])
+    hba1c = _safe_float("hba1c", POPULATION_MEANS["hba1c"])
+    fg = _safe_float("fasting_glucose", POPULATION_MEANS["fasting_glucose"])
+    fi = _safe_float("fasting_insulin", POPULATION_MEANS["fasting_insulin"])
+    tg = _safe_float("triglycerides", POPULATION_MEANS["triglycerides"])
+    hdl = _safe_float("hdl", POPULATION_MEANS["hdl"])
 
     z_age = (age - POPULATION_MEANS["age"]) / POPULATION_STDS["age"]
     z_bmi = (bmi - POPULATION_MEANS["bmi"]) / POPULATION_STDS["bmi"]

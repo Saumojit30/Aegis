@@ -32,10 +32,21 @@ class PatientModel(Base):
     bmi = Column(Float, default=28.5)
     hba1c = Column(Float, default=6.5)
     fasting_glucose = Column(Float, default=115.0)
+    weight_kg = Column(Float, nullable=True)
+    height_cm = Column(Float, nullable=True)
+    fasting_insulin = Column(Float, nullable=True)
+    triglycerides = Column(Float, nullable=True)
+    hdl = Column(Float, nullable=True)
+    ldl = Column(Float, nullable=True)
+    homa_ir = Column(Float, nullable=True)
+    isf = Column(Float, nullable=True)
+    cir = Column(Float, nullable=True)
     summary = Column(Text, nullable=True)
     ehr_extras = Column(JSON, default=dict)  # synthetic comorbidities, medications, BP history
 
-    observations = relationship("ObservationModel", back_populates="patient", cascade="all, delete-orphan")
+    observations = relationship(
+        "ObservationModel", back_populates="patient", cascade="all, delete-orphan"
+    )
     meals = relationship("MealModel", back_populates="patient", cascade="all, delete-orphan")
 
     def to_dict(self) -> Dict[str, Any]:
@@ -48,6 +59,29 @@ class PatientModel(Base):
                 "bmi": self.bmi,
                 "hba1c": self.hba1c,
                 "fasting_glucose": self.fasting_glucose,
+                "weight_kg": self.weight_kg,
+                "height_cm": self.height_cm,
+                "fasting_insulin": self.fasting_insulin,
+                "triglycerides": self.triglycerides,
+                "hdl": self.hdl,
+                "ldl": self.ldl,
+                "homa_ir": self.homa_ir,
+                "isf": self.isf,
+                "cir": self.cir,
+            },
+            "biomarkers": {
+                "fasting_glucose": self.fasting_glucose,
+                "fasting_insulin": self.fasting_insulin,
+                "triglycerides": self.triglycerides,
+                "hdl": self.hdl,
+                "ldl": self.ldl,
+                "homa_ir": self.homa_ir,
+            },
+            "clinical_priors": {
+                "isf": self.isf,
+                "cir": self.cir,
+                "weight_kg": self.weight_kg,
+                "height_cm": self.height_cm,
             },
             "summary": self.summary,
             "ehr_extras": self.ehr_extras or {},

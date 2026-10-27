@@ -9,9 +9,10 @@ from pathlib import Path
 from typing import Generator
 
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
+from aegis.models.pharmacology import estimate_cir, estimate_homa_ir, estimate_isf
 from services.backend.models import Base, MealModel, PatientModel
 
 logger = logging.getLogger(__name__)
@@ -25,8 +26,39 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def init_db() -> None:
-    """Initialize schema tables."""
+    """Initialize schema tables and perform lightweight column migrations if needed."""
     Base.metadata.create_all(bind=engine)
+    # Ensure all clinical biomarker columns exist in SQLite/PostgreSQL
+    try:
+        with engine.connect() as conn:
+            cols = []
+            if "sqlite" in DATABASE_URL:
+                res = conn.execute(text("PRAGMA table_info(patients)")).fetchall()
+                cols = [r[1] for r in res]
+            else:
+                from sqlalchemy import inspect
+
+                inspector = inspect(engine)
+                cols = [c["name"] for c in inspector.get_columns("patients")]
+
+            new_columns = [
+                ("weight_kg", "FLOAT"),
+                ("height_cm", "FLOAT"),
+                ("fasting_insulin", "FLOAT"),
+                ("triglycerides", "FLOAT"),
+                ("hdl", "FLOAT"),
+                ("ldl", "FLOAT"),
+                ("homa_ir", "FLOAT"),
+                ("isf", "FLOAT"),
+                ("cir", "FLOAT"),
+            ]
+            for col_name, col_type in new_columns:
+                if col_name not in cols:
+                    conn.execute(text(f"ALTER TABLE patients ADD COLUMN {col_name} {col_type}"))
+            conn.commit()
+    except Exception as e:
+        logger.warning(f"Schema column check: {e}")
+
     logger.info(f"Initialized database schema with URL: {DATABASE_URL}")
 
 
@@ -45,18 +77,69 @@ def seed_database_if_empty(
     """Populates database with demo patients, observations, meals, and synthetic EHR extras."""
     db = SessionLocal()
     try:
-        existing_count = db.query(PatientModel).count()
-        if existing_count > 0:
-            logger.info(f"Database already seeded with {existing_count} patients.")
-            return
-
-        logger.info("Seeding database with demo digital twin records...")
         proc_p = Path(processed_dir)
-
-        # 1. Load profiles and synthetic EHR from processed parquets
         patients_p = proc_p / "patients.parquet"
         ehr_p = proc_p / "ehr_profiles.parquet"
 
+        existing_patients = db.query(PatientModel).all()
+        if existing_patients:
+            # Backfill any missing biomarker columns for existing records
+            if patients_p.exists():
+                patients_df = pd.read_parquet(patients_p).set_index("patient_id")
+                updated = False
+                for ep in existing_patients:
+                    if (
+                        ep.weight_kg is None
+                        or ep.isf is None
+                        or ep.cir is None
+                        or ep.homa_ir is None
+                    ) and ep.patient_id in patients_df.index:
+                        row = patients_df.loc[ep.patient_id]
+                        if ep.weight_kg is None:
+                            ep.weight_kg = (
+                                float(row["weight_kg"]) if pd.notna(row.get("weight_kg")) else None
+                            )
+                        if ep.height_cm is None:
+                            ep.height_cm = (
+                                float(row["height_cm"]) if pd.notna(row.get("height_cm")) else None
+                            )
+                        if ep.fasting_insulin is None:
+                            ep.fasting_insulin = (
+                                float(row["fasting_insulin"])
+                                if pd.notna(row.get("fasting_insulin"))
+                                else None
+                            )
+                        if ep.triglycerides is None:
+                            ep.triglycerides = (
+                                float(row["triglycerides"])
+                                if pd.notna(row.get("triglycerides"))
+                                else None
+                            )
+                        if ep.hdl is None:
+                            ep.hdl = float(row["hdl"]) if pd.notna(row.get("hdl")) else None
+                        if ep.ldl is None:
+                            ep.ldl = float(row["ldl"]) if pd.notna(row.get("ldl")) else None
+
+                        if ep.homa_ir is None and ep.fasting_glucose and ep.fasting_insulin:
+                            homa_val = estimate_homa_ir(ep.fasting_glucose, ep.fasting_insulin)
+                            ep.homa_ir = round(homa_val, 2) if homa_val is not None else None
+                        if ep.weight_kg and ep.weight_kg > 0:
+                            if ep.isf is None:
+                                ep.isf = round(estimate_isf(ep.weight_kg), 2)
+                            if ep.cir is None:
+                                ep.cir = round(estimate_cir(ep.weight_kg), 2)
+                        updated = True
+                if updated:
+                    db.commit()
+                    logger.info(
+                        "Backfilled biomarker fields and clinical priors for existing patients."
+                    )
+            logger.info(f"Database already seeded with {len(existing_patients)} patients.")
+            return
+
+        logger.info("Seeding database with demo digital twin records...")
+
+        # 1. Load profiles and synthetic EHR from processed parquets
         ehr_dict = {}
         if ehr_p.exists():
             ehr_df = pd.read_parquet(ehr_p)
@@ -74,6 +157,27 @@ def seed_database_if_empty(
             for _, row in patients_df.iterrows():
                 pid = str(row["patient_id"])
                 p_ehr = ehr_dict.get(pid, {})
+                fg = (
+                    float(row.get("fasting_glucose", 118.0))
+                    if pd.notna(row.get("fasting_glucose"))
+                    else 118.0
+                )
+                fi = (
+                    float(row.get("fasting_insulin"))
+                    if pd.notna(row.get("fasting_insulin"))
+                    else None
+                )
+                w_kg = float(row.get("weight_kg")) if pd.notna(row.get("weight_kg")) else None
+                h_cm = float(row.get("height_cm")) if pd.notna(row.get("height_cm")) else None
+                tg = float(row.get("triglycerides")) if pd.notna(row.get("triglycerides")) else None
+                hdl = float(row.get("hdl")) if pd.notna(row.get("hdl")) else None
+                ldl = float(row.get("ldl")) if pd.notna(row.get("ldl")) else None
+
+                homa_val = estimate_homa_ir(fg, fi)
+                homa = round(homa_val, 2) if homa_val is not None else None
+                isf_val = round(estimate_isf(w_kg), 2) if (w_kg and w_kg > 0) else None
+                cir_val = round(estimate_cir(w_kg), 2) if (w_kg and w_kg > 0) else None
+
                 patient = PatientModel(
                     patient_id=pid,
                     group=str(row.get("group", "T2D")),
@@ -81,7 +185,16 @@ def seed_database_if_empty(
                     sex=str(row.get("sex", "female")),
                     bmi=float(row.get("bmi", 28.5)),
                     hba1c=float(row.get("hba1c", 6.8)),
-                    fasting_glucose=float(row.get("fasting_glucose", 118.0)),
+                    fasting_glucose=fg,
+                    weight_kg=w_kg,
+                    height_cm=h_cm,
+                    fasting_insulin=fi,
+                    triglycerides=tg,
+                    hdl=hdl,
+                    ldl=ldl,
+                    homa_ir=homa,
+                    isf=isf_val,
+                    cir=cir_val,
                     summary=f"Clinical Twin {pid}: {row.get('group', 'T2D')} diagnosis, HbA1c {row.get('hba1c', 6.8)}%",
                     ehr_extras=p_ehr,
                 )

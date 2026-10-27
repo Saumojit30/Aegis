@@ -31,6 +31,23 @@ def test_extract_static_features():
     # Male = 1.0 at index 1
     assert vec[1] == 1.0
 
+    # Test resilience against np.float32 NaN, string NaN, pd.NA, and inf
+    series_with_nans = pd.Series({
+        "age": np.float32(np.nan),
+        "sex": "female",
+        "bmi": float("inf"),
+        "hba1c": "nan",
+        "fasting_glucose": pd.NA,
+        "fasting_insulin": None,
+        "triglycerides": np.nan,
+        "hdl": 50.0,
+    })
+    vec_nans = extract_static_features(series_with_nans)
+    assert isinstance(vec_nans, np.ndarray)
+    assert vec_nans.shape == (8,)
+    assert not np.isnan(vec_nans).any()
+    assert not np.isinf(vec_nans).any()
+
 
 def test_extract_meal_features():
     meal = {

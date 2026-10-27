@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import datetime
 import json
 import logging
+import math
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -11,10 +13,12 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 
 from aegis.features.extract import extract_meal_features, extract_static_features
+from aegis.models.pharmacology import compute_insulin_effect, estimate_isf
 from aegis.training.export import AegisBundle, load_aegis_bundle
 from services.common.contracts import (
     CLINICAL_DISCLAIMER,
     ForecastMetrics,
+    InsulinInput,
     IntervalBand,
     ModelMetadata,
     PersonalisationStatus,
@@ -48,10 +52,23 @@ class InferenceProvider(ABC):
 class InProcessInferenceProvider(InferenceProvider):
     """Executes trained Candidate S bundle in-process with real dynamic tensors (Decision D12)."""
 
-    def __init__(self, bundle_dir: Path | str = "artifacts/bundle") -> None:
+    def __init__(
+        self,
+        bundle_dir: Path | str = "artifacts/bundle",
+        db_session_factory: Optional[Any] = None,
+    ) -> None:
         self.bundle_dir = Path(bundle_dir)
         self.bundle: Optional[AegisBundle] = None
         self._samples_cache: Optional[List[Dict[str, Any]]] = None
+        self.db_session_factory = db_session_factory
+
+        if self.db_session_factory is None:
+            try:
+                from services.backend.db import SessionLocal
+
+                self.db_session_factory = SessionLocal
+            except Exception:
+                self.db_session_factory = None
 
         if self.bundle_dir.exists():
             try:
@@ -68,7 +85,9 @@ class InProcessInferenceProvider(InferenceProvider):
             try:
                 with open(samples_path, "r", encoding="utf-8") as f:
                     self._samples_cache = json.load(f)
-                logger.info(f"Loaded {len(self._samples_cache)} samples for chronological adaptation.")
+                logger.info(
+                    f"Loaded {len(self._samples_cache)} samples for chronological adaptation."
+                )
             except Exception as e:
                 logger.warning(f"Failed to load samples for adaptation: {e}")
 
@@ -120,25 +139,84 @@ class InProcessInferenceProvider(InferenceProvider):
             "protein_g": m.protein_g * (m.amount_pct / 100.0),
             "fat_g": m.fat_g * (m.amount_pct / 100.0),
             "fiber_g": m.fiber_g * (m.amount_pct / 100.0),
-            "calories": (m.carbs_g * 4.0 + m.protein_g * 4.0 + m.fat_g * 9.0) * (m.amount_pct / 100.0),
+            "calories": (m.carbs_g * 4.0 + m.protein_g * 4.0 + m.fat_g * 9.0)
+            * (m.amount_pct / 100.0),
             "meal_type": m.meal_type,
             "minutes_since_prev_meal": 360.0,
         }
         meal_vec = extract_meal_features(raw_meal)
 
-        # 2. Retrieve patient profile
+        # 2. Retrieve patient profile and clinical priors from reference or DB
         profile_vec = self.bundle.reference_static_profiles.get(req.patient_id)
+        patient_record: Optional[Dict[str, Any]] = None
+
+        if self.db_session_factory:
+            try:
+                with self.db_session_factory() as db:
+                    from services.backend.models import PatientModel
+
+                    p = (
+                        db.query(PatientModel)
+                        .filter(PatientModel.patient_id == req.patient_id)
+                        .first()
+                    )
+                    if p:
+                        patient_record = p.to_dict()
+            except Exception as e:
+                logger.warning(f"Failed to query patient {req.patient_id} from DB: {e}")
+
         if profile_vec is None:
-            profile_vec = extract_static_features({"age": 55, "bmi": 28.0, "hba1c": 6.8})
+            if patient_record and "profile" in patient_record:
+                profile_vec = extract_static_features(patient_record["profile"])
+            else:
+                profile_vec = extract_static_features({"age": 55, "bmi": 28.0, "hba1c": 6.8})
+
+        pts = req.retrospective_sequence or []
+        if not pts and self.db_session_factory:
+            try:
+                with self.db_session_factory() as db:
+                    from services.backend.models import ObservationModel
+
+                    t0_clean = str(req.t0).replace("Z", "+00:00")
+                    try:
+                        t0_dt = datetime.datetime.fromisoformat(t0_clean)
+                        db_obs = (
+                            db.query(ObservationModel)
+                            .filter(
+                                ObservationModel.patient_id == req.patient_id,
+                                ObservationModel.ts <= t0_dt,
+                            )
+                            .order_by(ObservationModel.ts.desc())
+                            .limit(12)
+                            .all()
+                        )
+                    except Exception:
+                        db_obs = (
+                            db.query(ObservationModel)
+                            .filter(ObservationModel.patient_id == req.patient_id)
+                            .order_by(ObservationModel.ts.desc())
+                            .limit(12)
+                            .all()
+                        )
+                    if db_obs:
+                        pts = [o.to_dict() for o in reversed(db_obs)]
+            except Exception as e:
+                logger.debug(f"Could not load telemetry from DB for {req.patient_id}: {e}")
 
         # 3. Baseline glucose g(t0)
-        g_t0 = req.g_t0 if req.g_t0 is not None else 120.0
+        g_t0 = req.g_t0
+        if g_t0 is None:
+            if pts and pts[-1].get("glucose") is not None:
+                g_t0 = float(pts[-1]["glucose"])
+            elif patient_record and patient_record.get("profile", {}).get("fasting_glucose"):
+                g_t0 = float(patient_record["profile"]["fasting_glucose"])
+            else:
+                g_t0 = 120.0
 
         # 4. Construct dynamic 60-min sequence tensor & anchor vector from real telemetry
         seq = np.zeros((12, 6), dtype=np.float32)
         anchor = np.zeros(4, dtype=np.float32)
 
-        pts = req.retrospective_sequence or []
         if pts:
             # Ensure window is 12 steps (pad front if needed)
             while len(pts) < 12 and len(pts) > 0:
@@ -146,23 +224,65 @@ class InProcessInferenceProvider(InferenceProvider):
 
             for k in range(min(12, len(pts))):
                 p = pts[k]
-                p_g = float(p.get("glucose", g_t0))
-                p_hr = float(p.get("hr", 75.0))
-                p_mets = float(p.get("mets", 1.0))
+                raw_g = p.get("glucose")
+                raw_hr = p.get("hr")
+                raw_mets = p.get("mets")
+
+                g_missing = p.get("glucose_missing", False) or raw_g is None
+                hr_missing = p.get("hr_missing", False) or raw_hr is None
+                mets_missing = p.get("mets_missing", False) or raw_mets is None
+
+                try:
+                    p_g = float(raw_g) if (raw_g is not None and not math.isnan(float(raw_g))) else g_t0
+                except (ValueError, TypeError):
+                    p_g = g_t0
+                    g_missing = True
+
+                try:
+                    p_hr = float(raw_hr) if (raw_hr is not None and not math.isnan(float(raw_hr))) else 75.0
+                except (ValueError, TypeError):
+                    p_hr = 75.0
+                    hr_missing = True
+
+                try:
+                    p_mets = float(raw_mets) if (raw_mets is not None and not math.isnan(float(raw_mets))) else 1.0
+                except (ValueError, TypeError):
+                    p_mets = 1.0
+                    mets_missing = True
+
                 seq[k, 0] = (p_g - g_t0) / 50.0
-                seq[k, 1] = 0.0 if p.get("glucose_missing", False) else 1.0
+                seq[k, 1] = 0.0 if g_missing else 1.0
                 seq[k, 2] = (p_hr - 75.0) / 30.0
-                seq[k, 3] = 0.0 if p.get("hr_missing", False) else 1.0
+                seq[k, 3] = 0.0 if hr_missing else 1.0
                 seq[k, 4] = (p_mets - 1.0) / 3.0
-                seq[k, 5] = 0.0 if p.get("mets_missing", False) else 1.0
+                seq[k, 5] = 0.0 if mets_missing else 1.0
 
             anchor[0] = g_t0 / 200.0
-            g_minus15 = float(pts[-3].get("glucose", g_t0)) if len(pts) >= 3 else g_t0
+            g_minus15_raw = pts[-3].get("glucose") if len(pts) >= 3 else None
+            try:
+                g_minus15 = float(g_minus15_raw) if (g_minus15_raw is not None and not math.isnan(float(g_minus15_raw))) else g_t0
+            except (ValueError, TypeError):
+                g_minus15 = g_t0
             anchor[1] = (g_t0 - g_minus15) / 15.0
-            g_minus30 = float(pts[-6].get("glucose", g_t0)) if len(pts) >= 6 else g_t0
+
+            g_minus30_raw = pts[-6].get("glucose") if len(pts) >= 6 else None
+            try:
+                g_minus30 = float(g_minus30_raw) if (g_minus30_raw is not None and not math.isnan(float(g_minus30_raw))) else g_t0
+            except (ValueError, TypeError):
+                g_minus30 = g_t0
             anchor[2] = (g_t0 - g_minus30) / 30.0
-            g_window = [float(x.get("glucose", g_t0)) for x in pts]
-            anchor[3] = float(np.std(g_window)) / 50.0
+
+            g_window = []
+            for x in pts:
+                xg = x.get("glucose")
+                if xg is not None:
+                    try:
+                        xf = float(xg)
+                        if not math.isnan(xf):
+                            g_window.append(xf)
+                    except (ValueError, TypeError):
+                        pass
+            anchor[3] = (float(np.std(g_window)) / 50.0) if g_window else 0.0
         else:
             # Fallback nominal sequence if no telemetry buffer passed
             seq[:, 1] = 1.0
@@ -190,6 +310,49 @@ class InProcessInferenceProvider(InferenceProvider):
         fc = raw_out["forecast"]
         low = raw_out["interval_lower"]
         upp = raw_out["interval_upper"]
+
+        # 7. Pharmacological Insulin (Bolus & Basal Drift) superposition
+        insulin_input = req.insulin or req.meal.insulin
+        iob_traj: Optional[List[float]] = None
+        net_deflection: Optional[List[float]] = None
+
+        if insulin_input and (
+            insulin_input.bolus_units > 0 or abs(insulin_input.basal_rate_diff_u_hr) > 1e-4
+        ):
+            # Resolve ISF: override -> clinical priors / DB -> weight estimation -> default 45.0
+            isf = insulin_input.isf_override
+            if isf is None and patient_record:
+                isf = patient_record.get("clinical_priors", {}).get("isf")
+                if isf is None and "profile" in patient_record:
+                    isf = patient_record["profile"].get("isf")
+                if isf is None:
+                    w = patient_record.get("profile", {}).get("weight_kg")
+                    if w and w > 0:
+                        isf = estimate_isf(w)
+            if isf is None:
+                isf = 45.0
+
+            horizon_steps = [(i + 1) * 5 for i in range(36)]
+            eff = compute_insulin_effect(
+                horizon_min=horizon_steps,
+                bolus_units=insulin_input.bolus_units,
+                bolus_time_min=insulin_input.bolus_time_min,
+                basal_rate_diff_u_hr=insulin_input.basal_rate_diff_u_hr,
+                isf=isf,
+                insulin_type=insulin_input.insulin_type,
+            )
+            net_deflection = [round(float(v), 2) for v in eff["net_deflection"]]
+            iob_traj = [round(float(v), 3) for v in eff["iob_trajectory"]]
+
+            # Superimpose on forecast trajectory and conformal interval bounds
+            fc = [round(float(np.clip(v + d, 40.0, 400.0)), 1) for v, d in zip(fc, net_deflection)]
+            low = [
+                round(float(np.clip(v + d, 40.0, 400.0)), 1) for v, d in zip(low, net_deflection)
+            ]
+            upp = [
+                round(float(np.clip(v + d, 40.0, 400.0)), 1) for v, d in zip(upp, net_deflection)
+            ]
+
         delta_g = [round(v - g_t0, 2) for v in fc]
 
         peak_val = max(fc)
@@ -235,6 +398,8 @@ class InProcessInferenceProvider(InferenceProvider):
                 dataset_version=self.bundle.metadata.get("dataset_version", "v1.0.0"),
                 feature_version="v1.0-deep",
             ),
+            iob_trajectory=iob_traj,
+            net_insulin_deflection=net_deflection,
             disclaimer=CLINICAL_DISCLAIMER,
         )
 
@@ -264,7 +429,9 @@ class InProcessInferenceProvider(InferenceProvider):
         self, req: SimulateRequest, baseline: PredictResponse, mod: ScenarioModifier
     ) -> ScenarioResult:
         base_traj = np.array(baseline.glucose)
-        base_g0 = base_traj[0] - baseline.delta_glucose[0] if baseline.delta_glucose else base_traj[0]
+        base_g0 = (
+            base_traj[0] - baseline.delta_glucose[0] if baseline.delta_glucose else base_traj[0]
+        )
 
         if mod.type == "portion":
             # Model-driven: re-run neural forward pass with modified portion
@@ -286,8 +453,13 @@ class InProcessInferenceProvider(InferenceProvider):
                 metrics=sim_pred.metrics,
                 delta_vs_baseline=ScenarioDifference(
                     delta_peak=round(sim_pred.metrics.peak - baseline.metrics.peak, 1),
-                    delta_time_to_peak=sim_pred.metrics.time_to_peak_min - baseline.metrics.time_to_peak_min,
-                    delta_delayed_mean=round(sim_pred.metrics.delayed_mean_120_180 - baseline.metrics.delayed_mean_120_180, 1),
+                    delta_time_to_peak=sim_pred.metrics.time_to_peak_min
+                    - baseline.metrics.time_to_peak_min,
+                    delta_delayed_mean=round(
+                        sim_pred.metrics.delayed_mean_120_180
+                        - baseline.metrics.delayed_mean_120_180,
+                        1,
+                    ),
                 ),
                 reliability=sim_pred.reliability,
                 notes=f"Model-driven simulation: portion adjusted to {amt}% via Candidate S dual-gamma head.",
@@ -315,8 +487,13 @@ class InProcessInferenceProvider(InferenceProvider):
                 metrics=sim_pred.metrics,
                 delta_vs_baseline=ScenarioDifference(
                     delta_peak=round(sim_pred.metrics.peak - baseline.metrics.peak, 1),
-                    delta_time_to_peak=sim_pred.metrics.time_to_peak_min - baseline.metrics.time_to_peak_min,
-                    delta_delayed_mean=round(sim_pred.metrics.delayed_mean_120_180 - baseline.metrics.delayed_mean_120_180, 1),
+                    delta_time_to_peak=sim_pred.metrics.time_to_peak_min
+                    - baseline.metrics.time_to_peak_min,
+                    delta_delayed_mean=round(
+                        sim_pred.metrics.delayed_mean_120_180
+                        - baseline.metrics.delayed_mean_120_180,
+                        1,
+                    ),
                 ),
                 reliability=sim_pred.reliability,
                 notes=f"Model-driven simulation: dietary fat altered by {delta_fat:+.1f}g, slowing gastric emptying.",
@@ -409,6 +586,51 @@ class InProcessInferenceProvider(InferenceProvider):
                 },
             )
 
+        elif mod.type == "insulin":
+            # Model-driven pharmacological insulin simulation
+            bolus = mod.bolus_units if mod.bolus_units is not None else 4.0
+            b_time = mod.bolus_time_min if mod.bolus_time_min is not None else 0.0
+            basal_diff = mod.basal_rate_diff_u_hr if mod.basal_rate_diff_u_hr is not None else 0.0
+            i_type = mod.insulin_type or "rapid_acting"
+            isf_over = mod.isf_override
+
+            insulin_in = InsulinInput(
+                bolus_units=bolus,
+                bolus_time_min=b_time,
+                insulin_type=i_type,
+                basal_rate_diff_u_hr=basal_diff,
+                isf_override=isf_over,
+            )
+            mod_req = PredictRequest(
+                patient_id=req.patient_id,
+                session_id=req.session_id,
+                t0=req.t0,
+                meal=req.meal,
+                degradation=req.degradation,
+                insulin=insulin_in,
+            )
+            sim_pred = await self.predict(mod_req)
+            return ScenarioResult(
+                type=mod.type,
+                origin="model_driven",
+                trajectory=sim_pred.glucose,
+                interval=sim_pred.interval,
+                metrics=sim_pred.metrics,
+                delta_vs_baseline=ScenarioDifference(
+                    delta_peak=round(sim_pred.metrics.peak - baseline.metrics.peak, 1),
+                    delta_time_to_peak=sim_pred.metrics.time_to_peak_min
+                    - baseline.metrics.time_to_peak_min,
+                    delta_delayed_mean=round(
+                        sim_pred.metrics.delayed_mean_120_180
+                        - baseline.metrics.delayed_mean_120_180,
+                        1,
+                    ),
+                ),
+                reliability=sim_pred.reliability,
+                notes=f"Pharmacological insulin simulation: {bolus}U {i_type} at t={b_time:+.0f}m, basal diff {basal_diff:+.2f} U/hr.",
+                assumption=None,
+            )
+
         else:
             return ScenarioResult(
                 type=mod.type,
@@ -416,7 +638,9 @@ class InProcessInferenceProvider(InferenceProvider):
                 trajectory=baseline.glucose,
                 interval=baseline.interval,
                 metrics=baseline.metrics,
-                delta_vs_baseline=ScenarioDifference(delta_peak=0.0, delta_time_to_peak=0, delta_delayed_mean=0.0),
+                delta_vs_baseline=ScenarioDifference(
+                    delta_peak=0.0, delta_time_to_peak=0, delta_delayed_mean=0.0
+                ),
                 reliability=baseline.reliability,
                 notes=f"Scenario {mod.type} maintained baseline.",
                 assumption=None,
@@ -458,6 +682,29 @@ class MockInferenceProvider(InferenceProvider):
 
         g0 = req.g_t0 if req.g_t0 is not None else 120.0
         glucose = g0 + excursion
+
+        insulin_input = req.insulin or req.meal.insulin
+        net_deflection: Optional[List[float]] = None
+        iob_traj: Optional[List[float]] = None
+
+        if insulin_input and (
+            insulin_input.bolus_units > 0 or abs(insulin_input.basal_rate_diff_u_hr) > 1e-4
+        ):
+            isf = insulin_input.isf_override or 45.0
+            eff = compute_insulin_effect(
+                horizon_min=t_grid.tolist(),
+                bolus_units=insulin_input.bolus_units,
+                bolus_time_min=insulin_input.bolus_time_min,
+                basal_rate_diff_u_hr=insulin_input.basal_rate_diff_u_hr,
+                isf=isf,
+                insulin_type=insulin_input.insulin_type,
+            )
+            net_deflection = [round(float(v), 2) for v in eff["net_deflection"]]
+            iob_traj = [round(float(v), 3) for v in eff["iob_trajectory"]]
+
+            glucose = np.clip(glucose + np.array(net_deflection), 40.0, 400.0)
+            excursion = glucose - g0
+
         peak_val = float(np.max(glucose))
         ttp = int(t_grid[np.argmax(glucose)])
         del_mean = float(np.mean(glucose[24:]))
@@ -493,6 +740,8 @@ class MockInferenceProvider(InferenceProvider):
                 dataset_version="mock-v1",
                 feature_version="mock-v1",
             ),
+            iob_trajectory=iob_traj,
+            net_insulin_deflection=net_deflection,
             disclaimer=CLINICAL_DISCLAIMER,
         )
 
