@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from typing import Optional, Tuple
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -87,10 +88,14 @@ class StructuredMealForecasterS(nn.Module):
         """Nominal absorption delay in minutes."""
         return float((5.0 + 35.0 * torch.sigmoid(self.raw_delay)).detach().cpu().item())
 
-    def compute_phi(self, meal: torch.Tensor) -> float:
+    def compute_phi(self, meal: torch.Tensor | np.ndarray) -> float:
         """Computes nominal slow pool fraction phi from meal tensor."""
         with torch.no_grad():
-            ratios = meal[:, 5:8] if meal.ndim == 2 else meal[5:8].unsqueeze(0)
+            if isinstance(meal, np.ndarray):
+                m_t = torch.as_tensor(meal, dtype=torch.float32)
+            else:
+                m_t = meal
+            ratios = m_t[:, 5:8] if m_t.ndim == 2 else m_t[5:8].unsqueeze(0)
             return float(self.slow_fraction_mlp(ratios).mean().detach().cpu().item())
 
     def _compute_basis_curves(
@@ -107,14 +112,20 @@ class StructuredMealForecasterS(nn.Module):
         """
         # Bounded parameter conversions with optional overrides
         if tau_fast_override is not None:
-            tau_fast = torch.as_tensor(tau_fast_override, dtype=torch.float32, device=device)
+            tau_fast = torch.clamp(
+                torch.as_tensor(tau_fast_override, dtype=torch.float32, device=device),
+                min=5.0,
+            )
         else:
             tau_fast = 20.0 + 40.0 * torch.sigmoid(self.raw_tau_fast)  # [20, 60] min
 
         tau_slow = 60.0 + 80.0 * torch.sigmoid(self.raw_tau_slow)  # [60, 140] min
 
         if delay_override is not None:
-            delay = torch.as_tensor(delay_override, dtype=torch.float32, device=device)
+            delay = torch.clamp(
+                torch.as_tensor(delay_override, dtype=torch.float32, device=device),
+                min=0.0,
+            )
         else:
             delay = 5.0 + 35.0 * torch.sigmoid(self.raw_delay)  # [5, 40] min delay
 
@@ -156,8 +167,9 @@ class StructuredMealForecasterS(nn.Module):
 
         # 1. Slow fraction φ from meal ratios (indices 5, 6, 7) or explicit override
         if phi_override is not None:
+            clamped_phi = float(np.clip(phi_override, 0.0, 1.0))
             phi = torch.full(
-                (batch_size, 1), float(phi_override), dtype=torch.float32, device=device
+                (batch_size, 1), clamped_phi, dtype=torch.float32, device=device
             )
         else:
             ratios = meal[:, 5:8]

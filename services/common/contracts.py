@@ -178,6 +178,9 @@ class ScenarioModifier(BaseModel):
     insulin_type: Optional[str] = None
     basal_rate_diff_u_hr: Optional[float] = None
     isf_override: Optional[float] = None
+    mets: Optional[float] = Field(
+        default=None, description="Optional METs expenditure for activity (default 3.5)"
+    )
 
 
 class SimulateRequest(BaseModel):
@@ -189,6 +192,12 @@ class SimulateRequest(BaseModel):
     meal: MealInput
     degradation: str = "D0"
     scenarios: List[ScenarioModifier] = Field(default_factory=list)
+    portion_uncertainty_pct: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=50.0,
+        description="Carbohydrate portion uncertainty percentage (0.0 to 50.0%)",
+    )
 
 
 class ScenarioDifference(BaseModel):

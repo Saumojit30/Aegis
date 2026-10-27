@@ -444,6 +444,7 @@ class InProcessInferenceProvider(InferenceProvider):
             t0=req.t0,
             meal=req.meal,
             degradation=req.degradation,
+            portion_uncertainty_pct=req.portion_uncertainty_pct,
         )
         baseline = await self.predict(baseline_pred_req)
 
@@ -474,8 +475,10 @@ class InProcessInferenceProvider(InferenceProvider):
                 patient_id=req.patient_id,
                 session_id=req.session_id,
                 t0=req.t0,
+                g_t0=base_g0,
                 meal=mod_meal,
                 degradation=req.degradation,
+                portion_uncertainty_pct=req.portion_uncertainty_pct,
             )
             sim_pred = await self.predict(mod_req)
             return ScenarioResult(
@@ -508,8 +511,10 @@ class InProcessInferenceProvider(InferenceProvider):
                 patient_id=req.patient_id,
                 session_id=req.session_id,
                 t0=req.t0,
+                g_t0=base_g0,
                 meal=mod_meal,
                 degradation=req.degradation,
+                portion_uncertainty_pct=req.portion_uncertainty_pct,
             )
             sim_pred = await self.predict(mod_req)
             return ScenarioResult(
@@ -535,9 +540,24 @@ class InProcessInferenceProvider(InferenceProvider):
 
         elif mod.type == "walk":
             # Dynamic physical activity / exercise non-insulin-mediated GLUT4 clearance
-            mins = mod.minutes or 15
+            mins = float(mod.minutes) if mod.minutes is not None else 15.0
+            if mins <= 0.0:
+                return ScenarioResult(
+                    type=mod.type,
+                    origin="assumption_driven",
+                    trajectory=baseline.glucose,
+                    interval=baseline.interval,
+                    metrics=baseline.metrics,
+                    delta_vs_baseline=ScenarioDifference(
+                        delta_peak=0.0, delta_time_to_peak=0, delta_delayed_mean=0.0
+                    ),
+                    reliability=baseline.reliability,
+                    notes="Physical activity clearance: 0-min walk maintained baseline.",
+                    assumption=None,
+                )
+
             t_start = float(mod.shift_min) if mod.shift_min is not None else 15.0
-            t_end = t_start + float(mins)
+            t_end = t_start + mins
 
             # Retrieve patient weight
             weight_kg = 70.0
@@ -556,7 +576,7 @@ class InProcessInferenceProvider(InferenceProvider):
                 except Exception:
                     pass
 
-            mets = 3.5  # Moderate-to-brisk walking (Compendium of Physical Activities)
+            mets = float(mod.mets) if mod.mets is not None else 3.5  # Moderate-to-brisk walking
             kappa_exercise = 0.38  # mg * dL^-1 * min^-1 * DeltaMET^-1
             tau_post = 25.0  # min exponential decay tail
             r_active = kappa_exercise * (mets - 1.0) * (weight_kg / 70.0)
@@ -593,6 +613,19 @@ class InProcessInferenceProvider(InferenceProvider):
                 new_traj, quantiles, clamp_physiological=True
             )
 
+            # Preserve robust portion bounds if available
+            low_rob: Optional[List[float]] = None
+            upp_rob: Optional[List[float]] = None
+            if baseline.interval.lower_bound_robust and baseline.interval.upper_bound_robust:
+                low_rob = [
+                    round(float(np.clip(v - c, 40.0, 400.0)), 2)
+                    for v, c in zip(baseline.interval.lower_bound_robust, cum_clear)
+                ]
+                upp_rob = [
+                    round(float(np.clip(v - c, 40.0, 400.0)), 2)
+                    for v, c in zip(baseline.interval.upper_bound_robust, cum_clear)
+                ]
+
             return ScenarioResult(
                 type=mod.type,
                 origin="assumption_driven",
@@ -602,6 +635,8 @@ class InProcessInferenceProvider(InferenceProvider):
                     lower=[round(float(v), 2) for v in low_sc],
                     upper=[round(float(v), 2) for v in upp_sc],
                     scenario=baseline.interval.scenario,
+                    lower_bound_robust=low_rob,
+                    upper_bound_robust=upp_rob,
                 ),
                 metrics=ForecastMetrics(
                     peak=round(peak_val, 1),
@@ -616,7 +651,7 @@ class InProcessInferenceProvider(InferenceProvider):
                     delta_delayed_mean=round(del_mean - baseline.metrics.delayed_mean_120_180, 1),
                 ),
                 reliability=baseline.reliability,
-                notes=f"Physical activity clearance: {mins}-min walk (METs={mets}, W={weight_kg:.0f}kg) starting at t={t_start:.0f}m with {tau_post}m post-exercise tail.",
+                notes=f"Physical activity clearance: {mins:.0f}-min walk (METs={mets:.1f}, W={weight_kg:.0f}kg) starting at t={t_start:.0f}m with {tau_post}m post-exercise tail.",
                 assumption={
                     "source": "Reynolds et al., Diabetologia 2016; muscle GLUT4 non-insulin clearance",
                     "kappa_exercise": kappa_exercise,
@@ -660,11 +695,13 @@ class InProcessInferenceProvider(InferenceProvider):
                     patient_id=req.patient_id,
                     session_id=req.session_id,
                     t0=req.t0,
+                    g_t0=base_g0,
                     meal=req.meal,
                     degradation=req.degradation,
                     tau_fast_override=tau_fast_override,
                     delay_override=delay_override,
                     phi_override=phi_override,
+                    portion_uncertainty_pct=req.portion_uncertainty_pct,
                 )
                 sim_pred = await self.predict(
                     mod_req,
@@ -702,7 +739,13 @@ class InProcessInferenceProvider(InferenceProvider):
                     },
                 )
             else:
-                quantiles = np.full(36, 15.0, dtype=np.float32)
+                quantiles = (
+                    self.bundle.calibration_table.get_quantiles(
+                        scenario=req.degradation, confidence_level=0.90
+                    )
+                    if self.bundle
+                    else np.full(36, 15.0, dtype=np.float32)
+                )
                 shifted = np.zeros_like(baseline.delta_glucose)
                 shifted[3:] = np.array(baseline.delta_glucose)[:-3] * 0.85
                 shifted[:3] = np.array(baseline.delta_glucose)[:3] * 0.5
@@ -759,9 +802,11 @@ class InProcessInferenceProvider(InferenceProvider):
                 patient_id=req.patient_id,
                 session_id=req.session_id,
                 t0=req.t0,
+                g_t0=base_g0,
                 meal=req.meal,
                 degradation=req.degradation,
                 insulin=insulin_in,
+                portion_uncertainty_pct=req.portion_uncertainty_pct,
             )
             sim_pred = await self.predict(mod_req)
             return ScenarioResult(
@@ -804,22 +849,45 @@ class InProcessInferenceProvider(InferenceProvider):
 class HttpInferenceProvider(InferenceProvider):
     """Delegates inference over HTTP to standalone container microservice."""
 
-    def __init__(self, service_url: str = "http://127.0.0.1:8001") -> None:
+    def __init__(
+        self,
+        service_url: str = "http://127.0.0.1:8001",
+        client: Optional[Any] = None,
+    ) -> None:
         self.service_url = service_url.rstrip("/")
+        self._client = client
 
     async def predict(self, req: PredictRequest) -> PredictResponse:
         import httpx
 
+        if self._client is not None:
+            resp = await self._client.post(
+                f"{self.service_url}/predict", json=req.model_dump(mode="json")
+            )
+            resp.raise_for_status()
+            return PredictResponse.model_validate(resp.json())
+
         async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(f"{self.service_url}/predict", json=req.model_dump())
+            resp = await client.post(
+                f"{self.service_url}/predict", json=req.model_dump(mode="json")
+            )
             resp.raise_for_status()
             return PredictResponse.model_validate(resp.json())
 
     async def simulate(self, req: SimulateRequest) -> SimulateResponse:
         import httpx
 
+        if self._client is not None:
+            resp = await self._client.post(
+                f"{self.service_url}/simulate", json=req.model_dump(mode="json")
+            )
+            resp.raise_for_status()
+            return SimulateResponse.model_validate(resp.json())
+
         async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.post(f"{self.service_url}/simulate", json=req.model_dump())
+            resp = await client.post(
+                f"{self.service_url}/simulate", json=req.model_dump(mode="json")
+            )
             resp.raise_for_status()
             return SimulateResponse.model_validate(resp.json())
 
@@ -828,11 +896,15 @@ class MockInferenceProvider(InferenceProvider):
     """Deterministic synthetic curves for testing and client development."""
 
     async def predict(self, req: PredictRequest) -> PredictResponse:
-        t_grid = np.arange(1, 37) * 5
+        t_grid = np.arange(1, 37) * 5.0
         carbs = max(20.0, req.meal.carbs_g * (req.meal.amount_pct / 100.0))
         amplitude = carbs * 0.9
-        tau = 45.0
-        excursion = amplitude * (t_grid / tau) * np.exp(1.0 - t_grid / tau)
+        tau = max(5.0, float(req.tau_fast_override)) if req.tau_fast_override is not None else 45.0
+        delay = max(0.0, float(req.delay_override)) if req.delay_override is not None else 0.0
+
+        t_delayed = np.maximum(0.0, t_grid - delay)
+        kinetic_excursion = amplitude * (t_delayed / tau) * np.exp(1.0 - t_delayed / tau)
+        excursion = kinetic_excursion.copy()
 
         g0 = req.g_t0 if req.g_t0 is not None else 120.0
         glucose = g0 + excursion
@@ -846,7 +918,7 @@ class MockInferenceProvider(InferenceProvider):
         ):
             isf = insulin_input.isf_override or 45.0
             eff = compute_insulin_effect(
-                horizon_min=t_grid.tolist(),
+                horizon_min=[int(t) for t in t_grid],
                 bolus_units=insulin_input.bolus_units,
                 bolus_time_min=insulin_input.bolus_time_min,
                 basal_rate_diff_u_hr=insulin_input.basal_rate_diff_u_hr,
@@ -871,7 +943,7 @@ class MockInferenceProvider(InferenceProvider):
         upp_robust: Optional[List[float]] = None
         if portion_unc > 0.0:
             delta = min(0.50, portion_unc / 100.0)
-            delta_traj = delta * np.abs(excursion)
+            delta_traj = delta * np.abs(kinetic_excursion)
             low_robust = [
                 round(float(np.clip(v - d - 18.0, 40.0, 400.0)), 2)
                 for v, d in zip(glucose, delta_traj)
@@ -882,7 +954,7 @@ class MockInferenceProvider(InferenceProvider):
             ]
 
         return PredictResponse(
-            horizon_min=t_grid.tolist(),
+            horizon_min=[int(t) for t in t_grid],
             delta_glucose=[round(float(v), 2) for v in excursion],
             glucose=[round(float(v), 2) for v in glucose],
             interval=IntervalBand(
@@ -926,7 +998,8 @@ class MockInferenceProvider(InferenceProvider):
             t0=req.t0,
             meal=req.meal,
             degradation=req.degradation,
-            g_t0=req.meal.carbs_g,
+            g_t0=req.meal.carbs_g if req.meal.carbs_g > 40.0 else 120.0,
+            portion_uncertainty_pct=req.portion_uncertainty_pct,
         )
         baseline = await self.predict(base_req)
 
@@ -935,7 +1008,11 @@ class MockInferenceProvider(InferenceProvider):
             if mod.type == "portion":
                 amt = mod.amount_pct if mod.amount_pct is not None else 100.0
                 mod_meal = req.meal.model_copy(update={"amount_pct": amt})
-                p = await self.predict(base_req.model_copy(update={"meal": mod_meal}))
+                p = await self.predict(
+                    base_req.model_copy(
+                        update={"meal": mod_meal, "g_t0": baseline.glucose[0] - baseline.delta_glucose[0]}
+                    )
+                )
                 results.append(
                     ScenarioResult(
                         type=mod.type,
@@ -957,11 +1034,28 @@ class MockInferenceProvider(InferenceProvider):
                     )
                 )
             elif mod.type == "walk":
-                mins = mod.minutes or 15
+                mins = float(mod.minutes) if mod.minutes is not None else 15.0
+                if mins <= 0.0:
+                    results.append(
+                        ScenarioResult(
+                            type=mod.type,
+                            origin="assumption_driven",
+                            trajectory=baseline.glucose,
+                            interval=baseline.interval,
+                            metrics=baseline.metrics,
+                            delta_vs_baseline=ScenarioDifference(
+                                delta_peak=0.0, delta_time_to_peak=0, delta_delayed_mean=0.0
+                            ),
+                            reliability=baseline.reliability,
+                        )
+                    )
+                    continue
+
                 t_grid = np.arange(1, 37) * 5.0
-                t_start = 15.0
-                t_end = t_start + float(mins)
-                r_active = 0.38 * 2.5  # 0.95 mg/dL/min
+                t_start = float(mod.shift_min) if mod.shift_min is not None else 15.0
+                t_end = t_start + mins
+                mets = float(mod.mets) if mod.mets is not None else 3.5
+                r_active = 0.38 * (mets - 1.0)
                 cum_clear = np.zeros_like(t_grid)
                 for i, t in enumerate(t_grid):
                     if t_start < t <= t_end:
@@ -974,6 +1068,19 @@ class MockInferenceProvider(InferenceProvider):
                 peak_val = float(np.max(new_traj))
                 ttp = int((np.argmax(new_traj) + 1) * 5)
                 del_mean = float(np.mean(new_traj[24:]))
+
+                low_rob = None
+                upp_rob = None
+                if baseline.interval.lower_bound_robust and baseline.interval.upper_bound_robust:
+                    low_rob = [
+                        round(float(np.clip(v - c, 40.0, 400.0)), 2)
+                        for v, c in zip(baseline.interval.lower_bound_robust, cum_clear)
+                    ]
+                    upp_rob = [
+                        round(float(np.clip(v - c, 40.0, 400.0)), 2)
+                        for v, c in zip(baseline.interval.upper_bound_robust, cum_clear)
+                    ]
+
                 results.append(
                     ScenarioResult(
                         type=mod.type,
@@ -984,6 +1091,8 @@ class MockInferenceProvider(InferenceProvider):
                             lower=[round(float(v - 18.0), 2) for v in new_traj],
                             upper=[round(float(v + 18.0), 2) for v in new_traj],
                             scenario=baseline.interval.scenario,
+                            lower_bound_robust=low_rob,
+                            upper_bound_robust=upp_rob,
                         ),
                         metrics=ForecastMetrics(
                             peak=round(peak_val, 1),
@@ -999,6 +1108,116 @@ class MockInferenceProvider(InferenceProvider):
                         ),
                         reliability=baseline.reliability,
                         assumption={"source": "Reynolds et al., Diabetologia 2016"},
+                    )
+                )
+            elif mod.type == "sequencing":
+                p = await self.predict(
+                    base_req.model_copy(
+                        update={
+                            "g_t0": baseline.glucose[0] - baseline.delta_glucose[0],
+                            "tau_fast_override": 45.0 * 1.25,
+                            "delay_override": 20.0,
+                        }
+                    )
+                )
+                results.append(
+                    ScenarioResult(
+                        type=mod.type,
+                        origin="model_driven",
+                        trajectory=p.glucose,
+                        interval=p.interval,
+                        metrics=p.metrics,
+                        delta_vs_baseline=ScenarioDifference(
+                            delta_peak=round(p.metrics.peak - baseline.metrics.peak, 1),
+                            delta_time_to_peak=p.metrics.time_to_peak_min
+                            - baseline.metrics.time_to_peak_min,
+                            delta_delayed_mean=round(
+                                p.metrics.delayed_mean_120_180
+                                - baseline.metrics.delayed_mean_120_180,
+                                1,
+                            ),
+                        ),
+                        reliability=p.reliability,
+                        notes="Food sequencing: Mock delayed absorption.",
+                    )
+                )
+            elif mod.type == "fat":
+                delta_fat = mod.delta_g if mod.delta_g is not None else 15.0
+                mod_meal = req.meal.model_copy(
+                    update={"fat_g": max(0.0, req.meal.fat_g + delta_fat)}
+                )
+                p = await self.predict(
+                    base_req.model_copy(
+                        update={
+                            "meal": mod_meal,
+                            "g_t0": baseline.glucose[0] - baseline.delta_glucose[0],
+                            "tau_fast_override": 45.0 + delta_fat * 0.5,
+                        }
+                    )
+                )
+                results.append(
+                    ScenarioResult(
+                        type=mod.type,
+                        origin="model_driven",
+                        trajectory=p.glucose,
+                        interval=p.interval,
+                        metrics=p.metrics,
+                        delta_vs_baseline=ScenarioDifference(
+                            delta_peak=round(p.metrics.peak - baseline.metrics.peak, 1),
+                            delta_time_to_peak=p.metrics.time_to_peak_min
+                            - baseline.metrics.time_to_peak_min,
+                            delta_delayed_mean=round(
+                                p.metrics.delayed_mean_120_180
+                                - baseline.metrics.delayed_mean_120_180,
+                                1,
+                            ),
+                        ),
+                        reliability=p.reliability,
+                        notes=f"Fat modification: {delta_fat:+.1f}g.",
+                    )
+                )
+            elif mod.type == "insulin":
+                bolus = mod.bolus_units if mod.bolus_units is not None else 4.0
+                b_time = mod.bolus_time_min if mod.bolus_time_min is not None else 0.0
+                basal_diff = (
+                    mod.basal_rate_diff_u_hr if mod.basal_rate_diff_u_hr is not None else 0.0
+                )
+                i_type = mod.insulin_type or "rapid_acting"
+                isf_over = mod.isf_override
+                ins_in = InsulinInput(
+                    bolus_units=bolus,
+                    bolus_time_min=b_time,
+                    insulin_type=i_type,
+                    basal_rate_diff_u_hr=basal_diff,
+                    isf_override=isf_over,
+                )
+                p = await self.predict(
+                    base_req.model_copy(
+                        update={
+                            "insulin": ins_in,
+                            "g_t0": baseline.glucose[0] - baseline.delta_glucose[0],
+                        }
+                    )
+                )
+                results.append(
+                    ScenarioResult(
+                        type=mod.type,
+                        origin="model_driven",
+                        trajectory=p.glucose,
+                        interval=p.interval,
+                        metrics=p.metrics,
+                        delta_vs_baseline=ScenarioDifference(
+                            delta_peak=round(p.metrics.peak - baseline.metrics.peak, 1),
+                            delta_time_to_peak=p.metrics.time_to_peak_min
+                            - baseline.metrics.time_to_peak_min,
+                            delta_delayed_mean=round(
+                                p.metrics.delayed_mean_120_180
+                                - baseline.metrics.delayed_mean_120_180,
+                                1,
+                            ),
+                        ),
+                        reliability=p.reliability,
+                        notes=f"Insulin simulation: {bolus}U.",
                     )
                 )
             else:

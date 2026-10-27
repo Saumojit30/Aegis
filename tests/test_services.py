@@ -645,3 +645,119 @@ def test_standalone_inference_microservice_routes():
         assert len(s_data["scenarios"]) == 2
 
 
+@pytest.mark.asyncio
+async def test_http_inference_provider_delegation():
+    import httpx
+
+    from services.backend.inference.provider import HttpInferenceProvider
+    from services.common.contracts import (
+        MealInput,
+        PredictRequest,
+        ScenarioModifier,
+        SimulateRequest,
+    )
+    from services.inference.main import app as inf_app
+
+    transport = httpx.ASGITransport(app=inf_app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+        http_prov = HttpInferenceProvider(service_url="http://testserver", client=client)
+
+        # 1. Test predict delegation
+        pred_req = PredictRequest(
+            patient_id="P001",
+            session_id="http_test",
+            t0="2026-10-15T12:00:00Z",
+            meal=MealInput(carbs_g=50.0, meal_type="lunch", portion_uncertainty_pct=20.0),
+        )
+        pred_res = await http_prov.predict(pred_req)
+        assert len(pred_res.glucose) == 36
+        assert pred_res.interval.lower_bound_robust is not None
+
+        # 2. Test simulate delegation
+        sim_req = SimulateRequest(
+            patient_id="P001",
+            session_id="http_sim_test",
+            t0="2026-10-15T12:00:00Z",
+            meal=MealInput(carbs_g=50.0, meal_type="lunch"),
+            scenarios=[
+                ScenarioModifier(type="portion", amount_pct=75.0),
+                ScenarioModifier(type="walk", minutes=20, mets=4.0),
+            ],
+        )
+        sim_res = await http_prov.simulate(sim_req)
+        assert len(sim_res.scenarios) == 2
+        assert sim_res.scenarios[0].type == "portion"
+        assert sim_res.scenarios[1].type == "walk"
+
+
+@pytest.mark.asyncio
+async def test_mock_inference_provider_all_scenarios():
+    from services.backend.inference.provider import MockInferenceProvider
+    from services.common.contracts import MealInput, ScenarioModifier, SimulateRequest
+
+    mock_prov = MockInferenceProvider()
+    req = SimulateRequest(
+        patient_id="P_MOCK",
+        session_id="mock_sim",
+        t0="2026-10-15T12:00:00Z",
+        meal=MealInput(carbs_g=60.0, fat_g=15.0, protein_g=20.0, portion_uncertainty_pct=25.0),
+        scenarios=[
+            ScenarioModifier(type="portion", amount_pct=80.0),
+            ScenarioModifier(type="walk", minutes=20, shift_min=10, mets=3.5),
+            ScenarioModifier(type="sequencing"),
+            ScenarioModifier(type="fat", delta_g=10.0),
+            ScenarioModifier(type="insulin", bolus_units=3.0),
+        ],
+    )
+    sim_res = await mock_prov.simulate(req)
+    assert len(sim_res.scenarios) == 5
+
+    # Check walk clearance
+    walk_sc = sim_res.scenarios[1]
+    assert walk_sc.delta_vs_baseline.delta_peak < 0.0
+    assert walk_sc.interval.lower_bound_robust is not None
+
+    # Check sequencing delayed peak
+    seq_sc = sim_res.scenarios[2]
+    assert seq_sc.delta_vs_baseline.delta_time_to_peak >= 0
+
+    # Check insulin deflection
+    ins_sc = sim_res.scenarios[4]
+    assert ins_sc.delta_vs_baseline.delta_peak < 0.0
+
+
+def test_simulate_walk_with_robust_bounds_and_zero_minutes(client):
+    payload = {
+        "patient_id": "P001",
+        "session_id": "walk_bounds_test",
+        "t0": "2026-10-15T12:00:00Z",
+        "meal": {
+            "carbs_g": 60.0,
+            "protein_g": 20.0,
+            "fat_g": 10.0,
+            "portion_uncertainty_pct": 20.0,
+        },
+        "scenarios": [
+            {"type": "walk", "minutes": 20, "shift_min": 15, "mets": 3.8},
+            {"type": "walk", "minutes": 0},
+        ],
+    }
+    response = client.post("/simulate", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    # 1. 20-min walk with robust bounds preserved
+    w20 = data["scenarios"][0]
+    assert w20["interval"]["lower_bound_robust"] is not None
+    assert w20["interval"]["upper_bound_robust"] is not None
+    assert len(w20["interval"]["lower_bound_robust"]) == 36
+    # Robust lower bound should be <= standard lower bound
+    assert w20["interval"]["lower_bound_robust"][10] <= w20["interval"]["lower"][10]
+
+    # 2. 0-min walk preserves baseline exactly
+    w0 = data["scenarios"][1]
+    assert w0["delta_vs_baseline"]["delta_peak"] == 0.0
+    assert w0["delta_vs_baseline"]["delta_time_to_peak"] == 0
+
+
+

@@ -83,3 +83,34 @@ def test_structured_meal_head_properties_and_overrides():
     nom_peak_step = int(torch.argmax(kinetic_nom[0]).item())
     seq_peak_step = int(torch.argmax(kinetic_seq[0]).item())
     assert seq_peak_step >= nom_peak_step
+
+
+def test_kinetic_overrides_boundary_clamping_and_numpy():
+    import numpy as np
+
+    model = StructuredMealForecasterS()
+    seq = torch.randn(1, 12, 6)
+    static = torch.randn(1, 8)
+    meal = torch.randn(1, 16)
+    anchor = torch.randn(1, 4)
+
+    # Test numpy array input to compute_phi
+    meal_np = np.random.randn(16).astype(np.float32)
+    phi_np = model.compute_phi(meal_np)
+    assert 0.0 <= phi_np <= 1.0
+
+    # Negative delay, negative tau_fast, out-of-range phi
+    traj, _, kinetic = model(
+        seq,
+        static,
+        meal,
+        anchor,
+        tau_fast_override=-10.0,  # should be clamped >= 5.0
+        delay_override=-5.0,  # should be clamped >= 0.0
+        phi_override=1.5,  # should be clamped <= 1.0
+        return_components=True,
+    )
+    assert not torch.isnan(traj).any()
+    assert not torch.isinf(traj).any()
+    assert not torch.isnan(kinetic).any()
+
