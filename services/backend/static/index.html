@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,33 +28,33 @@
       --bg-card: #ffffff;
       --bg-card-subtle: #f1f5f9;
       --bg-sidebar: #ffffff;
-      --bg-micro: #f1f5f9;
+      --bg-micro: #f8fafc;
       --border-main: #e2e8f0;
       --border-subtle: #cbd5e1;
       --text-main: #0f172a;
       --text-secondary: #475569;
       --text-muted: #94a3b8;
       --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
-      --nav-active-bg: #ede9fe;
-      --nav-active-text: #6d28d9;
-      --accent-purple: #7c3aed;
+      --nav-active-bg: #0f172a;
+      --nav-active-text: #ffffff;
+      --accent-black: #0f172a;
     }
 
     html.dark {
-      --bg-canvas: #0d1117;
-      --bg-card: #161b22;
-      --bg-card-subtle: #0d1117;
-      --bg-sidebar: #161b22;
-      --bg-micro: #090d13;
-      --border-main: #30363d;
-      --border-subtle: #21262d;
+      --bg-canvas: #0b0f17;
+      --bg-card: #151b23;
+      --bg-card-subtle: #0f141c;
+      --bg-sidebar: #151b23;
+      --bg-micro: #0b0f17;
+      --border-main: #2d333b;
+      --border-subtle: #22272e;
       --text-main: #f0f6fc;
       --text-secondary: #8b949e;
       --text-muted: #6e7681;
       --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-      --nav-active-bg: #2e1065;
-      --nav-active-text: #c4b5fd;
-      --accent-purple: #a78bfa;
+      --nav-active-bg: #f0f6fc;
+      --nav-active-text: #0f172a;
+      --accent-black: #f0f6fc;
     }
 
     body {
@@ -76,19 +76,20 @@
       border-color: var(--border-subtle);
     }
 
-    /* OpenRouter Underline Tabs */
+    /* Minimalist Black Underline Tabs */
     .tab-underline {
       position: relative;
       color: var(--text-secondary);
       font-weight: 500;
       padding-bottom: 10px;
+      white-space: nowrap;
       transition: color 0.15s ease;
     }
     .tab-underline:hover {
       color: var(--text-main);
     }
     .tab-underline.active {
-      color: var(--accent-purple);
+      color: var(--text-main);
       font-weight: 600;
     }
     .tab-underline.active::after {
@@ -98,11 +99,11 @@
       left: 0;
       right: 0;
       height: 2px;
-      background-color: var(--accent-purple);
+      background-color: var(--text-main);
       border-radius: 2px;
     }
 
-    /* Range slider custom track */
+    /* Custom Monochrome Range Slider */
     input[type=range] {
       -webkit-appearance: none;
       background: var(--border-main);
@@ -114,7 +115,7 @@
       height: 16px;
       width: 16px;
       border-radius: 50%;
-      background: #7c3aed;
+      background: var(--text-main);
       cursor: pointer;
       border: 2px solid var(--bg-card);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
@@ -139,95 +140,88 @@
 
     /* Modal Backdrop */
     .modal-backdrop {
-      background: rgba(15, 23, 42, 0.6);
+      background: rgba(15, 23, 42, 0.5);
       backdrop-filter: blur(4px);
     }
     html.dark .modal-backdrop {
       background: rgba(0, 0, 0, 0.75);
     }
 
-    /* Doctronic Toggle Switch */
-    .switch-checkbox:checked + .switch-label {
-      background-color: #0f172a;
-    }
-    html.dark .switch-checkbox:checked + .switch-label {
-      background-color: #f0f6fc;
-    }
-    .switch-checkbox:checked + .switch-label .switch-dot {
-      transform: translateX(18px);
-      background-color: #ffffff;
-    }
-    html.dark .switch-checkbox:checked + .switch-label .switch-dot {
-      background-color: #0f172a;
+    /* Responsive Sidebar Transition */
+    #sidebarContainer {
+      transition: transform 0.25s ease, width 0.25s ease;
     }
   </style>
 </head>
-<body class="min-h-screen flex overflow-x-hidden antialiased">
+<body class="min-h-screen flex overflow-x-hidden antialiased bg-[var(--bg-canvas)] text-[var(--text-main)]">
 
   <!-- ========================================================================= -->
-  <!-- 1. LEFT MICRO-RAIL (OpenRouter & Doctronic Style, 56px)                   -->
+  <!-- 1. LEFT MICRO-RAIL (Hidden on mobile <768px, visible on md+)              -->
   <!-- ========================================================================= -->
-  <aside aria-label="Micro-Rail" class="w-14 flex-shrink-0 flex flex-col items-center justify-between py-3.5 border-r border-[var(--border-main)] bg-[var(--bg-micro)] z-50">
+  <aside aria-label="Micro-Rail" class="hidden md:flex w-14 flex-shrink-0 flex-col items-center justify-between py-3.5 border-r border-[var(--border-main)] bg-[var(--bg-micro)] z-50">
     <div class="flex flex-col items-center gap-4">
-      <!-- Aegis App Logo Glyph -->
-      <a href="/dashboard" class="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm" title="Aegis Twin Platform">
-        AE
+      
+      <!-- Minimalist Monochrome Glyph Logo (Replaced purple gradient AE box) -->
+      <a href="/dashboard" class="w-9 h-9 rounded-xl bg-[var(--text-main)] text-[var(--bg-card)] flex items-center justify-center font-bold text-sm shadow-sm transition hover:opacity-90" title="Aegis Digital Twin Platform">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m0-18l7 4v7c0 5-7 7-7 7s-7-2-7-7V7l7-4z"/>
+        </svg>
       </a>
 
       <div class="w-7 h-px bg-[var(--border-main)] my-1"></div>
 
       <!-- Micro Navigation Icons -->
       <button onclick="switchTab('forecast')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="Activity & Trajectory Forecast">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
       </button>
 
       <button onclick="switchTab('whatif')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="What-If Counterfactual Sandbox">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
       </button>
 
-      <button onclick="switchTab('timeline')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="Chronological Meal Timeline (Refero)">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      <button onclick="switchTab('timeline')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="Chronological Meal Timeline">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
       </button>
 
       <button onclick="switchTab('profile')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="Patient Digital Twin Phenotype">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
       </button>
 
       <button onclick="switchTab('audit')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="Sensor Stress-Test Studio">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
       </button>
 
-      <button onclick="switchTab('settings')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="AI Doctor Persona & Settings (Doctronic)">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <button onclick="switchTab('settings')" class="micro-btn p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition" title="AI Doctor Persona & Settings">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </button>
     </div>
 
-    <!-- Bottom Micro-Rail User Avatar -->
+    <!-- Bottom Avatar & Command Palette Trigger -->
     <div class="flex flex-col items-center gap-3">
       <button onclick="toggleCommandPalette()" class="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-main)] transition" title="Search Actions (⌘K)">
         <kbd class="font-mono text-[10px] bg-[var(--bg-card)] border border-[var(--border-main)] px-1 py-0.5 rounded">⌘K</kbd>
       </button>
-      <div class="w-8 h-8 rounded-full bg-slate-300 dark:bg-slate-700 border border-[var(--border-main)] flex items-center justify-center text-xs font-semibold text-[var(--text-main)]" title="Dr. Connie (Lead Endocrinologist)">
+      <div class="w-8 h-8 rounded-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] flex items-center justify-center text-xs font-semibold text-[var(--text-main)]" title="Dr. Connie (Lead Endocrinologist)">
         DC
       </div>
     </div>
   </aside>
 
   <!-- ========================================================================= -->
-  <!-- 2. EXPANDED SIDEBAR NAVIGATION (OpenRouter Style, 240px)                  -->
+  <!-- 2. EXPANDABLE RESPONSIVE SIDEBAR (Collapsible on mobile/tablets)           -->
   <!-- ========================================================================= -->
-  <aside aria-label="Sidebar" class="w-60 flex-shrink-0 flex flex-col border-r border-[var(--border-main)] bg-[var(--bg-sidebar)] z-40">
+  <aside id="sidebarContainer" aria-label="Sidebar" class="hidden lg:flex w-60 flex-shrink-0 flex-col border-r border-[var(--border-main)] bg-[var(--bg-sidebar)] z-40">
     
-    <!-- Workspace / Patient Twin Selector -->
+    <!-- Workspace / Twin Selector -->
     <div class="p-3.5 border-b border-[var(--border-main)]">
       <div class="flex items-center justify-between text-xs font-medium text-[var(--text-secondary)] mb-1.5">
         <div class="flex items-center gap-1.5">
-          <span class="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">P</span>
+          <span class="w-4 h-4 rounded bg-[var(--text-main)] text-[var(--bg-card)] flex items-center justify-center text-[10px] font-bold">P</span>
           <span>Twin Workspace</span>
         </div>
-        <span class="text-[10px] text-[var(--text-muted)] font-mono">v2026.4</span>
+        <span class="text-[10px] text-[var(--text-muted)] font-mono">2026.4</span>
       </div>
-      <select id="patientSelect" onchange="handlePatientChange(this.value)" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-purple-500 cursor-pointer">
+      <select id="patientSelect" onchange="handlePatientChange(this.value)" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-[var(--text-main)] cursor-pointer">
         <option value="P020">P020 — T2D (58y, HbA1c 7.4%)</option>
         <option value="P021">P021 — T2D (61y, HbA1c 7.8%)</option>
         <option value="P010">P010 — Prediabetes (48y, 6.0%)</option>
@@ -235,7 +229,7 @@
       </select>
     </div>
 
-    <!-- Quick Search Input (OpenRouter Style) -->
+    <!-- Quick Search Input -->
     <div class="px-3 py-2.5 border-b border-[var(--border-main)]">
       <div onclick="toggleCommandPalette()" class="flex items-center justify-between px-2.5 py-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-main)] text-xs cursor-pointer">
         <div class="flex items-center gap-2">
@@ -246,10 +240,8 @@
       </div>
     </div>
 
-    <!-- Navigation Groups -->
+    <!-- Categorized Nav Items -->
     <nav class="flex-1 overflow-y-auto px-2.5 py-3 space-y-4 text-xs font-medium">
-      
-      <!-- Group 1: Clinical Monitoring -->
       <div>
         <div class="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
           Clinical Monitoring
@@ -257,7 +249,7 @@
         <div class="mt-1 space-y-0.5">
           <button onclick="switchTab('forecast')" id="navItem-forecast" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold">
             <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
               <span>Activity &amp; Forecast</span>
             </div>
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -265,23 +257,22 @@
 
           <button onclick="switchTab('timeline')" id="navItem-timeline" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]">
             <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
               <span>Meal Timeline</span>
             </div>
-            <span class="text-[10px] text-[var(--text-muted)] font-mono">Refero</span>
+            <span class="text-[10px] text-[var(--text-muted)] font-mono">54 meals</span>
           </button>
 
           <button onclick="switchTab('profile')" id="navItem-profile" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]">
             <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
               <span>Twin Phenotype</span>
             </div>
-            <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">K=5</span>
+            <span class="text-[10px] text-[var(--text-muted)] font-mono">K=5</span>
           </button>
         </div>
       </div>
 
-      <!-- Group 2: Counterfactual Lab -->
       <div>
         <div class="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
           Counterfactual Lab
@@ -289,15 +280,15 @@
         <div class="mt-1 space-y-0.5">
           <button onclick="switchTab('whatif')" id="navItem-whatif" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]">
             <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
               <span>What-If Sandbox</span>
             </div>
-            <span class="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 px-1 rounded">Sim</span>
+            <span class="text-[10px] bg-[var(--bg-card-subtle)] border border-[var(--border-main)] px-1 rounded">Sim</span>
           </button>
 
           <button onclick="openCustomMealModal()" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]">
             <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
               <span>Add Custom Meal</span>
             </div>
             <kbd class="font-mono text-[10px] text-[var(--text-muted)]">+</kbd>
@@ -305,7 +296,6 @@
         </div>
       </div>
 
-      <!-- Group 3: System Resilience & Persona -->
       <div>
         <div class="px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
           Audit &amp; Intelligence
@@ -313,7 +303,7 @@
         <div class="mt-1 space-y-0.5">
           <button onclick="switchTab('audit')" id="navItem-audit" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]">
             <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
               <span>Sensor Quality D0–D7</span>
             </div>
             <span class="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">High</span>
@@ -321,56 +311,60 @@
 
           <button onclick="switchTab('settings')" id="navItem-settings" class="nav-item w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]">
             <div class="flex items-center gap-2.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               <span>AI Doctor Persona</span>
             </div>
-            <span class="text-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-1 rounded">Doctronic</span>
+            <span class="text-[10px] bg-[var(--bg-card-subtle)] border border-[var(--border-main)] px-1 rounded">Tone</span>
           </button>
         </div>
       </div>
-
     </nav>
 
-    <!-- Sidebar Bottom Status -->
+    <!-- Bottom Model Spec -->
     <div class="p-3 border-t border-[var(--border-main)] flex items-center justify-between text-[11px] text-[var(--text-muted)]">
       <span>Candidate S Model</span>
-      <span class="font-mono text-emerald-600 dark:text-emerald-400 font-medium">Split-Conformal 90%</span>
+      <span class="font-mono text-[var(--text-secondary)] font-medium">Split-Conformal 90%</span>
     </div>
 
   </aside>
 
   <!-- ========================================================================= -->
-  <!-- 3. MAIN WORKSPACE CANVAS                                                  -->
+  <!-- 3. MAIN WORKSPACE CANVAS (Fully Responsive, min-w-0)                      -->
   <!-- ========================================================================= -->
-  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen overflow-x-hidden">
 
-    <!-- Top Navigation Header Bar (OpenRouter Style) -->
-    <header class="sticky top-0 z-30 bg-[var(--bg-card)] border-b border-[var(--border-main)] px-6 py-2.5 transition-colors duration-200">
-      <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
+    <!-- Top Header Bar (With mobile responsive menu toggle) -->
+    <header class="sticky top-0 z-30 bg-[var(--bg-card)] border-b border-[var(--border-main)] px-4 sm:px-6 py-2.5 transition-colors duration-200">
+      <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
         
-        <!-- Breadcrumbs & Workspace Scope -->
+        <!-- Left: Mobile Menu Button + Breadcrumbs -->
         <div class="flex items-center gap-2 text-xs">
-          <span class="text-[var(--text-secondary)]">Aegis Twin Suite</span>
-          <span class="text-[var(--border-subtle)]">/</span>
-          <span class="font-semibold text-[var(--text-main)]" id="activeBreadcrumb">Activity &amp; Trajectory Forecast</span>
-          <span class="text-[11px] px-2 py-0.2 rounded font-mono font-medium bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">
+          <!-- Mobile Sidebar Toggle -->
+          <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[var(--text-main)]" title="Toggle Navigation">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+
+          <span class="hidden sm:inline text-[var(--text-secondary)]">Aegis Twin Suite</span>
+          <span class="hidden sm:inline text-[var(--border-subtle)]">/</span>
+          <span class="font-semibold text-[var(--text-main)] truncate max-w-[200px] sm:max-w-none" id="activeBreadcrumb">Activity &amp; Trajectory Forecast</span>
+          <span class="hidden md:inline-block text-[11px] px-2 py-0.2 rounded font-mono font-medium bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">
             Candidate S
           </span>
         </div>
 
-        <!-- Top Right Cockpit: Stream Replay & Dark / Light Switch -->
-        <div class="flex items-center gap-3 text-xs">
+        <!-- Right: Replay Controls & Theme Switch -->
+        <div class="flex items-center gap-2 sm:gap-3 text-xs">
           
-          <!-- Replay Playback Transport -->
-          <div class="flex items-center gap-1.5 p-1 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)]">
+          <!-- Replay Transport -->
+          <div class="flex items-center gap-1 sm:gap-1.5 p-1 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)]">
             <button id="btnPlayPause" onclick="togglePlayPause()" class="px-2.5 py-1 rounded-md bg-[var(--bg-card)] text-[var(--text-main)] font-semibold shadow-sm flex items-center gap-1.5 transition">
               <span id="playIcon">▶</span>
-              <span id="playText">Play</span>
-              <kbd class="font-mono text-[10px] text-[var(--text-muted)]">Space</kbd>
+              <span id="playText" class="hidden sm:inline">Play</span>
+              <kbd class="hidden md:inline-block font-mono text-[10px] text-[var(--text-muted)]">Space</kbd>
             </button>
             <button onclick="jumpNextMeal()" class="px-2.5 py-1 rounded-md hover:bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-main)] flex items-center gap-1 transition">
               <span>Next Meal</span>
-              <kbd class="font-mono text-[10px] text-[var(--text-muted)]">N</kbd>
+              <kbd class="hidden md:inline-block font-mono text-[10px] text-[var(--text-muted)]">N</kbd>
             </button>
             <div class="h-3.5 w-px bg-[var(--border-main)]"></div>
             <select id="speedSelect" onchange="setReplaySpeed(this.value)" class="bg-transparent text-[var(--text-main)] font-mono font-medium text-xs outline-none cursor-pointer">
@@ -381,15 +375,15 @@
             </select>
           </div>
 
-          <!-- Dark & Light Segmented Switch -->
+          <!-- Dark & Light Switch -->
           <div class="flex items-center p-0.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-canvas)]">
-            <button id="themeBtnLight" onclick="setTheme('light')" class="px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition text-[var(--text-secondary)] hover:text-[var(--text-main)]" title="Switch to Light mode">
+            <button id="themeBtnLight" onclick="setTheme('light')" class="px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 transition text-[var(--text-secondary)] hover:text-[var(--text-main)]" title="Switch to Light mode">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
-              <span>Light</span>
+              <span class="hidden sm:inline">Light</span>
             </button>
-            <button id="themeBtnDark" onclick="setTheme('dark')" class="px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition text-[var(--text-secondary)] hover:text-[var(--text-main)]" title="Switch to Dark mode">
+            <button id="themeBtnDark" onclick="setTheme('dark')" class="px-2 py-1 rounded-md text-xs font-medium flex items-center gap-1 transition text-[var(--text-secondary)] hover:text-[var(--text-main)]" title="Switch to Dark mode">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
-              <span>Dark</span>
+              <span class="hidden sm:inline">Dark</span>
             </button>
           </div>
 
@@ -399,34 +393,29 @@
     </header>
 
     <!-- Floating Doctronic Toast Notification Container -->
-    <div id="toastNotification" class="fixed top-14 right-8 z-50 transform -translate-y-6 opacity-0 pointer-events-none transition-all duration-300">
-      <div class="flex items-center gap-2.5 px-4 py-2.5 rounded-full shadow-lg border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-950/90 text-blue-800 dark:text-blue-200 text-xs font-medium">
-        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        <span id="toastMessage">Your settings have been updated</span>
+    <div id="toastNotification" class="fixed top-14 right-4 sm:right-8 z-50 transform -translate-y-6 opacity-0 pointer-events-none transition-all duration-300">
+      <div class="flex items-center gap-2.5 px-4 py-2 rounded-full shadow-lg border border-[var(--border-main)] bg-[var(--bg-card)] text-[var(--text-main)] text-xs font-medium">
+        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span id="toastMessage">Settings updated</span>
       </div>
     </div>
 
-    <!-- Main Scrollable Body Content -->
-    <main class="flex-1 p-6 max-w-[1600px] w-full mx-auto space-y-6">
+    <!-- Main Content Container -->
+    <main class="flex-1 p-4 sm:p-6 max-w-[1600px] w-full mx-auto space-y-6 min-w-0">
 
-      <!-- OpenRouter Dismissible Clinical Banner -->
-      <section id="clinicalNoticeBanner" class="p-4 rounded-xl border border-blue-500/20 bg-blue-500/5 dark:bg-blue-950/20 flex flex-wrap items-center justify-between gap-4">
+      <!-- Minimalist Clinical Notice Banner -->
+      <section id="clinicalNoticeBanner" class="p-3.5 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)] flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-blue-600/10 border border-blue-500/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs">
-            G2
-          </div>
-          <div>
-            <div class="text-xs font-semibold text-[var(--text-main)]">
-              Candidate S Digital Twin Research Prototype (Dual-Gamma Absorption)
-            </div>
-            <div class="text-[11px] text-[var(--text-secondary)]">
-              Calibrated with 90% Split-Conformal intervals and Ridge K=5 personalization. <strong>Not medical advice and not suitable for treatment decisions.</strong>
-            </div>
+          <span class="px-2 py-0.5 rounded font-mono font-bold bg-[var(--text-main)] text-[var(--bg-card)] text-[11px]">
+            G2 AUDIT
+          </span>
+          <div class="text-[var(--text-secondary)]">
+            <strong class="text-[var(--text-main)]">Candidate S Digital Twin Research Prototype.</strong> Dual-gamma structured absorption calibrated with 90% Split-Conformal intervals. Not medical advice.
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="switchTab('audit')" class="px-3 py-1 rounded-lg bg-[var(--bg-card)] border border-[var(--border-main)] text-xs font-medium text-[var(--text-main)] hover:border-[var(--border-subtle)] transition">
-            View Conformal Audit
+          <button onclick="switchTab('audit')" class="px-3 py-1 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[var(--text-main)] font-medium hover:border-[var(--border-subtle)] transition">
+            View Audit
           </button>
           <button onclick="document.getElementById('clinicalNoticeBanner').remove()" class="p-1 text-[var(--text-muted)] hover:text-[var(--text-main)] text-sm">
             ✕
@@ -434,7 +423,7 @@
         </div>
       </section>
 
-      <!-- OpenRouter Style Page Title & Subtitle + View Underline Tabs -->
+      <!-- Page Heading & Underline Tabs -->
       <div class="border-b border-[var(--border-main)] pb-0">
         <div class="flex flex-wrap items-end justify-between gap-4 mb-4">
           <div>
@@ -444,16 +433,16 @@
           
           <div class="flex items-center gap-2 text-xs">
             <span class="px-2.5 py-1 rounded-md border border-[var(--border-main)] bg-[var(--bg-card)] text-[var(--text-secondary)] font-mono">
-              🌐 GMT+5:30
+              GMT+5:30
             </span>
             <span class="px-2.5 py-1 rounded-md border border-[var(--border-main)] bg-[var(--bg-card)] text-[var(--text-main)] font-medium">
-              Past 180-Min Excursion ▾
+              Past 180-Min Excursion
             </span>
           </div>
         </div>
 
-        <!-- OpenRouter Underline Tabs Bar -->
-        <div class="flex items-center gap-8 text-xs">
+        <!-- Underline Tabs Bar (Scrollable on small screens) -->
+        <div class="flex items-center gap-6 sm:gap-8 text-xs overflow-x-auto no-scrollbar">
           <button onclick="switchTab('forecast')" id="tabBtn-forecast" class="tab-underline active">
             Overview &amp; Forecast
           </button>
@@ -461,7 +450,7 @@
             What-If Sandbox
           </button>
           <button onclick="switchTab('timeline')" id="tabBtn-timeline" class="tab-underline">
-            Meal Timeline (Refero)
+            Meal Timeline
           </button>
           <button onclick="switchTab('profile')" id="tabBtn-profile" class="tab-underline">
             Patient Phenotype
@@ -470,53 +459,52 @@
             Sensor Stress Audit
           </button>
           <button onclick="switchTab('settings')" id="tabBtn-settings" class="tab-underline">
-            Doctor AI Persona (Doctronic)
+            Doctor AI Persona
           </button>
         </div>
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 1: OVERVIEW & FORECAST (OpenRouter 5-Bento KPI + Refero Curve)        -->
+      <!-- TAB 1: OVERVIEW & FORECAST (Monochrome Bento Cards + Trajectory Chart)    -->
       <!-- ========================================================================= -->
       <div id="tabContent-forecast" class="space-y-6">
 
-        <!-- OpenRouter 5-Column Bento KPI Cards with Inline Sparklines -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <!-- 5-Column Responsive Bento KPI Cards (Monochrome: No Yellow, No Red, No Purple) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
           
           <!-- Card 1: CGM Glucose -->
           <div class="clean-card p-4 space-y-2">
             <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
               <span>Current CGM</span>
-              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">IN RANGE</span>
+              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">IN RANGE</span>
             </div>
             <div class="flex items-baseline justify-between">
               <div>
                 <span class="text-2xl font-bold font-mono tracking-tight text-[var(--text-main)]" id="kpiGlucose">136.6</span>
-                <span class="text-xs text-[var(--text-secondary)]">mg/dL</span>
+                <span class="text-xs text-[var(--text-secondary)] ml-1">mg/dL</span>
               </div>
-              <!-- Mini SVG Sparkline -->
-              <svg class="w-16 h-6 text-emerald-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 64 24">
+              <svg class="w-16 h-6 text-[var(--text-main)]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 64 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2 18 L16 14 L30 16 L44 8 L62 4" />
               </svg>
             </div>
             <div class="text-[11px] text-[var(--text-muted)] font-mono flex items-center justify-between pt-1 border-t border-[var(--border-main)]">
-              <span class="text-emerald-600 dark:text-emerald-400">↗ +1.2 mg/dL/min</span>
+              <span class="text-[var(--text-main)] font-semibold">↗ +1.2 mg/dL/min</span>
               <span>Dexcom G6</span>
             </div>
           </div>
 
-          <!-- Card 2: Resting HR -->
+          <!-- Card 2: Resting HR (Monochrome: Neutral Black/Slate font, No Red) -->
           <div class="clean-card p-4 space-y-2">
             <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
               <span>Resting HR</span>
-              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-card-subtle)]">NORMAL</span>
+              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-card-subtle)] border border-[var(--border-main)]">NORMAL</span>
             </div>
             <div class="flex items-baseline justify-between">
               <div>
                 <span class="text-2xl font-bold font-mono tracking-tight text-[var(--text-main)]" id="kpiHeartRate">71</span>
-                <span class="text-xs text-[var(--text-secondary)]">bpm</span>
+                <span class="text-xs text-[var(--text-secondary)] ml-1">bpm</span>
               </div>
-              <svg class="w-16 h-6 text-rose-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 64 24">
+              <svg class="w-16 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 64 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2 12 L16 12 L22 4 L28 20 L34 8 L40 12 L62 12" />
               </svg>
             </div>
@@ -530,14 +518,14 @@
           <div class="clean-card p-4 space-y-2">
             <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
               <span>Physical Activity</span>
-              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-card-subtle)]">SEDENTARY</span>
+              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-card-subtle)] border border-[var(--border-main)]">SEDENTARY</span>
             </div>
             <div class="flex items-baseline justify-between">
               <div>
                 <span class="text-2xl font-bold font-mono tracking-tight text-[var(--text-main)]" id="kpiMets">1.00</span>
-                <span class="text-xs text-[var(--text-secondary)]">METs</span>
+                <span class="text-xs text-[var(--text-secondary)] ml-1">METs</span>
               </div>
-              <svg class="w-16 h-6 text-sky-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 64 24">
+              <svg class="w-16 h-6 text-[var(--text-secondary)]" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 64 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2 20 L20 18 L38 20 L50 16 L62 18" />
               </svg>
             </div>
@@ -555,16 +543,15 @@
             </div>
             <div class="flex items-baseline justify-between">
               <div>
-                <span class="text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400">78%</span>
-                <span class="text-xs text-[var(--text-muted)]">(&ge;70%)</span>
+                <span class="text-2xl font-bold font-mono tracking-tight text-[var(--text-main)]">78%</span>
+                <span class="text-xs text-[var(--text-muted)] ml-1">(&ge;70%)</span>
               </div>
-              <span class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">OPTIMAL</span>
+              <span class="text-[11px] font-mono text-[var(--text-main)] font-semibold">TARGET MET</span>
             </div>
-            <!-- 3-Segment ATTD Bar -->
             <div class="w-full h-1.5 rounded-full overflow-hidden flex bg-[var(--border-main)] mt-1">
-              <div class="bg-emerald-500 h-full" style="width: 78%" title="TIR: 78%"></div>
-              <div class="bg-rose-500 h-full" style="width: 18%" title="TAR: 18%"></div>
-              <div class="bg-amber-400 h-full" style="width: 4%" title="TBR: 4%"></div>
+              <div class="bg-slate-900 dark:bg-slate-100 h-full" style="width: 78%" title="TIR: 78%"></div>
+              <div class="bg-slate-400 dark:bg-slate-600 h-full" style="width: 18%" title="TAR: 18%"></div>
+              <div class="bg-slate-200 dark:bg-slate-700 h-full" style="width: 4%" title="TBR: 4%"></div>
             </div>
           </div>
 
@@ -572,30 +559,30 @@
           <div class="clean-card p-4 space-y-2">
             <div class="flex items-center justify-between text-xs text-[var(--text-secondary)]">
               <span>Candidate S Peak</span>
-              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono text-purple-600 dark:text-purple-400 bg-purple-500/10">INFERENCE</span>
+              <span class="px-1.5 py-0.2 rounded text-[10px] font-mono text-[var(--text-main)] bg-[var(--bg-card-subtle)] border border-[var(--border-main)]">INFERENCE</span>
             </div>
             <div class="flex items-baseline justify-between">
               <div>
                 <span class="text-2xl font-bold font-mono tracking-tight text-[var(--text-main)]">164.2</span>
-                <span class="text-xs text-[var(--text-secondary)]">mg/dL</span>
+                <span class="text-xs text-[var(--text-secondary)] ml-1">mg/dL</span>
               </div>
-              <span class="text-[11px] font-mono text-slate-500">+55m</span>
+              <span class="text-[11px] font-mono text-[var(--text-muted)]">+55m</span>
             </div>
             <div class="text-[11px] text-[var(--text-muted)] flex items-center justify-between pt-1 border-t border-[var(--border-main)]">
               <span>Target &lt; 180</span>
-              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">PASS</span>
+              <span class="text-[var(--text-main)] font-semibold">PASS</span>
             </div>
           </div>
 
         </div>
 
-        <!-- Trajectory Chart Card (Refero Design Minimalist Curve) -->
-        <div class="clean-card p-6 space-y-4">
+        <!-- Trajectory Chart Card -->
+        <div class="clean-card p-4 sm:p-6 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-main)] pb-3">
             <div>
               <div class="flex items-center gap-2.5">
                 <h2 class="text-base font-semibold text-[var(--text-main)]">180-Minute Postprandial Glycemic Forecast</h2>
-                <span id="badgeReliability" class="px-2 py-0.2 rounded text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                <span id="badgeReliability" class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
                   HIGH CONFIDENCE
                 </span>
               </div>
@@ -607,13 +594,13 @@
             <!-- Chart Legends -->
             <div class="flex flex-wrap items-center gap-3.5 text-xs">
               <span class="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                <span class="w-3 h-0.5 bg-emerald-500 inline-block"></span> Candidate S Prediction
+                <span class="w-3 h-0.5 bg-[var(--text-main)] inline-block"></span> Candidate S Prediction
               </span>
               <span class="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                <span class="w-3 h-0.5 border-b-2 border-dashed border-amber-500 inline-block"></span> Recorded CGM Truth
+                <span class="w-3 h-0.5 border-b-2 border-dashed border-slate-500 inline-block"></span> Recorded CGM Truth
               </span>
               <span class="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                <span class="w-3 h-2 bg-emerald-500/15 border border-emerald-500/30 rounded-sm inline-block"></span> 90% Conformal Band
+                <span class="w-3 h-2 bg-slate-400/20 border border-slate-400/40 rounded-sm inline-block"></span> 90% Conformal Band
               </span>
             </div>
           </div>
@@ -624,27 +611,27 @@
               <span>Scrubber Position:</span>
               <span class="font-semibold text-[var(--text-main)]" id="hudMinutes">+55 min</span>
               <span class="text-[var(--border-subtle)]">|</span>
-              <span class="text-emerald-600 dark:text-emerald-400 font-semibold" id="hudPred">Pred: 164.2 mg/dL</span>
+              <span class="text-[var(--text-main)] font-semibold" id="hudPred">Pred: 164.2 mg/dL</span>
               <span class="text-[var(--border-subtle)]">|</span>
               <span id="hudBounds">90% Bounds: [150.2 – 178.2]</span>
             </div>
             <div class="flex items-center gap-2">
-              <span class="text-amber-600 dark:text-amber-400 font-semibold" id="hudTruth">Truth: 162.0 mg/dL</span>
+              <span class="text-[var(--text-main)] font-semibold" id="hudTruth">Truth: 162.0 mg/dL</span>
               <span class="text-[var(--text-muted)]" id="hudDelta">(Δ -2.2)</span>
             </div>
           </div>
 
-          <!-- Chart Canvas Container -->
-          <div class="relative h-80 w-full">
+          <!-- Chart Canvas Container (Responsive height) -->
+          <div class="relative h-72 sm:h-80 w-full min-w-0">
             <canvas id="trajectoryChart"></canvas>
           </div>
 
-          <!-- 4 Quantitative Postprandial Metrics -->
+          <!-- Quantitative Postprandial Metrics (Clean Monochrome) -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-[var(--border-main)]">
             <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
               <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Predicted Peak Excursion</span>
               <span class="text-xl font-bold font-mono text-[var(--text-main)]">164.2 mg/dL</span>
-              <span class="text-[11px] text-emerald-600 dark:text-emerald-400 block mt-0.5">Within ADA Target</span>
+              <span class="text-[11px] text-[var(--text-secondary)] block mt-0.5">Within ADA Target</span>
             </div>
             <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
               <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Time to Peak</span>
@@ -653,13 +640,13 @@
             </div>
             <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
               <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Late Lipid Mean (120–180m)</span>
-              <span class="text-xl font-bold font-mono text-sky-600 dark:text-sky-400">138.4 mg/dL</span>
+              <span class="text-xl font-bold font-mono text-[var(--text-main)]">138.4 mg/dL</span>
               <span class="text-[11px] text-[var(--text-muted)] block mt-0.5">Sustained Plateau</span>
             </div>
             <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] text-center">
               <span class="text-xs text-[var(--text-secondary)] block mb-0.5">Time Above 180</span>
-              <span class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">0 min (0%)</span>
-              <span class="text-[11px] text-emerald-600 dark:text-emerald-400 block mt-0.5">Clinical Safety</span>
+              <span class="text-xl font-bold font-mono text-[var(--text-main)]">0 min (0%)</span>
+              <span class="text-[11px] text-[var(--text-secondary)] block mt-0.5">Clinical Safety</span>
             </div>
           </div>
 
@@ -668,12 +655,11 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 2: WHAT-IF MEAL SANDBOX                                              -->
+      <!-- TAB 2: WHAT-IF MEAL SANDBOX (Clean Monochrome Controls)                  -->
       <!-- ========================================================================= -->
       <div id="tabContent-whatif" class="hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
-          <!-- Sandbox Controls Column -->
           <div class="lg:col-span-5 clean-card p-6 space-y-5">
             <div class="border-b border-[var(--border-main)] pb-3 flex items-center justify-between">
               <div>
@@ -690,36 +676,36 @@
               <label class="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)] block">
                 Regional Indian Clinical Presets:
               </label>
-              <div class="grid grid-cols-2 gap-2" id="presetButtonsContainer">
-                <button onclick="applyPresetMeal('roti_dal_sabzi')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-purple-500 transition">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2" id="presetButtonsContainer">
+                <button onclick="applyPresetMeal('roti_dal_sabzi')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--text-main)] transition">
                   <div class="text-xs font-medium text-[var(--text-main)]">Roti, Dal &amp; Sabzi</div>
-                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">48g C • 12g F • 16g P</div>
+                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5 font-mono">48g C • 12g F • 16g P</div>
                 </button>
-                <button onclick="applyPresetMeal('masala_dosa')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-purple-500 transition">
+                <button onclick="applyPresetMeal('masala_dosa')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--text-main)] transition">
                   <div class="text-xs font-medium text-[var(--text-main)]">Masala Dosa + Sambar</div>
-                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">62g C • 18g F • 10g P</div>
+                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5 font-mono">62g C • 18g F • 10g P</div>
                 </button>
-                <button onclick="applyPresetMeal('chicken_biryani')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-purple-500 transition">
+                <button onclick="applyPresetMeal('chicken_biryani')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--text-main)] transition">
                   <div class="text-xs font-medium text-[var(--text-main)]">Chicken Biryani</div>
-                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">68g C • 22g F • 32g P</div>
+                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5 font-mono">68g C • 22g F • 32g P</div>
                 </button>
-                <button onclick="applyPresetMeal('rajma_chawal')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-purple-500 transition">
+                <button onclick="applyPresetMeal('rajma_chawal')" class="preset-btn text-left p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--text-main)] transition">
                   <div class="text-xs font-medium text-[var(--text-main)]">Rajma Chawal</div>
-                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5">72g C • 14g F • 20g P</div>
+                  <div class="text-[11px] text-[var(--text-secondary)] mt-0.5 font-mono">72g C • 14g F • 20g P</div>
                 </button>
               </div>
             </div>
 
-            <!-- Dynamic Macro Visualizer -->
+            <!-- Dynamic Macro Visualizer (Monochrome/Slate bars) -->
             <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)] space-y-2">
               <div class="flex justify-between text-xs text-[var(--text-main)]">
                 <span class="font-semibold" id="sandboxActiveDish">Roti, Dal &amp; Sabzi</span>
                 <span class="font-mono font-semibold" id="sandboxTotalKcal">364 kcal</span>
               </div>
-              <div class="w-full h-2.5 rounded-full overflow-hidden flex bg-[var(--border-main)]">
-                <div id="barCarb" class="bg-amber-500 h-full transition-all duration-300" style="width: 53%"></div>
-                <div id="barProtein" class="bg-emerald-500 h-full transition-all duration-300" style="width: 25%"></div>
-                <div id="barFat" class="bg-sky-500 h-full transition-all duration-300" style="width: 22%"></div>
+              <div class="w-full h-2 rounded-full overflow-hidden flex bg-[var(--border-main)]">
+                <div id="barCarb" class="bg-slate-900 dark:bg-slate-100 h-full transition-all duration-300" style="width: 53%"></div>
+                <div id="barProtein" class="bg-slate-600 dark:bg-slate-400 h-full transition-all duration-300" style="width: 25%"></div>
+                <div id="barFat" class="bg-slate-400 dark:bg-slate-600 h-full transition-all duration-300" style="width: 22%"></div>
               </div>
               <div class="flex justify-between text-[11px] font-mono text-[var(--text-secondary)]">
                 <span id="pctCarb">Carbs (53%)</span>
@@ -728,30 +714,30 @@
               </div>
             </div>
 
-            <!-- Sliders -->
+            <!-- Monochrome Sliders (No Yellow / Red Fonts) -->
             <div class="space-y-4 pt-1">
               <div>
                 <div class="flex justify-between text-xs mb-1">
                   <span class="text-[var(--text-secondary)] font-medium">Carbohydrates</span>
-                  <span class="font-mono font-semibold text-amber-600 dark:text-amber-400" id="valCarbs">48 g</span>
+                  <span class="font-mono font-semibold text-[var(--text-main)]" id="valCarbs">48 g</span>
                 </div>
-                <input type="range" id="sliderCarbs" min="10" max="140" value="48" oninput="updateSandboxValues()" class="w-full accent-amber-500">
+                <input type="range" id="sliderCarbs" min="10" max="140" value="48" oninput="updateSandboxValues()" class="w-full">
               </div>
 
               <div>
                 <div class="flex justify-between text-xs mb-1">
                   <span class="text-[var(--text-secondary)] font-medium">Dietary Fat</span>
-                  <span class="font-mono font-semibold text-sky-600 dark:text-sky-400" id="valFat">12 g</span>
+                  <span class="font-mono font-semibold text-[var(--text-main)]" id="valFat">12 g</span>
                 </div>
-                <input type="range" id="sliderFat" min="0" max="60" value="12" oninput="updateSandboxValues()" class="w-full accent-sky-500">
+                <input type="range" id="sliderFat" min="0" max="60" value="12" oninput="updateSandboxValues()" class="w-full">
               </div>
 
               <div>
                 <div class="flex justify-between text-xs mb-1">
                   <span class="text-[var(--text-secondary)] font-medium">Protein</span>
-                  <span class="font-mono font-semibold text-emerald-600 dark:text-emerald-400" id="valProtein">16 g</span>
+                  <span class="font-mono font-semibold text-[var(--text-main)]" id="valProtein">16 g</span>
                 </div>
-                <input type="range" id="sliderProtein" min="0" max="60" value="16" oninput="updateSandboxValues()" class="w-full accent-emerald-500">
+                <input type="range" id="sliderProtein" min="0" max="60" value="16" oninput="updateSandboxValues()" class="w-full">
               </div>
 
               <div>
@@ -759,7 +745,7 @@
                   <span class="text-[var(--text-secondary)] font-medium">Portion Scaling</span>
                   <span class="font-mono font-semibold text-[var(--text-main)]" id="valPortion">100%</span>
                 </div>
-                <input type="range" id="sliderPortion" min="25" max="200" step="25" value="100" oninput="updateSandboxValues()" class="w-full accent-purple-500">
+                <input type="range" id="sliderPortion" min="25" max="200" step="25" value="100" oninput="updateSandboxValues()" class="w-full">
               </div>
             </div>
 
@@ -767,7 +753,7 @@
             <div class="pt-3 border-t border-[var(--border-main)] space-y-2.5">
               <div class="flex items-center justify-between">
                 <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Behavioral Interventions</span>
-                <span class="text-[11px] px-2 py-0.2 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span class="text-[11px] px-2 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
                   ASSUMPTION
                 </span>
               </div>
@@ -776,28 +762,28 @@
                 <div class="space-y-0.5">
                   <div class="text-xs font-medium text-[var(--text-main)] flex items-center gap-1.5">
                     <span>Post-Meal 15-Minute Brisk Walk</span>
-                    <span class="text-emerald-600 dark:text-emerald-400 font-mono font-semibold">-18 mg/dL</span>
+                    <span class="text-[var(--text-secondary)] font-mono font-semibold">-18 mg/dL</span>
                   </div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Elevates METs to 3.2 at +30m postprandial</div>
                 </div>
-                <input type="checkbox" id="chkWalk" onchange="updateSandboxValues()" class="w-4 h-4 rounded accent-emerald-500">
+                <input type="checkbox" id="chkWalk" onchange="updateSandboxValues()" class="w-4 h-4 rounded accent-slate-900">
               </label>
 
               <label class="flex items-center justify-between p-3 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] cursor-pointer hover:border-[var(--border-subtle)] transition">
                 <div class="space-y-0.5">
                   <div class="text-xs font-medium text-[var(--text-main)] flex items-center gap-1.5">
                     <span>Food Sequencing (Protein/Veg First)</span>
-                    <span class="text-emerald-600 dark:text-emerald-400 font-mono font-semibold">-15 mg/dL</span>
+                    <span class="text-[var(--text-secondary)] font-mono font-semibold">-15 mg/dL</span>
                   </div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Delays gastric emptying rate via GLP-1</div>
                 </div>
-                <input type="checkbox" id="chkSequence" onchange="updateSandboxValues()" class="w-4 h-4 rounded accent-emerald-500">
+                <input type="checkbox" id="chkSequence" onchange="updateSandboxValues()" class="w-4 h-4 rounded accent-slate-900">
               </label>
             </div>
           </div>
 
           <!-- Simulation Comparison Column -->
-          <div class="lg:col-span-7 clean-card p-6 space-y-5">
+          <div class="lg:col-span-7 clean-card p-4 sm:p-6 space-y-5">
             <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-main)] pb-3">
               <div>
                 <h2 class="text-base font-semibold text-[var(--text-main)]">Comparative Digital Twin Response</h2>
@@ -805,29 +791,29 @@
               </div>
               <div class="flex items-center gap-3 text-xs">
                 <span class="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                  <span class="w-3 h-0.5 bg-emerald-500 inline-block"></span> Baseline
+                  <span class="w-3 h-0.5 bg-slate-400 inline-block"></span> Baseline
                 </span>
                 <span class="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                  <span class="w-3 h-0.5 bg-purple-500 inline-block"></span> Counterfactual
+                  <span class="w-3 h-0.5 bg-[var(--text-main)] inline-block"></span> Counterfactual
                 </span>
               </div>
             </div>
 
             <!-- Simulation Canvas -->
-            <div class="relative h-80 w-full">
+            <div class="relative h-72 sm:h-80 w-full min-w-0">
               <canvas id="sandboxChart"></canvas>
             </div>
 
             <!-- Deltas -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div class="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
                 <div class="flex items-center justify-between text-xs mb-1">
                   <span class="text-[var(--text-secondary)]">Δ Peak Glycemia</span>
-                  <span class="text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.2 rounded">
+                  <span class="text-[10px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[var(--text-main)]">
                     MODEL
                   </span>
                 </div>
-                <div class="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400" id="deltaPeak">
+                <div class="text-xl font-bold font-mono text-[var(--text-main)]" id="deltaPeak">
                   0.0 mg/dL
                 </div>
                 <span class="text-[11px] text-[var(--text-muted)] mt-1 block">Excursion maximum delta</span>
@@ -836,11 +822,11 @@
               <div class="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
                 <div class="flex items-center justify-between text-xs mb-1">
                   <span class="text-[var(--text-secondary)]">Δ Delayed Mean</span>
-                  <span class="text-[10px] font-mono font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 px-1.5 py-0.2 rounded">
+                  <span class="text-[10px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[var(--text-main)]">
                     MODEL
                   </span>
                 </div>
-                <div class="text-xl font-bold font-mono text-sky-600 dark:text-sky-400" id="deltaDelayed">
+                <div class="text-xl font-bold font-mono text-[var(--text-main)]" id="deltaDelayed">
                   0.0 mg/dL
                 </div>
                 <span class="text-[11px] text-[var(--text-muted)] mt-1 block">Late lipid plateau effect</span>
@@ -849,11 +835,11 @@
               <div class="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
                 <div class="flex items-center justify-between text-xs mb-1">
                   <span class="text-[var(--text-secondary)]">Behavioral Impact</span>
-                  <span class="text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded">
+                  <span class="text-[10px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[var(--text-main)]">
                     ASSUMPTION
                   </span>
                 </div>
-                <div class="text-xl font-bold font-mono text-amber-600 dark:text-amber-400" id="deltaBehavior">
+                <div class="text-xl font-bold font-mono text-[var(--text-main)]" id="deltaBehavior">
                   0.0 mg/dL
                 </div>
                 <span class="text-[11px] text-[var(--text-muted)] mt-1 block">Literature exercise scalar</span>
@@ -870,7 +856,6 @@
       <!-- ========================================================================= -->
       <div id="tabContent-timeline" class="hidden space-y-6">
         
-        <!-- Filter Toolbar (Refero Design) -->
         <div class="clean-card p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
           <div class="flex flex-wrap items-center gap-3">
             <div class="flex items-center gap-1.5">
@@ -891,79 +876,78 @@
             </button>
           </div>
           <div>
-            <a href="#" onclick="showToast('Exporting postprandial parquet log to CSV...')" class="text-purple-600 dark:text-purple-400 hover:underline">Want to export to a spreadsheet?</a>
+            <a href="#" onclick="showToast('Exporting postprandial parquet log to CSV...')" class="text-[var(--text-main)] underline font-medium">Export to spreadsheet</a>
           </div>
         </div>
 
-        <!-- Summary Table (Refero Design) -->
         <div class="clean-card overflow-hidden">
           <div class="p-4 border-b border-[var(--border-main)] flex items-center justify-between">
             <h3 class="text-sm font-semibold text-[var(--text-main)]">Recorded 180-Min Excursion Sessions</h3>
             <span class="text-xs text-[var(--text-secondary)] font-mono">Total Meals: 54 Ingested</span>
           </div>
-          <table class="w-full text-left text-xs border-collapse">
-            <thead class="bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border-b border-[var(--border-main)]">
-              <tr>
-                <th class="py-2.5 px-4 font-semibold">Excursion Type</th>
-                <th class="py-2.5 px-4 font-semibold">Carbs (g)</th>
-                <th class="py-2.5 px-4 font-semibold">Fat (g)</th>
-                <th class="py-2.5 px-4 font-semibold">Protein (g)</th>
-                <th class="py-2.5 px-4 font-semibold">Observed Peak</th>
-                <th class="py-2.5 px-4 font-semibold">Duration</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[var(--border-main)] text-[var(--text-main)]">
-              <tr>
-                <td class="py-2.5 px-4 font-medium">Standard Indian Mixed Meal</td>
-                <td class="py-2.5 px-4 font-mono">48.0g</td>
-                <td class="py-2.5 px-4 font-mono">12.0g</td>
-                <td class="py-2.5 px-4 font-mono">16.0g</td>
-                <td class="py-2.5 px-4 font-mono text-emerald-600 dark:text-emerald-400 font-semibold">162.0 mg/dL</td>
-                <td class="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
-              </tr>
-              <tr>
-                <td class="py-2.5 px-4 font-medium">High Carbohydrate Breakfast</td>
-                <td class="py-2.5 px-4 font-mono">68.0g</td>
-                <td class="py-2.5 px-4 font-mono">8.0g</td>
-                <td class="py-2.5 px-4 font-mono">10.0g</td>
-                <td class="py-2.5 px-4 font-mono text-rose-600 dark:text-rose-400 font-semibold">188.5 mg/dL</td>
-                <td class="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
-              </tr>
-              <tr>
-                <td class="py-2.5 px-4 font-medium">High Lipid Delayed Plateau</td>
-                <td class="py-2.5 px-4 font-mono">42.0g</td>
-                <td class="py-2.5 px-4 font-mono">28.0g</td>
-                <td class="py-2.5 px-4 font-mono">22.0g</td>
-                <td class="py-2.5 px-4 font-mono text-sky-600 dark:text-sky-400 font-semibold">154.0 mg/dL</td>
-                <td class="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse min-w-[500px]">
+              <thead class="bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border-b border-[var(--border-main)]">
+                <tr>
+                  <th class="py-2.5 px-4 font-semibold">Excursion Type</th>
+                  <th class="py-2.5 px-4 font-semibold">Carbs (g)</th>
+                  <th class="py-2.5 px-4 font-semibold">Fat (g)</th>
+                  <th class="py-2.5 px-4 font-semibold">Protein (g)</th>
+                  <th class="py-2.5 px-4 font-semibold">Observed Peak</th>
+                  <th class="py-2.5 px-4 font-semibold">Duration</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--border-main)] text-[var(--text-main)]">
+                <tr>
+                  <td class="py-2.5 px-4 font-medium">Standard Indian Mixed Meal</td>
+                  <td class="py-2.5 px-4 font-mono">48.0g</td>
+                  <td class="py-2.5 px-4 font-mono">12.0g</td>
+                  <td class="py-2.5 px-4 font-mono">16.0g</td>
+                  <td class="py-2.5 px-4 font-mono font-semibold">162.0 mg/dL</td>
+                  <td class="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-4 font-medium">High Carbohydrate Breakfast</td>
+                  <td class="py-2.5 px-4 font-mono">68.0g</td>
+                  <td class="py-2.5 px-4 font-mono">8.0g</td>
+                  <td class="py-2.5 px-4 font-mono">10.0g</td>
+                  <td class="py-2.5 px-4 font-mono font-semibold">188.5 mg/dL</td>
+                  <td class="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 px-4 font-medium">High Lipid Delayed Plateau</td>
+                  <td class="py-2.5 px-4 font-mono">42.0g</td>
+                  <td class="py-2.5 px-4 font-mono">28.0g</td>
+                  <td class="py-2.5 px-4 font-mono">22.0g</td>
+                  <td class="py-2.5 px-4 font-mono font-semibold">154.0 mg/dL</td>
+                  <td class="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <!-- Chronological Event Cards (Refero Style) -->
+        <!-- Chronological Event Cards -->
         <div class="space-y-4">
           <div class="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
             Chronological Timeline Feed
           </div>
 
-          <!-- Section: February 13, 2026 -->
           <div class="space-y-2">
             <div class="bg-[var(--bg-card-subtle)] px-4 py-1.5 rounded-lg text-xs font-semibold text-[var(--text-secondary)] border border-[var(--border-main)]">
               February 13, 2026 — Clinical Ingest Stream
             </div>
 
-            <!-- Event Card 1 -->
             <div class="clean-card p-4 flex items-center justify-between gap-4">
               <div class="flex items-center gap-4">
                 <div class="text-xs font-mono text-[var(--text-secondary)] text-right w-16">
                   <div class="font-bold text-[var(--text-main)]">08:30</div>
                   <div>11:30</div>
                 </div>
-                <div class="w-1 h-10 rounded-full bg-emerald-500"></div>
+                <div class="w-1 h-10 rounded-full bg-slate-900 dark:bg-slate-100"></div>
                 <div>
                   <div class="text-xs font-semibold text-[var(--text-main)]">Breakfast: 2 Rotis with Dal &amp; Mixed Veg Sabzi</div>
-                  <div class="text-[11px] text-[var(--text-secondary)]">Nutrients: 48g Carbs • 12g Fat • 16g Protein | Peak: 164.2 mg/dL at +55m</div>
+                  <div class="text-[11px] text-[var(--text-secondary)] font-mono">Nutrients: 48g Carbs • 12g Fat • 16g Protein | Peak: 164.2 mg/dL at +55m</div>
                   <div class="text-[10px] text-[var(--text-muted)]">Verified Continuous 5-Min Telemetry Buffer</div>
                 </div>
               </div>
@@ -974,17 +958,16 @@
               </div>
             </div>
 
-            <!-- Event Card 2 -->
             <div class="clean-card p-4 flex items-center justify-between gap-4">
               <div class="flex items-center gap-4">
                 <div class="text-xs font-mono text-[var(--text-secondary)] text-right w-16">
                   <div class="font-bold text-[var(--text-main)]">13:15</div>
                   <div>16:15</div>
                 </div>
-                <div class="w-1 h-10 rounded-full bg-purple-500"></div>
+                <div class="w-1 h-10 rounded-full bg-slate-500"></div>
                 <div>
                   <div class="text-xs font-semibold text-[var(--text-main)]">Lunch: Masala Dosa with Sambar &amp; Chutney</div>
-                  <div class="text-[11px] text-[var(--text-secondary)]">Nutrients: 62g Carbs • 18g Fat • 10g Protein | Peak: 178.0 mg/dL at +45m</div>
+                  <div class="text-[11px] text-[var(--text-secondary)] font-mono">Nutrients: 62g Carbs • 18g Fat • 10g Protein | Peak: 178.0 mg/dL at +45m</div>
                   <div class="text-[10px] text-[var(--text-muted)]">Post-meal walking intervention recorded (15 min)</div>
                 </div>
               </div>
@@ -995,34 +978,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Section: February 12, 2026 -->
-          <div class="space-y-2 pt-2">
-            <div class="bg-[var(--bg-card-subtle)] px-4 py-1.5 rounded-lg text-xs font-semibold text-[var(--text-secondary)] border border-[var(--border-main)]">
-              February 12, 2026 — Prior Sensor History
-            </div>
-
-            <div class="clean-card p-4 flex items-center justify-between gap-4">
-              <div class="flex items-center gap-4">
-                <div class="text-xs font-mono text-[var(--text-secondary)] text-right w-16">
-                  <div class="font-bold text-[var(--text-main)]">19:45</div>
-                  <div>22:45</div>
-                </div>
-                <div class="w-1 h-10 rounded-full bg-sky-500"></div>
-                <div>
-                  <div class="text-xs font-semibold text-[var(--text-main)]">Dinner: Grilled Chicken &amp; Quinoa Salad</div>
-                  <div class="text-[11px] text-[var(--text-secondary)]">Nutrients: 32g Carbs • 14g Fat • 36g Protein | Peak: 142.5 mg/dL</div>
-                  <div class="text-[10px] text-[var(--text-muted)]">Stable postprandial glucose envelope (Time in Range: 100%)</div>
-                </div>
-              </div>
-              <div class="text-right">
-                <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">
-                  180 min
-                </span>
-              </div>
-            </div>
-          </div>
-
         </div>
 
       </div>
@@ -1037,10 +992,10 @@
             <h2 class="text-base font-semibold text-[var(--text-main)]">Clinical Baseline Profile</h2>
             <div class="space-y-2 text-xs">
               <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Patient Twin:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profilePid">P020</span></div>
-              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Diagnosis:</span> <span class="text-emerald-600 dark:text-emerald-400 font-semibold" id="profileDiagnosis">Type 2 Diabetes</span></div>
+              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Diagnosis:</span> <span class="text-[var(--text-main)] font-semibold" id="profileDiagnosis">Type 2 Diabetes</span></div>
               <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Age &amp; Sex:</span> <span class="text-[var(--text-main)]" id="profileAgeSex">58y / Male</span></div>
               <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">BMI:</span> <span class="text-[var(--text-main)] font-mono" id="profileBMI">28.4 kg/m²</span></div>
-              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Baseline HbA1c:</span> <span class="text-amber-600 dark:text-amber-400 font-semibold font-mono" id="profileHbA1c">7.4%</span></div>
+              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Baseline HbA1c:</span> <span class="text-[var(--text-main)] font-semibold font-mono" id="profileHbA1c">7.4%</span></div>
               <div class="flex justify-between py-2"><span class="text-[var(--text-secondary)]">Fasting Glucose:</span> <span class="text-[var(--text-main)] font-mono" id="profileFasting">138 mg/dL</span></div>
             </div>
           </div>
@@ -1048,8 +1003,8 @@
           <div class="clean-card p-6 space-y-4">
             <div class="flex items-center justify-between">
               <h2 class="text-base font-semibold text-[var(--text-main)]">Synthetic EHR Records</h2>
-              <span class="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                SYNTHETIC (D14)
+              <span class="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
+                SYNTHETIC
               </span>
             </div>
             <div class="space-y-3 text-xs">
@@ -1067,16 +1022,16 @@
           <div class="clean-card p-6 space-y-4">
             <div class="flex items-center justify-between">
               <h2 class="text-base font-semibold text-[var(--text-main)]">Few-Shot Personalization</h2>
-              <span class="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+              <span class="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
                 K = 5 MEALS
               </span>
             </div>
             <div class="space-y-2 text-xs font-mono">
               <div class="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)] space-y-1.5">
-                <div class="flex justify-between text-[var(--text-secondary)]"><span>Zero-Shot (K=0):</span> <span class="text-rose-500">12.95 mg/dL</span></div>
-                <div class="flex justify-between text-[var(--text-secondary)]"><span>1-Shot (K=1):</span> <span class="text-amber-500">10.84 mg/dL</span></div>
-                <div class="flex justify-between text-[var(--text-secondary)]"><span>3-Shot (K=3):</span> <span class="text-emerald-500">9.45 mg/dL</span></div>
-                <div class="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold border-t border-[var(--border-main)] pt-1.5">
+                <div class="flex justify-between text-[var(--text-secondary)]"><span>Zero-Shot (K=0):</span> <span class="text-[var(--text-main)]">12.95 mg/dL</span></div>
+                <div class="flex justify-between text-[var(--text-secondary)]"><span>1-Shot (K=1):</span> <span class="text-[var(--text-main)]">10.84 mg/dL</span></div>
+                <div class="flex justify-between text-[var(--text-secondary)]"><span>3-Shot (K=3):</span> <span class="text-[var(--text-main)]">9.45 mg/dL</span></div>
+                <div class="flex justify-between text-[var(--text-main)] font-bold border-t border-[var(--border-main)] pt-1.5">
                   <span>5-Shot Adapted (K=5):</span> <span>8.92 mg/dL</span>
                 </div>
               </div>
@@ -1090,7 +1045,7 @@
       <!-- TAB 5: SENSOR STRESS AUDIT                                                -->
       <!-- ========================================================================= -->
       <div id="tabContent-audit" class="hidden space-y-6">
-        <div class="clean-card p-6 space-y-5">
+        <div class="clean-card p-4 sm:p-6 space-y-5">
           <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[var(--border-main)] pb-3">
             <div>
               <h2 class="text-base font-semibold text-[var(--text-main)]">Sensor Degradation &amp; Stress Testing (D0–D7)</h2>
@@ -1098,17 +1053,17 @@
             </div>
             <div class="flex items-center gap-2">
               <span class="text-xs text-[var(--text-secondary)]">Active Scenario:</span>
-              <span id="activeStressBadge" class="text-xs font-mono font-semibold bg-[var(--bg-card-subtle)] border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-lg">
+              <span id="activeStressBadge" class="text-xs font-mono font-semibold bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] px-3 py-1 rounded-lg">
                 D0: Nominal Stream
               </span>
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            <button onclick="injectDegradation('D0')" class="deg-card p-4 rounded-lg border border-emerald-500 bg-[var(--bg-card)] text-left transition shadow-sm">
+            <button onclick="injectDegradation('D0')" class="deg-card p-4 rounded-lg border border-slate-900 dark:border-slate-100 bg-[var(--bg-card)] text-left transition shadow-sm">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D0: Nominal Stream</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">HIGH</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">HIGH</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">No dropouts, continuous 5-min telemetry</span>
             </button>
@@ -1116,7 +1071,7 @@
             <button onclick="injectDegradation('D1_15m')" class="deg-card p-4 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] text-left transition">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D1: Dropout 15m</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400">MODERATE</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">MODERATE</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">Minor CGM retrospective gap</span>
             </button>
@@ -1124,7 +1079,7 @@
             <button onclick="injectDegradation('D1_30m')" class="deg-card p-4 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] text-left transition">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D1: Dropout 30m</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400">MODERATE</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">MODERATE</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">Noticeable 30-min CGM gap</span>
             </button>
@@ -1132,7 +1087,7 @@
             <button onclick="injectDegradation('D1_45m')" class="deg-card p-4 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] text-left transition">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D1: Dropout 45m</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400">LOW</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">LOW</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">Major CGM sensor silence</span>
             </button>
@@ -1140,7 +1095,7 @@
             <button onclick="injectDegradation('D2')" class="deg-card p-4 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] text-left transition">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D2: Decimated (15m)</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400">MODERATE</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">MODERATE</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">Subsampled to 15-min cadence</span>
             </button>
@@ -1148,7 +1103,7 @@
             <button onclick="injectDegradation('D3')" class="deg-card p-4 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] text-left transition">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D3: No HR / METs</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400">MODERATE</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">MODERATE</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">Optical PPG battery failure</span>
             </button>
@@ -1156,7 +1111,7 @@
             <button onclick="injectDegradation('D4')" class="deg-card p-4 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] text-left transition">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D4: 50% Sparse CGM</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400">LOW</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">LOW</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">50% packet drop telemetry</span>
             </button>
@@ -1164,7 +1119,7 @@
             <button onclick="injectDegradation('D7')" class="deg-card p-4 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--border-subtle)] text-left transition">
               <div class="flex items-center justify-between mb-1">
                 <span class="text-xs font-semibold text-[var(--text-main)]">D7: Extreme (90m)</span>
-                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400">LOW</span>
+                <span class="text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border border-[var(--border-main)]">LOW</span>
               </div>
               <span class="text-[11px] text-[var(--text-secondary)] block">Severe 90-min hardware gap</span>
             </button>
@@ -1173,11 +1128,10 @@
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TAB 6: DOCTRONIC AI DOCTOR PERSONA & RESPONSE STYLE SETTINGS              -->
+      <!-- TAB 6: DOCTRONIC AI DOCTOR PERSONA & SETTINGS                             -->
       <!-- ========================================================================= -->
       <div id="tabContent-settings" class="hidden space-y-8 max-w-4xl">
         
-        <!-- Physician Profile Header (Doctronic Step 1) -->
         <div class="space-y-3 pt-2">
           <h1 class="text-3xl font-serif text-[var(--text-main)]">Dr. Connie</h1>
           <p class="text-xs text-[var(--text-secondary)]">aegis.endocrinology.twin@happiesthealth.org</p>
@@ -1196,10 +1150,9 @@
 
         <div class="h-px bg-[var(--border-main)]"></div>
 
-        <!-- 2-Column Settings Rows (Doctronic Style) -->
         <div class="space-y-8 text-xs">
           
-          <!-- Row 1: Response style dropdown with custom popover -->
+          <!-- Response style row -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             <div class="md:col-span-4 flex items-center gap-2.5 text-sm font-medium text-[var(--text-main)]">
               <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -1207,50 +1160,48 @@
             </div>
             
             <div class="md:col-span-8 relative">
-              <!-- Custom Trigger Button (Doctronic Step 1) -->
               <button onclick="toggleResponseStylePopover()" id="responseStyleBtn" class="w-full flex items-center justify-between p-3 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)] text-left hover:border-[var(--border-subtle)] transition">
                 <span class="font-medium text-[var(--text-main)]" id="currentStyleLabel">Just the facts</span>
                 <svg class="w-4 h-4 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
               </button>
 
-              <!-- Popover Menu (Doctronic Step 2) -->
               <div id="responseStylePopover" class="hidden absolute top-full mt-2 left-0 right-0 z-50 bg-[var(--bg-card)] rounded-xl border border-[var(--border-main)] shadow-xl overflow-hidden p-1.5 space-y-1">
-                <div onclick="selectResponseStyle('Default', 'Doctronic standard medical tone with professionalism and warmth')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
+                <div onclick="selectResponseStyle('Default')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
                   <div class="flex items-center justify-between font-semibold text-[var(--text-main)]">
                     <span>Default</span>
-                    <span class="text-emerald-500 hidden check-icon" id="check-Default">✓</span>
+                    <span class="text-[var(--text-main)] hidden check-icon" id="check-Default">✓</span>
                   </div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Aegis standard clinical medical tone with professionalism and physiological context</div>
                 </div>
 
-                <div onclick="selectResponseStyle('Just the facts', 'Clinical precision without the bedside manner')" class="p-2.5 rounded-lg cursor-pointer bg-emerald-500/10 transition">
+                <div onclick="selectResponseStyle('Just the facts')" class="p-2.5 rounded-lg cursor-pointer bg-[var(--bg-card-subtle)] transition">
                   <div class="flex items-center justify-between font-semibold text-[var(--text-main)]">
                     <span>Just the facts</span>
-                    <span class="text-emerald-600 dark:text-emerald-400 check-icon" id="check-JustTheFacts">✓</span>
+                    <span class="text-[var(--text-main)] check-icon" id="check-JustTheFacts">✓</span>
                   </div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Clinical precision without the bedside manner (numeric metrics, deltas, and ADA ranges only)</div>
                 </div>
 
-                <div onclick="selectResponseStyle('The wise professor', 'Detailed explanations with educational context')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
+                <div onclick="selectResponseStyle('The wise professor')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
                   <div class="flex items-center justify-between font-semibold text-[var(--text-main)]">
                     <span>The wise professor</span>
-                    <span class="text-emerald-500 hidden check-icon" id="check-WiseProf">✓</span>
+                    <span class="text-[var(--text-main)] hidden check-icon" id="check-WiseProf">✓</span>
                   </div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Detailed mechanistic endocrinology explanations with metabolic physiology context</div>
                 </div>
 
-                <div onclick="selectResponseStyle('Supportive', 'Include natural health and preventive wellness approaches')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
+                <div onclick="selectResponseStyle('Supportive')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
                   <div class="flex items-center justify-between font-semibold text-[var(--text-main)]">
                     <span>Supportive</span>
-                    <span class="text-emerald-500 hidden check-icon" id="check-Supportive">✓</span>
+                    <span class="text-[var(--text-main)] hidden check-icon" id="check-Supportive">✓</span>
                   </div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Empathetic preventive wellness guidance, post-meal walking prompts, and positive reinforcement</div>
                 </div>
 
-                <div onclick="selectResponseStyle('Your friendly neighbor', 'Warm and caring, like talking to a trusted neighbor')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
+                <div onclick="selectResponseStyle('Your friendly neighbor')" class="p-2.5 rounded-lg cursor-pointer hover:bg-[var(--bg-card-subtle)] transition">
                   <div class="flex items-center justify-between font-semibold text-[var(--text-main)]">
                     <span>Your friendly neighbor</span>
-                    <span class="text-emerald-500 hidden check-icon" id="check-Neighbor">✓</span>
+                    <span class="text-[var(--text-main)] hidden check-icon" id="check-Neighbor">✓</span>
                   </div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Warm, approachable conversation free of heavy clinical jargon</div>
                 </div>
@@ -1258,7 +1209,7 @@
             </div>
           </div>
 
-          <!-- Row 2: Time zone -->
+          <!-- Time zone -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             <div class="md:col-span-4 flex items-center gap-2.5 text-sm font-medium text-[var(--text-main)]">
               <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -1267,12 +1218,12 @@
             <div class="md:col-span-8">
               <div class="flex items-center gap-2 p-3 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)]">
                 <svg class="w-4 h-4 text-[var(--text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                <input type="text" value="Asia / Kolkata (GMT+5:30)" class="w-full bg-transparent text-[var(--text-main)] outline-none font-medium" onchange="showToast('Time zone updated to ' + this.value)">
+                <input type="text" value="Asia / Kolkata (GMT+5:30)" class="w-full bg-transparent text-[var(--text-main)] outline-none font-medium" onchange="showToast('Time zone updated')">
               </div>
             </div>
           </div>
 
-          <!-- Row 3: Memory & Historical Sync -->
+          <!-- Memory & Sync -->
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             <div class="md:col-span-4 flex items-center gap-2.5 text-sm font-medium text-[var(--text-main)]">
               <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -1284,15 +1235,7 @@
                   <div class="font-semibold text-[var(--text-main)]">Reference patient chat history</div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Let Aegis reference previous endocrinology consultations when predicting response.</div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked class="sr-only switch-checkbox" onchange="showToast('Memory preferences updated')">
-                    <div class="w-11 h-6 bg-[var(--border-subtle)] rounded-full transition-colors switch-label">
-                      <div class="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform switch-dot m-0.5"></div>
-                    </div>
-                  </label>
-                  <span class="font-medium text-[var(--text-main)]">On</span>
-                </div>
+                <span class="font-semibold text-[var(--text-main)] px-2.5 py-1 rounded bg-[var(--bg-card-subtle)] border border-[var(--border-main)]">On</span>
               </div>
 
               <div class="flex items-center justify-between">
@@ -1300,49 +1243,13 @@
                   <div class="font-semibold text-[var(--text-main)]">Reference synthetic medical records</div>
                   <div class="text-[11px] text-[var(--text-secondary)]">Let Aegis reference shared EHR biomarkers (HbA1c, fasting glucose) when calibrating Ridge weights.</div>
                 </div>
-                <div class="flex items-center gap-2">
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked class="sr-only switch-checkbox" onchange="showToast('EHR synchronization updated')">
-                    <div class="w-11 h-6 bg-[var(--border-subtle)] rounded-full transition-colors switch-label">
-                      <div class="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform switch-dot m-0.5"></div>
-                    </div>
-                  </label>
-                  <span class="font-medium text-[var(--text-main)]">On</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Row 4: Medical Record Consent -->
-          <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-            <div class="md:col-span-4 flex items-center gap-2.5 text-sm font-medium text-[var(--text-main)]">
-              <svg class="w-5 h-5 text-[var(--text-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-              <span>Consent &amp; Retrieval</span>
-            </div>
-            <div class="md:col-span-8 space-y-2">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="font-semibold text-[var(--text-main)]">Continuous sensor stream consent</div>
-                  <div class="text-[11px] text-[var(--text-secondary)] max-w-md">
-                    Allow Aegis to ingest 5-minute continuous glucose telemetry from connected Dexcom/Abbott sensors to train the digital twin.
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" class="sr-only switch-checkbox" onchange="showToast('Sensor consent toggled')">
-                    <div class="w-11 h-6 bg-[var(--border-subtle)] rounded-full transition-colors switch-label">
-                      <div class="w-5 h-5 rounded-full bg-white shadow-md transform transition-transform switch-dot m-0.5"></div>
-                    </div>
-                  </label>
-                  <span class="font-medium text-[var(--text-secondary)]">Off</span>
-                </div>
+                <span class="font-semibold text-[var(--text-main)] px-2.5 py-1 rounded bg-[var(--bg-card-subtle)] border border-[var(--border-main)]">On</span>
               </div>
             </div>
           </div>
 
         </div>
 
-        <!-- Doctronic Footer Links & Disclaimer -->
         <div class="pt-8 border-t border-[var(--border-main)] space-y-4">
           <div class="flex justify-center">
             <button onclick="showToast('Clinician session reset.')" class="px-8 py-2 rounded-full border border-[var(--border-main)] bg-[var(--bg-card)] text-xs font-semibold text-[var(--text-main)] hover:border-[var(--border-subtle)] transition">
@@ -1370,9 +1277,7 @@
         <input type="text" id="paletteInput" oninput="filterPalette(this.value)" placeholder="Search actions, twins, meal presets, or stress modes..." class="bg-transparent text-[var(--text-main)] placeholder-[var(--text-muted)] text-xs outline-none flex-1 font-sans">
         <kbd class="text-[11px] font-mono bg-[var(--bg-card)] text-[var(--text-secondary)] px-2 py-0.5 rounded border border-[var(--border-main)]">ESC</kbd>
       </div>
-      <div id="paletteResults" class="max-h-80 overflow-y-auto p-2 space-y-1 text-xs">
-        <!-- Injected via JavaScript -->
-      </div>
+      <div id="paletteResults" class="max-h-80 overflow-y-auto p-2 space-y-1 text-xs"></div>
     </div>
   </div>
 
@@ -1388,20 +1293,20 @@
       <div class="space-y-3 text-xs">
         <div>
           <label class="text-[var(--text-secondary)] font-medium block mb-1">Meal Name:</label>
-          <input type="text" id="customMealName" value="Paneer Butter Masala with Roti" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2.5 outline-none focus:border-purple-500">
+          <input type="text" id="customMealName" value="Paneer Butter Masala with Roti" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2.5 outline-none focus:border-[var(--text-main)]">
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="text-amber-600 dark:text-amber-400 font-medium block mb-1">Carbs (g):</label>
-            <input type="number" id="customCarbs" value="52" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-amber-500">
+            <label class="text-[var(--text-secondary)] font-medium block mb-1">Carbs (g):</label>
+            <input type="number" id="customCarbs" value="52" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
           </div>
           <div>
-            <label class="text-sky-600 dark:text-sky-400 font-medium block mb-1">Fat (g):</label>
-            <input type="number" id="customFat" value="24" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-sky-500">
+            <label class="text-[var(--text-secondary)] font-medium block mb-1">Fat (g):</label>
+            <input type="number" id="customFat" value="24" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
           </div>
           <div>
-            <label class="text-emerald-600 dark:text-emerald-400 font-medium block mb-1">Protein (g):</label>
-            <input type="number" id="customProtein" value="18" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-emerald-500">
+            <label class="text-[var(--text-secondary)] font-medium block mb-1">Protein (g):</label>
+            <input type="number" id="customProtein" value="18" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
           </div>
         </div>
       </div>
@@ -1409,7 +1314,7 @@
         <button onclick="closeCustomMealModal()" class="px-3.5 py-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-main)] text-xs font-medium">
           Cancel
         </button>
-        <button onclick="applyCustomMealToSandbox()" class="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-sm transition">
+        <button onclick="applyCustomMealToSandbox()" class="px-4 py-1.5 rounded-lg bg-[var(--text-main)] text-[var(--bg-card)] text-xs font-semibold shadow-sm transition hover:opacity-90">
           Apply to Sandbox
         </button>
       </div>
@@ -1417,12 +1322,11 @@
   </div>
 
   <!-- ========================================================================= -->
-  <!-- 6. CORE JAVASCRIPT STATE ENGINE                                           -->
+  <!-- 6. JAVASCRIPT STATE ENGINE                                                -->
   <!-- ========================================================================= -->
   <script>
-    // Global Application State
     const state = {
-      theme: 'dark',
+      theme: 'light', // Default to clean white/light mode
       activeTab: 'forecast',
       patientId: 'P020',
       isPlaying: false,
@@ -1435,12 +1339,10 @@
       portion: 100,
       walking: false,
       sequencing: false,
-      ws: null,
       trajectoryChart: null,
       sandboxChart: null,
     };
 
-    // Patient Profiles Cache
     const patientDatabase = {
       P020: { age: '58y / Male', bmi: '28.4 kg/m²', hba1c: '7.4%', fasting: '138 mg/dL', diagnosis: 'Type 2 Diabetes', meds: 'Metformin 500mg BID, Lisinopril 10mg QD', comorbidities: 'Essential Hypertension, Dyslipidemia' },
       P021: { age: '61y / Female', bmi: '30.1 kg/m²', hba1c: '7.8%', fasting: '146 mg/dL', diagnosis: 'Type 2 Diabetes', meds: 'Metformin 1000mg BID, Empagliflozin 10mg QD', comorbidities: 'Microalbuminuria' },
@@ -1448,7 +1350,6 @@
       P001: { age: '28y / Female', bmi: '21.5 kg/m²', hba1c: '5.2%', fasting: '88 mg/dL', diagnosis: 'Healthy Control', meds: 'None', comorbidities: 'None' }
     };
 
-    // Regional Presets
     const mealPresets = {
       roti_dal_sabzi: { name: 'Roti, Dal & Sabzi', carbs: 48, fat: 12, protein: 16 },
       masala_dosa: { name: 'Masala Dosa + Sambar', carbs: 62, fat: 18, protein: 10 },
@@ -1456,9 +1357,9 @@
       rajma_chawal: { name: 'Rajma Chawal', carbs: 72, fat: 14, protein: 20 }
     };
 
-    // 1. Theme Management
+    // 1. Theme (Defaults to Light/White)
     function initTheme() {
-      const saved = localStorage.getItem('aegis_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const saved = localStorage.getItem('aegis_theme') || 'light';
       setTheme(saved);
     }
 
@@ -1475,6 +1376,15 @@
         document.getElementById('themeBtnDark').classList.remove('bg-[var(--bg-card)]', 'text-[var(--text-main)]', 'font-semibold', 'shadow-sm');
       }
       updateChartThemes();
+    }
+
+    function toggleMobileSidebar() {
+      const sb = document.getElementById('sidebarContainer');
+      sb.classList.toggle('hidden');
+      sb.classList.toggle('fixed');
+      sb.classList.toggle('inset-y-0');
+      sb.classList.toggle('left-0');
+      sb.classList.toggle('shadow-2xl');
     }
 
     // 2. Tab Navigation
@@ -1506,7 +1416,6 @@
         }
       });
 
-      // Update Breadcrumbs and Headings
       const titles = {
         forecast: { breadcrumb: 'Activity & Trajectory Forecast', title: 'Activity', sub: 'Continuous 180-min postprandial glycemic digital twin telemetry across patient models' },
         whatif: { breadcrumb: 'Counterfactual Meal Sandbox', title: 'What-If Simulation', sub: 'Test nutritional substitutions, portion scaling, and behavioral exercise timing' },
@@ -1522,14 +1431,11 @@
         document.getElementById('pageHeadingSub').textContent = titles[tabId].sub;
       }
 
-      if (tabId === 'forecast' && state.trajectoryChart) {
-        state.trajectoryChart.resize();
-      } else if (tabId === 'whatif' && state.sandboxChart) {
-        state.sandboxChart.resize();
-      }
+      if (tabId === 'forecast' && state.trajectoryChart) state.trajectoryChart.resize();
+      else if (tabId === 'whatif' && state.sandboxChart) state.sandboxChart.resize();
     }
 
-    // 3. Toast Notifications (Doctronic Step 3 Style)
+    // 3. Toast Notifications
     let toastTimeout;
     function showToast(message) {
       const toast = document.getElementById('toastNotification');
@@ -1544,27 +1450,24 @@
       }, 3000);
     }
 
-    // 4. Doctronic Response Style Customizer
+    // 4. Response Style Customizer
     function toggleResponseStylePopover() {
-      const popover = document.getElementById('responseStylePopover');
-      popover.classList.toggle('hidden');
+      document.getElementById('responseStylePopover').classList.toggle('hidden');
     }
 
-    function selectResponseStyle(name, desc) {
+    function selectResponseStyle(name) {
       document.getElementById('currentStyleLabel').textContent = name;
       document.getElementById('responseStylePopover').classList.add('hidden');
-      
       document.querySelectorAll('.check-icon').forEach(icon => icon.classList.add('hidden'));
       if (name === 'Default') document.getElementById('check-Default')?.classList.remove('hidden');
       else if (name === 'Just the facts') document.getElementById('check-JustTheFacts')?.classList.remove('hidden');
       else if (name === 'The wise professor') document.getElementById('check-WiseProf')?.classList.remove('hidden');
       else if (name === 'Supportive') document.getElementById('check-Supportive')?.classList.remove('hidden');
       else if (name === 'Your friendly neighbor') document.getElementById('check-Neighbor')?.classList.remove('hidden');
-
-      showToast('Your settings have been updated');
+      showToast('Settings updated');
     }
 
-    // 5. Patient Twin Switcher
+    // 5. Patient Switcher
     function handlePatientChange(pid) {
       state.patientId = pid;
       const data = patientDatabase[pid] || patientDatabase['P020'];
@@ -1603,30 +1506,18 @@
 
     function setReplaySpeed(val) {
       state.speed = Number(val);
-      showToast(`Replay playback speed set to ${val}x`);
+      showToast(`Speed set to ${val}x`);
     }
 
     function injectDegradation(deg) {
       state.degradation = deg;
       document.querySelectorAll('.deg-card').forEach(c => {
-        c.classList.remove('border-emerald-500', 'bg-[var(--bg-card)]', 'shadow-sm');
+        c.classList.remove('border-slate-900', 'dark:border-slate-100', 'bg-[var(--bg-card)]', 'shadow-sm');
         c.classList.add('border-[var(--border-main)]', 'bg-[var(--bg-card-subtle)]');
       });
       event.currentTarget.classList.remove('border-[var(--border-main)]', 'bg-[var(--bg-card-subtle)]');
-      event.currentTarget.classList.add('border-emerald-500', 'bg-[var(--bg-card)]', 'shadow-sm');
-
+      event.currentTarget.classList.add('border-slate-900', 'dark:border-slate-100', 'bg-[var(--bg-card)]', 'shadow-sm');
       document.getElementById('activeStressBadge').textContent = deg;
-      const relBadge = document.getElementById('badgeReliability');
-      if (deg === 'D4' || deg === 'D7') {
-        relBadge.textContent = 'LOW CONFIDENCE';
-        relBadge.className = 'px-2 py-0.2 rounded text-[11px] font-mono font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20';
-      } else if (deg.startsWith('D1') || deg === 'D3' || deg === 'D2') {
-        relBadge.textContent = 'MODERATE CONFIDENCE';
-        relBadge.className = 'px-2 py-0.2 rounded text-[11px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20';
-      } else {
-        relBadge.textContent = 'HIGH CONFIDENCE';
-        relBadge.className = 'px-2 py-0.2 rounded text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20';
-      }
       showToast(`Stress scenario injected: ${deg}`);
     }
 
@@ -1730,10 +1621,10 @@
       { title: 'Theme: Switch to Dark Mode', cat: 'Theme', key: 'D', run: () => setTheme('dark') },
       { title: 'View: 1. Overview & Forecast', cat: 'Navigation', key: '1', run: () => switchTab('forecast') },
       { title: 'View: 2. What-If Meal Sandbox', cat: 'Navigation', key: '2', run: () => switchTab('whatif') },
-      { title: 'View: 3. Meal Timeline (Refero)', cat: 'Navigation', key: '3', run: () => switchTab('timeline') },
+      { title: 'View: 3. Meal Timeline', cat: 'Navigation', key: '3', run: () => switchTab('timeline') },
       { title: 'View: 4. Digital Twin Phenotype', cat: 'Navigation', key: '4', run: () => switchTab('profile') },
       { title: 'View: 5. Sensor Stress Audit', cat: 'Navigation', key: '5', run: () => switchTab('audit') },
-      { title: 'View: 6. Doctor AI Persona (Doctronic)', cat: 'Navigation', key: '6', run: () => switchTab('settings') },
+      { title: 'View: 6. Doctor AI Persona', cat: 'Navigation', key: '6', run: () => switchTab('settings') },
     ];
 
     function toggleCommandPalette() {
@@ -1758,9 +1649,9 @@
       }
 
       container.innerHTML = filtered.map(a => `
-        <div onclick="executePaletteAction('${a.title}')" class="flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition text-xs bg-[var(--bg-card-subtle)] hover:bg-purple-500/10 text-[var(--text-main)]">
+        <div onclick="executePaletteAction('${a.title}')" class="flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition text-xs bg-[var(--bg-card-subtle)] hover:bg-[var(--border-main)] text-[var(--text-main)]">
           <div class="flex items-center gap-2.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-[var(--text-main)]"></span>
             <span>${a.title}</span>
           </div>
           <span class="font-mono text-[10px] bg-[var(--bg-card)] px-1.5 py-0.5 rounded text-[var(--text-secondary)] border border-[var(--border-main)]">${a.key}</span>
@@ -1774,7 +1665,7 @@
       document.getElementById('commandPaletteModal').classList.add('hidden');
     }
 
-    // 9. Chart.js Trajectory & Sandbox Setup
+    // 9. Chart.js (Monochrome Precision)
     const timeLabels = ['0m', '15m', '30m', '45m', '60m', '75m', '90m', '105m', '120m', '135m', '150m', '165m', '180m'];
     const nominalPred = [136.6, 142.1, 151.4, 161.0, 164.2, 160.8, 154.2, 148.0, 142.5, 139.1, 137.8, 136.9, 136.2];
     const nominalTruth = [136.6, 140.5, 150.2, 158.8, 162.0, 159.4, 152.0, 146.5, 141.0, 138.0, 137.2, 136.5, 136.0];
@@ -1783,10 +1674,11 @@
 
     function initCharts() {
       const isDark = document.documentElement.classList.contains('dark');
-      const gridColor = isDark ? '#21262d' : '#e2e8f0';
+      const gridColor = isDark ? '#22272e' : '#e2e8f0';
       const textColor = isDark ? '#8b949e' : '#475569';
+      const mainLineColor = isDark ? '#f0f6fc' : '#0f172a';
+      const truthLineColor = isDark ? '#8b949e' : '#64748b';
 
-      // 1. Forecast Trajectory Chart
       const ctx1 = document.getElementById('trajectoryChart').getContext('2d');
       state.trajectoryChart = new Chart(ctx1, {
         type: 'line',
@@ -1794,15 +1686,15 @@
           labels: timeLabels,
           datasets: [
             {
-              label: 'Upper Conformal Bound',
+              label: 'Upper Bound',
               data: conformalUpper,
               borderWidth: 0,
               pointRadius: 0,
               fill: '+1',
-              backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.08)',
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(15, 23, 42, 0.05)',
             },
             {
-              label: 'Lower Conformal Bound',
+              label: 'Lower Bound',
               data: conformalLower,
               borderWidth: 0,
               pointRadius: 0,
@@ -1811,21 +1703,21 @@
             {
               label: 'Candidate S Prediction',
               data: nominalPred,
-              borderColor: '#10b981',
+              borderColor: mainLineColor,
               borderWidth: 2.2,
               tension: 0.35,
               pointRadius: 3,
-              pointBackgroundColor: '#10b981',
+              pointBackgroundColor: mainLineColor,
             },
             {
               label: 'Recorded Ground Truth',
               data: nominalTruth,
-              borderColor: '#f59e0b',
-              borderWidth: 2,
+              borderColor: truthLineColor,
+              borderWidth: 1.8,
               borderDash: [5, 4],
               tension: 0.35,
               pointRadius: 3,
-              pointBackgroundColor: '#f59e0b',
+              pointBackgroundColor: truthLineColor,
             }
           ]
         },
@@ -1836,13 +1728,12 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: isDark ? '#161b22' : '#ffffff',
+              backgroundColor: isDark ? '#151b23' : '#ffffff',
               titleColor: isDark ? '#f0f6fc' : '#0f172a',
               bodyColor: isDark ? '#8b949e' : '#475569',
-              borderColor: isDark ? '#30363d' : '#e2e8f0',
+              borderColor: isDark ? '#2d333b' : '#e2e8f0',
               borderWidth: 1,
               padding: 10,
-              boxPadding: 4,
             }
           },
           scales: {
@@ -1860,7 +1751,6 @@
         }
       });
 
-      // 2. What-If Sandbox Chart
       const ctx2 = document.getElementById('sandboxChart').getContext('2d');
       state.sandboxChart = new Chart(ctx2, {
         type: 'line',
@@ -1870,18 +1760,18 @@
             {
               label: 'Baseline Excursion',
               data: nominalPred,
-              borderColor: '#10b981',
-              borderWidth: 2,
+              borderColor: '#94a3b8',
+              borderWidth: 1.8,
               pointRadius: 2,
               tension: 0.35,
             },
             {
               label: 'Counterfactual Excursion',
               data: nominalPred,
-              borderColor: '#a855f7',
-              borderWidth: 2.5,
+              borderColor: mainLineColor,
+              borderWidth: 2.4,
               pointRadius: 3,
-              pointBackgroundColor: '#a855f7',
+              pointBackgroundColor: mainLineColor,
               tension: 0.35,
             }
           ]
@@ -1893,10 +1783,10 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: isDark ? '#161b22' : '#ffffff',
+              backgroundColor: isDark ? '#151b23' : '#ffffff',
               titleColor: isDark ? '#f0f6fc' : '#0f172a',
               bodyColor: isDark ? '#8b949e' : '#475569',
-              borderColor: isDark ? '#30363d' : '#e2e8f0',
+              borderColor: isDark ? '#2d333b' : '#e2e8f0',
               borderWidth: 1,
               padding: 10,
             }
@@ -1920,24 +1810,26 @@
     function updateChartThemes() {
       if (!state.trajectoryChart || !state.sandboxChart) return;
       const isDark = document.documentElement.classList.contains('dark');
-      const gridColor = isDark ? '#21262d' : '#e2e8f0';
+      const gridColor = isDark ? '#22272e' : '#e2e8f0';
       const textColor = isDark ? '#8b949e' : '#475569';
-      const tooltipBg = isDark ? '#161b22' : '#ffffff';
-      const tooltipTitle = isDark ? '#f0f6fc' : '#0f172a';
-      const tooltipBody = isDark ? '#8b949e' : '#475569';
-      const tooltipBorder = isDark ? '#30363d' : '#e2e8f0';
+      const mainLineColor = isDark ? '#f0f6fc' : '#0f172a';
 
       [state.trajectoryChart, state.sandboxChart].forEach(chart => {
         chart.options.scales.x.grid.color = gridColor;
         chart.options.scales.x.ticks.color = textColor;
         chart.options.scales.y.grid.color = gridColor;
         chart.options.scales.y.ticks.color = textColor;
-        chart.options.plugins.tooltip.backgroundColor = tooltipBg;
-        chart.options.plugins.tooltip.titleColor = tooltipTitle;
-        chart.options.plugins.tooltip.bodyColor = tooltipBody;
-        chart.options.plugins.tooltip.borderColor = tooltipBorder;
-        chart.update();
+        chart.options.plugins.tooltip.backgroundColor = isDark ? '#151b23' : '#ffffff';
+        chart.options.plugins.tooltip.titleColor = isDark ? '#f0f6fc' : '#0f172a';
+        chart.options.plugins.tooltip.bodyColor = isDark ? '#8b949e' : '#475569';
+        chart.options.plugins.tooltip.borderColor = isDark ? '#2d333b' : '#e2e8f0';
       });
+      state.trajectoryChart.data.datasets[2].borderColor = mainLineColor;
+      state.trajectoryChart.data.datasets[2].pointBackgroundColor = mainLineColor;
+      state.sandboxChart.data.datasets[1].borderColor = mainLineColor;
+      state.sandboxChart.data.datasets[1].pointBackgroundColor = mainLineColor;
+      state.trajectoryChart.update();
+      state.sandboxChart.update();
     }
 
     function updateSandboxChartData(carbs, fat, protein, portion, walking, sequencing) {
@@ -1957,6 +1849,12 @@
       state.sandboxChart.data.datasets[1].data = modified;
       state.sandboxChart.update();
     }
+
+    // Window Resize Handler to Ensure Charts Resize Dynamically
+    window.addEventListener('resize', () => {
+      if (state.trajectoryChart) state.trajectoryChart.resize();
+      if (state.sandboxChart) state.sandboxChart.resize();
+    });
 
     // Keyboard Shortcuts (Cmd+K, Space, N, 1-6)
     window.addEventListener('keydown', (e) => {
@@ -1992,7 +1890,7 @@
       else if (e.key === '6') switchTab('settings');
     });
 
-    // Lifecycle Init
+    // Init
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       initCharts();

@@ -13,9 +13,10 @@ interface CommandAction {
 export default function ClinicianDashboard() {
   // Navigation & View State
   const [activeTab, setActiveTab] = useState<"forecast" | "whatif" | "timeline" | "profile" | "audit" | "settings">("forecast");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Theme State (Dark / Light)
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  // Theme State (Dark / Light) - Light mode is default
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   // Patient Twin & Replay Cockpit State
   const [patientId, setPatientId] = useState("P020");
@@ -74,17 +75,15 @@ export default function ClinicianDashboard() {
   const pPct = Math.round((protein / totalGrams) * 100);
   const fPct = 100 - cPct - pPct;
 
-  // Initialize and synchronize theme
+  // Initialize and synchronize theme (Default: Light mode)
   useEffect(() => {
     const saved = localStorage.getItem("aegis_theme") as "dark" | "light" | null;
     if (saved === "light" || saved === "dark") {
       setTheme(saved);
       document.documentElement.classList.toggle("dark", saved === "dark");
     } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const initial = prefersDark ? "dark" : "light";
-      setTheme(initial);
-      document.documentElement.classList.toggle("dark", initial === "dark");
+      setTheme("light");
+      document.documentElement.classList.remove("dark");
     }
   }, []);
 
@@ -226,36 +225,39 @@ export default function ClinicianDashboard() {
   return (
     <div className="min-h-screen flex overflow-x-hidden font-sans bg-[var(--bg-canvas)] text-[var(--text-main)] transition-colors duration-200">
       
-      {/* 1. LEFT MICRO-RAIL (OpenRouter & Doctronic Style, 56px) */}
-      <aside aria-label="Micro-Rail" className="w-14 flex-shrink-0 flex flex-col items-center justify-between py-3.5 border-r border-[var(--border-main)] bg-[var(--bg-micro)] z-50">
+      {/* 1. LEFT MICRO-RAIL (Hidden on small mobile screens, 56px) */}
+      <aside aria-label="Micro-Rail" className="hidden md:flex w-14 flex-shrink-0 flex-col items-center justify-between py-3.5 border-r border-[var(--border-main)] bg-[var(--bg-micro)] z-50">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-700 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-sm cursor-pointer" title="Aegis Twin Suite">
-            AE
+          <div className="w-8 h-8 rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center shadow-xs cursor-pointer" title="Aegis Twin Suite">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6m0 0l3 3m-3-3l-3 3" />
+            </svg>
           </div>
 
           <div className="w-7 h-px bg-[var(--border-main)] my-1"></div>
 
-          <button onClick={() => setActiveTab("forecast")} className={`p-2 rounded-lg transition ${activeTab === "forecast" ? "text-purple-600 bg-[var(--bg-card)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Activity & Trajectory Forecast">
+          <button onClick={() => setActiveTab("forecast")} className={`p-2 rounded-lg transition ${activeTab === "forecast" ? "text-[var(--text-main)] bg-[var(--bg-card)] shadow-xs font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Activity & Trajectory Forecast">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
           </button>
 
-          <button onClick={() => setActiveTab("whatif")} className={`p-2 rounded-lg transition ${activeTab === "whatif" ? "text-purple-600 bg-[var(--bg-card)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="What-If Counterfactual Sandbox">
+          <button onClick={() => setActiveTab("whatif")} className={`p-2 rounded-lg transition ${activeTab === "whatif" ? "text-[var(--text-main)] bg-[var(--bg-card)] shadow-xs font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="What-If Counterfactual Sandbox">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
           </button>
 
-          <button onClick={() => setActiveTab("timeline")} className={`p-2 rounded-lg transition ${activeTab === "timeline" ? "text-purple-600 bg-[var(--bg-card)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Chronological Meal Timeline (Refero)">
+          <button onClick={() => setActiveTab("timeline")} className={`p-2 rounded-lg transition ${activeTab === "timeline" ? "text-[var(--text-main)] bg-[var(--bg-card)] shadow-xs font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Chronological Meal Timeline (Refero)">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           </button>
 
-          <button onClick={() => setActiveTab("profile")} className={`p-2 rounded-lg transition ${activeTab === "profile" ? "text-purple-600 bg-[var(--bg-card)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Patient Digital Twin Phenotype">
+          <button onClick={() => setActiveTab("profile")} className={`p-2 rounded-lg transition ${activeTab === "profile" ? "text-[var(--text-main)] bg-[var(--bg-card)] shadow-xs font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Patient Digital Twin Phenotype">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
           </button>
 
-          <button onClick={() => setActiveTab("audit")} className={`p-2 rounded-lg transition ${activeTab === "audit" ? "text-purple-600 bg-[var(--bg-card)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Sensor Stress-Test Studio">
+          <button onClick={() => setActiveTab("audit")} className={`p-2 rounded-lg transition ${activeTab === "audit" ? "text-[var(--text-main)] bg-[var(--bg-card)] shadow-xs font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="Sensor Stress-Test Studio">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
           </button>
 
-          <button onClick={() => setActiveTab("settings")} className={`p-2 rounded-lg transition ${activeTab === "settings" ? "text-purple-600 bg-[var(--bg-card)] shadow-sm" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="AI Doctor Persona & Settings (Doctronic)">
+          <button onClick={() => setActiveTab("settings")} className={`p-2 rounded-lg transition ${activeTab === "settings" ? "text-[var(--text-main)] bg-[var(--bg-card)] shadow-xs font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)]"}`} title="AI Doctor Persona & Settings (Doctronic)">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </button>
         </div>
@@ -270,14 +272,27 @@ export default function ClinicianDashboard() {
         </div>
       </aside>
 
-      {/* 2. EXPANDED SIDEBAR NAVIGATION (OpenRouter Style, 240px) */}
-      <aside aria-label="Sidebar" className="w-60 flex-shrink-0 flex flex-col border-r border-[var(--border-main)] bg-[var(--bg-sidebar)] z-40">
+      {/* Mobile Drawer Overlay */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-35 lg:hidden"
+        />
+      )}
+
+      {/* 2. EXPANDED SIDEBAR NAVIGATION (Auto-collapsible on screens < lg) */}
+      <aside
+        aria-label="Sidebar"
+        className={`${
+          mobileMenuOpen ? "flex fixed inset-y-0 left-0 w-64 shadow-2xl z-40" : "hidden lg:flex w-60 z-40"
+        } flex-shrink-0 flex-col border-r border-[var(--border-main)] bg-[var(--bg-sidebar)] transition-all duration-200`}
+      >
         
         {/* Workspace / Twin Selector */}
         <div className="p-3.5 border-b border-[var(--border-main)]">
           <div className="flex items-center justify-between text-xs font-medium text-[var(--text-secondary)] mb-1.5">
             <div className="flex items-center gap-1.5">
-              <span className="w-4 h-4 rounded-full bg-purple-600 text-white flex items-center justify-center text-[10px] font-bold">P</span>
+              <span className="w-4 h-4 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[9px] font-bold">Æ</span>
               <span>Twin Workspace</span>
             </div>
             <span className="text-[10px] text-[var(--text-muted)] font-mono">v2026.4</span>
@@ -285,7 +300,7 @@ export default function ClinicianDashboard() {
           <select
             value={patientId}
             onChange={(e) => { setPatientId(e.target.value); triggerToast(`Switched active twin to ${e.target.value}`); }}
-            className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-purple-500 cursor-pointer"
+            className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-slate-900 dark:focus:border-slate-100 cursor-pointer"
           >
             <option value="P020">P020 — T2D (58y, HbA1c 7.4%)</option>
             <option value="P021">P021 — T2D (61y, HbA1c 7.8%)</option>
@@ -369,7 +384,7 @@ export default function ClinicianDashboard() {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                   <span>What-If Sandbox</span>
                 </div>
-                <span className="text-[10px] bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 px-1 rounded">Sim</span>
+                <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-1 rounded">Sim</span>
               </button>
 
               <button
@@ -435,6 +450,15 @@ export default function ClinicianDashboard() {
           <div className="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
             
             <div className="flex items-center gap-2 text-xs">
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)] mr-1 transition"
+                aria-label="Toggle navigation"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
               <span className="text-[var(--text-secondary)]">Aegis Twin Suite</span>
               <span className="text-[var(--border-subtle)]">/</span>
               <span className="font-semibold text-[var(--text-main)]">
@@ -634,7 +658,7 @@ export default function ClinicianDashboard() {
                       <span className="text-2xl font-bold font-mono tracking-tight text-[var(--text-main)]">{liveHR}</span>
                       <span className="text-xs text-[var(--text-secondary)] ml-1">bpm</span>
                     </div>
-                    <svg className="w-16 h-6 text-rose-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 64 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2 12 L16 12 L22 4 L28 20 L34 8 L40 12 L62 12" /></svg>
+                    <svg className="w-16 h-6 text-slate-800 dark:text-slate-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 64 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2 12 L16 12 L22 4 L28 20 L34 8 L40 12 L62 12" /></svg>
                   </div>
                   <div className="text-[11px] text-[var(--text-muted)] flex items-center justify-between pt-1 border-t border-[var(--border-main)]">
                     <span>Baseline: 68 bpm</span>
@@ -652,7 +676,7 @@ export default function ClinicianDashboard() {
                       <span className="text-2xl font-bold font-mono tracking-tight text-[var(--text-main)]">{liveMETs.toFixed(2)}</span>
                       <span className="text-xs text-[var(--text-secondary)] ml-1">METs</span>
                     </div>
-                    <svg className="w-16 h-6 text-sky-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 64 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2 20 L20 18 L38 20 L50 16 L62 18" /></svg>
+                    <svg className="w-16 h-6 text-slate-800 dark:text-slate-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 64 24"><path strokeLinecap="round" strokeLinejoin="round" d="M2 20 L20 18 L38 20 L50 16 L62 18" /></svg>
                   </div>
                   <div className="text-[11px] text-[var(--text-muted)] flex items-center justify-between pt-1 border-t border-[var(--border-main)]">
                     <span>Desk / Resting</span>
@@ -667,22 +691,22 @@ export default function ClinicianDashboard() {
                   </div>
                   <div className="flex items-baseline justify-between">
                     <div>
-                      <span className="text-2xl font-bold font-mono tracking-tight text-emerald-600 dark:text-emerald-400">78%</span>
+                      <span className="text-2xl font-bold font-mono tracking-tight text-slate-900 dark:text-slate-100">78%</span>
                       <span className="text-xs text-[var(--text-muted)] ml-1">(&ge;70%)</span>
                     </div>
-                    <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">OPTIMAL</span>
+                    <span className="text-[11px] font-mono text-slate-900 dark:text-slate-100 font-semibold">OPTIMAL</span>
                   </div>
                   <div className="w-full h-1.5 rounded-full overflow-hidden flex bg-[var(--border-main)] mt-1">
-                    <div className="bg-emerald-500 h-full" style={{ width: "78%" }}></div>
-                    <div className="bg-rose-500 h-full" style={{ width: "18%" }}></div>
-                    <div className="bg-amber-400 h-full" style={{ width: "4%" }}></div>
+                    <div className="bg-slate-900 dark:bg-slate-100 h-full" style={{ width: "78%" }}></div>
+                    <div className="bg-slate-400 dark:bg-slate-500 h-full" style={{ width: "18%" }}></div>
+                    <div className="bg-slate-200 dark:bg-slate-700 h-full" style={{ width: "4%" }}></div>
                   </div>
                 </div>
 
                 <div className="clean-card p-4 space-y-2">
                   <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
                     <span>Candidate S Peak</span>
-                    <span className="px-1.5 py-0.2 rounded text-[10px] font-mono text-purple-600 dark:text-purple-400 bg-purple-500/10">INFERENCE</span>
+                    <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800">INFERENCE</span>
                   </div>
                   <div className="flex items-baseline justify-between">
                     <div>
@@ -693,7 +717,7 @@ export default function ClinicianDashboard() {
                   </div>
                   <div className="text-[11px] text-[var(--text-muted)] flex items-center justify-between pt-1 border-t border-[var(--border-main)]">
                     <span>Target &lt; 180</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">PASS</span>
+                    <span className="text-slate-900 dark:text-slate-100 font-semibold">PASS</span>
                   </div>
                 </div>
               </div>
@@ -704,7 +728,7 @@ export default function ClinicianDashboard() {
                   <div>
                     <div className="flex items-center gap-2.5">
                       <h2 className="text-base font-semibold text-[var(--text-main)]">180-Minute Postprandial Glycemic Forecast</h2>
-                      <span className="px-2 py-0.2 rounded text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                      <span className="px-2 py-0.2 rounded text-[11px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-slate-700">
                         {reliability} CONFIDENCE
                       </span>
                     </div>
@@ -715,13 +739,13 @@ export default function ClinicianDashboard() {
 
                   <div className="flex flex-wrap items-center gap-3.5 text-xs">
                     <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                      <span className="w-3 h-0.5 bg-emerald-500 inline-block"></span> Candidate S Prediction
+                      <span className="w-3 h-0.5 bg-slate-900 dark:bg-slate-100 inline-block"></span> Candidate S Prediction
                     </span>
                     <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                      <span className="w-3 h-0.5 border-b-2 border-dashed border-amber-500 inline-block"></span> Recorded CGM Truth
+                      <span className="w-3 h-0.5 border-b-2 border-dashed border-slate-600 dark:border-slate-300 inline-block"></span> Recorded CGM Truth
                     </span>
                     <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                      <span className="w-3 h-2 bg-emerald-500/15 border border-emerald-500/30 rounded-sm inline-block"></span> 90% Conformal Band
+                      <span className="w-3 h-2 bg-slate-200 dark:bg-slate-700 border border-slate-400 dark:border-slate-600 rounded-xs inline-block"></span> 90% Conformal Band
                     </span>
                   </div>
                 </div>
@@ -731,20 +755,20 @@ export default function ClinicianDashboard() {
                     <span>Scrubber:</span>
                     <span className="font-semibold text-[var(--text-main)]">+55 min</span>
                     <span className="text-[var(--border-subtle)]">|</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Pred: 164.2 mg/dL</span>
+                    <span className="text-slate-900 dark:text-slate-100 font-semibold">Pred: 164.2 mg/dL</span>
                     <span className="text-[var(--border-subtle)]">|</span>
                     <span>90% Bounds: [150.2 – 178.2]</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-amber-600 dark:text-amber-400 font-semibold">Truth: 162.0 mg/dL</span>
+                    <span className="text-slate-800 dark:text-slate-200 font-semibold">Truth: 162.0 mg/dL</span>
                     <span className="text-[var(--text-muted)]">(Δ -2.2)</span>
                   </div>
                 </div>
 
                 <div className="h-80 w-full bg-[var(--bg-canvas)] rounded-xl border border-[var(--border-main)] p-4 flex flex-col justify-between">
-                  <div className="flex justify-between items-center text-xs text-rose-600 dark:text-rose-400 font-mono border-b border-rose-500/20 pb-1">
+                  <div className="flex justify-between items-center text-xs text-slate-700 dark:text-slate-300 font-mono border-b border-slate-200 dark:border-slate-800 pb-1">
                     <span>Hyperglycemia Threshold (180 mg/dL)</span>
-                    <span className="px-1.5 py-0.2 rounded bg-rose-500/10 border border-rose-500/20 text-[10px]">ADA Target &lt; 180</span>
+                    <span className="px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-[10px]">ADA Target &lt; 180</span>
                   </div>
                   <div className="flex-1 flex items-center justify-center text-center">
                     <div className="space-y-1">
@@ -812,19 +836,19 @@ export default function ClinicianDashboard() {
                       Regional Indian Clinical Presets:
                     </label>
                     <div className="grid grid-cols-2 gap-2">
-                      <button onClick={() => selectDish("roti_dal_sabzi")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Roti") ? "border-purple-500 bg-purple-500/5" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
+                      <button onClick={() => selectDish("roti_dal_sabzi")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Roti") ? "border-slate-900 dark:border-slate-100 bg-slate-100 dark:bg-slate-800" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
                         <div className="text-xs font-medium text-[var(--text-main)]">Roti, Dal &amp; Sabzi</div>
                         <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">48g C • 12g F • 16g P</div>
                       </button>
-                      <button onClick={() => selectDish("masala_dosa")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Dosa") ? "border-purple-500 bg-purple-500/5" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
+                      <button onClick={() => selectDish("masala_dosa")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Dosa") ? "border-slate-900 dark:border-slate-100 bg-slate-100 dark:bg-slate-800" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
                         <div className="text-xs font-medium text-[var(--text-main)]">Masala Dosa + Sambar</div>
                         <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">62g C • 18g F • 10g P</div>
                       </button>
-                      <button onClick={() => selectDish("chicken_biryani")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Biryani") ? "border-purple-500 bg-purple-500/5" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
+                      <button onClick={() => selectDish("chicken_biryani")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Biryani") ? "border-slate-900 dark:border-slate-100 bg-slate-100 dark:bg-slate-800" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
                         <div className="text-xs font-medium text-[var(--text-main)]">Chicken Biryani</div>
                         <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">68g C • 22g F • 32g P</div>
                       </button>
-                      <button onClick={() => selectDish("rajma_chawal")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Rajma") ? "border-purple-500 bg-purple-500/5" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
+                      <button onClick={() => selectDish("rajma_chawal")} className={`text-left p-3 rounded-lg border transition ${activeDishName.includes("Rajma") ? "border-slate-900 dark:border-slate-100 bg-slate-100 dark:bg-slate-800" : "border-[var(--border-main)] bg-[var(--bg-card-subtle)]"}`}>
                         <div className="text-xs font-medium text-[var(--text-main)]">Rajma Chawal</div>
                         <div className="text-[11px] text-[var(--text-secondary)] mt-0.5">72g C • 14g F • 20g P</div>
                       </button>
@@ -837,7 +861,7 @@ export default function ClinicianDashboard() {
                       <span className="font-mono font-semibold">{totalKcal} kcal</span>
                     </div>
                     <div className="w-full h-2.5 rounded-full overflow-hidden flex bg-[var(--border-main)]">
-                      <div className="bg-amber-500 h-full transition-all duration-300" style={{ width: `${cPct}%` }}></div>
+                      <div className="bg-slate-900 dark:bg-slate-100 h-full transition-all duration-300" style={{ width: `${cPct}%` }}></div>
                       <div className="bg-emerald-500 h-full transition-all duration-300" style={{ width: `${pPct}%` }}></div>
                       <div className="bg-sky-500 h-full transition-all duration-300" style={{ width: `${fPct}%` }}></div>
                     </div>
@@ -852,9 +876,9 @@ export default function ClinicianDashboard() {
                     <div>
                       <div className="flex justify-between text-xs mb-1">
                         <span className="text-[var(--text-secondary)] font-medium">Carbohydrates</span>
-                        <span className="font-mono font-semibold text-amber-600 dark:text-amber-400">{carbs} g</span>
+                        <span className="font-mono font-semibold text-slate-900 dark:text-slate-100">{carbs} g</span>
                       </div>
-                      <input type="range" min={10} max={140} value={carbs} onChange={(e) => setCarbs(Number(e.target.value))} className="w-full accent-amber-500" />
+                      <input type="range" min={10} max={140} value={carbs} onChange={(e) => setCarbs(Number(e.target.value))} className="w-full accent-slate-900 dark:accent-slate-100" />
                     </div>
 
                     <div>
@@ -878,14 +902,14 @@ export default function ClinicianDashboard() {
                         <span className="text-[var(--text-secondary)] font-medium">Portion Scaling</span>
                         <span className="font-mono font-semibold text-[var(--text-main)]">{portion}%</span>
                       </div>
-                      <input type="range" min={25} max={200} step={25} value={portion} onChange={(e) => setPortion(Number(e.target.value))} className="w-full accent-purple-500" />
+                      <input type="range" min={25} max={200} step={25} value={portion} onChange={(e) => setPortion(Number(e.target.value))} className="w-full accent-slate-900 dark:accent-slate-100" />
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-[var(--border-main)] space-y-2.5">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">Behavioral Interventions</span>
-                      <span className="text-[11px] px-2 py-0.2 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                      <span className="text-[11px] px-2 py-0.2 rounded font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                         ASSUMPTION
                       </span>
                     </div>
@@ -922,10 +946,10 @@ export default function ClinicianDashboard() {
                     </div>
                     <div className="flex items-center gap-3 text-xs">
                       <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                        <span className="w-3 h-0.5 bg-emerald-500 inline-block"></span> Baseline
+                        <span className="w-3 h-0.5 bg-slate-900 dark:bg-slate-100 inline-block"></span> Baseline
                       </span>
                       <span className="flex items-center gap-1.5 text-[var(--text-secondary)]">
-                        <span className="w-3 h-0.5 bg-purple-500 inline-block"></span> Counterfactual
+                        <span className="w-3 h-0.5 border-b-2 border-dashed border-slate-600 dark:border-slate-300 inline-block"></span> Counterfactual
                       </span>
                     </div>
                   </div>
@@ -933,10 +957,10 @@ export default function ClinicianDashboard() {
                   <div className="h-80 bg-[var(--bg-canvas)] rounded-xl border border-[var(--border-main)] p-4 flex flex-col justify-between">
                     <div className="flex justify-between text-xs text-[var(--text-muted)] font-mono">
                       <span>Simulation: Candidate S Neural Absorption Model</span>
-                      <span className="text-emerald-600 dark:text-emerald-400">Portion: {portion}%</span>
+                      <span className="text-slate-900 dark:text-slate-100">Portion: {portion}%</span>
                     </div>
                     <div className="text-center space-y-1">
-                      <div className="text-2xl font-bold font-mono text-purple-600 dark:text-purple-400">
+                      <div className="text-2xl font-bold font-mono text-slate-900 dark:text-slate-100">
                         Peak Estimate: {(164.2 * (portion / 100) - (walking ? 18 : 0) - (sequencing ? 15 : 0)).toFixed(1)} mg/dL
                       </div>
                       <div className="text-xs text-[var(--text-secondary)]">
@@ -956,11 +980,11 @@ export default function ClinicianDashboard() {
                     <div className="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-[var(--text-secondary)]">Δ Peak Glycemia</span>
-                        <span className="text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.2 rounded">
+                        <span className="text-[10px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-1.5 py-0.2 rounded">
                           MODEL
                         </span>
                       </div>
-                      <div className="text-xl font-bold font-mono text-emerald-600 dark:text-emerald-400">
+                      <div className="text-xl font-bold font-mono text-slate-900 dark:text-slate-100">
                         {((portion / 100 - 1) * 35 - (walking ? 18 : 0) - (sequencing ? 15 : 0)).toFixed(1)} mg/dL
                       </div>
                       <span className="text-[11px] text-[var(--text-muted)] mt-1 block">Excursion maximum delta</span>
@@ -969,11 +993,11 @@ export default function ClinicianDashboard() {
                     <div className="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-[var(--text-secondary)]">Δ Delayed Mean</span>
-                        <span className="text-[10px] font-mono font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 px-1.5 py-0.2 rounded">
+                        <span className="text-[10px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-1.5 py-0.2 rounded">
                           MODEL
                         </span>
                       </div>
-                      <div className="text-xl font-bold font-mono text-sky-600 dark:text-sky-400">
+                      <div className="text-xl font-bold font-mono text-slate-800 dark:text-slate-200">
                         {((fat - 12) * 0.3).toFixed(1)} mg/dL
                       </div>
                       <span className="text-[11px] text-[var(--text-muted)] mt-1 block">Late lipid plateau effect</span>
@@ -982,11 +1006,11 @@ export default function ClinicianDashboard() {
                     <div className="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
                       <div className="flex items-center justify-between text-xs mb-1">
                         <span className="text-[var(--text-secondary)]">Behavioral Impact</span>
-                        <span className="text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 px-1.5 py-0.2 rounded">
+                        <span className="text-[10px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 px-1.5 py-0.2 rounded">
                           ASSUMPTION
                         </span>
                       </div>
-                      <div className="text-xl font-bold font-mono text-amber-600 dark:text-amber-400">
+                      <div className="text-xl font-bold font-mono text-slate-900 dark:text-slate-100">
                         {(walking ? -18 : 0) + (sequencing ? -15 : 0)} mg/dL
                       </div>
                       <span className="text-[11px] text-[var(--text-muted)] mt-1 block">Literature exercise scalar</span>
@@ -1023,7 +1047,7 @@ export default function ClinicianDashboard() {
                   </button>
                 </div>
                 <div>
-                  <button onClick={() => triggerToast("Exporting postprandial parquet log to CSV...")} className="text-purple-600 dark:text-purple-400 hover:underline">
+                  <button onClick={() => triggerToast("Exporting postprandial parquet log to CSV...")} className="text-slate-900 dark:text-slate-100 underline hover:opacity-80">
                     Want to export to a spreadsheet?
                   </button>
                 </div>
@@ -1034,44 +1058,46 @@ export default function ClinicianDashboard() {
                   <h3 className="text-sm font-semibold text-[var(--text-main)]">Recorded 180-Min Excursion Sessions</h3>
                   <span className="text-xs text-[var(--text-secondary)] font-mono">Total Meals: 54 Ingested</span>
                 </div>
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead className="bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border-b border-[var(--border-main)]">
-                    <tr>
-                      <th className="py-2.5 px-4 font-semibold">Excursion Type</th>
-                      <th className="py-2.5 px-4 font-semibold">Carbs (g)</th>
-                      <th className="py-2.5 px-4 font-semibold">Fat (g)</th>
-                      <th className="py-2.5 px-4 font-semibold">Protein (g)</th>
-                      <th className="py-2.5 px-4 font-semibold">Observed Peak</th>
-                      <th className="py-2.5 px-4 font-semibold">Duration</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--border-main)] text-[var(--text-main)]">
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">Standard Indian Mixed Meal</td>
-                      <td className="py-2.5 px-4 font-mono">48.0g</td>
-                      <td className="py-2.5 px-4 font-mono">12.0g</td>
-                      <td className="py-2.5 px-4 font-mono">16.0g</td>
-                      <td className="py-2.5 px-4 font-mono text-emerald-600 dark:text-emerald-400 font-semibold">162.0 mg/dL</td>
-                      <td className="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">High Carbohydrate Breakfast</td>
-                      <td className="py-2.5 px-4 font-mono">68.0g</td>
-                      <td className="py-2.5 px-4 font-mono">8.0g</td>
-                      <td className="py-2.5 px-4 font-mono">10.0g</td>
-                      <td className="py-2.5 px-4 font-mono text-rose-600 dark:text-rose-400 font-semibold">188.5 mg/dL</td>
-                      <td className="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2.5 px-4 font-medium">High Lipid Delayed Plateau</td>
-                      <td className="py-2.5 px-4 font-mono">42.0g</td>
-                      <td className="py-2.5 px-4 font-mono">28.0g</td>
-                      <td className="py-2.5 px-4 font-mono">22.0g</td>
-                      <td className="py-2.5 px-4 font-mono text-sky-600 dark:text-sky-400 font-semibold">154.0 mg/dL</td>
-                      <td className="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs border-collapse">
+                    <thead className="bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] border-b border-[var(--border-main)]">
+                      <tr>
+                        <th className="py-2.5 px-4 font-semibold">Excursion Type</th>
+                        <th className="py-2.5 px-4 font-semibold">Carbs (g)</th>
+                        <th className="py-2.5 px-4 font-semibold">Fat (g)</th>
+                        <th className="py-2.5 px-4 font-semibold">Protein (g)</th>
+                        <th className="py-2.5 px-4 font-semibold">Observed Peak</th>
+                        <th className="py-2.5 px-4 font-semibold">Duration</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[var(--border-main)] text-[var(--text-main)]">
+                      <tr>
+                        <td className="py-2.5 px-4 font-medium">Standard Indian Mixed Meal</td>
+                        <td className="py-2.5 px-4 font-mono">48.0g</td>
+                        <td className="py-2.5 px-4 font-mono">12.0g</td>
+                        <td className="py-2.5 px-4 font-mono">16.0g</td>
+                        <td className="py-2.5 px-4 font-mono text-slate-900 dark:text-slate-100 font-semibold">162.0 mg/dL</td>
+                        <td className="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-medium">High Carbohydrate Breakfast</td>
+                        <td className="py-2.5 px-4 font-mono">68.0g</td>
+                        <td className="py-2.5 px-4 font-mono">8.0g</td>
+                        <td className="py-2.5 px-4 font-mono">10.0g</td>
+                        <td className="py-2.5 px-4 font-mono text-slate-900 dark:text-slate-100 font-semibold">188.5 mg/dL</td>
+                        <td className="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-medium">High Lipid Delayed Plateau</td>
+                        <td className="py-2.5 px-4 font-mono">42.0g</td>
+                        <td className="py-2.5 px-4 font-mono">28.0g</td>
+                        <td className="py-2.5 px-4 font-mono">22.0g</td>
+                        <td className="py-2.5 px-4 font-mono text-slate-800 dark:text-slate-200 font-semibold">154.0 mg/dL</td>
+                        <td className="py-2.5 px-4 text-[var(--text-secondary)]">180 min</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -1090,7 +1116,7 @@ export default function ClinicianDashboard() {
                         <div className="font-bold text-[var(--text-main)]">08:30</div>
                         <div>11:30</div>
                       </div>
-                      <div className="w-1 h-10 rounded-full bg-emerald-500"></div>
+                      <div className="w-1 h-10 rounded-full bg-slate-900 dark:bg-slate-100"></div>
                       <div>
                         <div className="text-xs font-semibold text-[var(--text-main)]">Breakfast: 2 Rotis with Dal &amp; Mixed Veg Sabzi</div>
                         <div className="text-[11px] text-[var(--text-secondary)]">Nutrients: 48g Carbs • 12g Fat • 16g Protein | Peak: 164.2 mg/dL at +55m</div>
@@ -1110,7 +1136,7 @@ export default function ClinicianDashboard() {
                         <div className="font-bold text-[var(--text-main)]">13:15</div>
                         <div>16:15</div>
                       </div>
-                      <div className="w-1 h-10 rounded-full bg-purple-500"></div>
+                      <div className="w-1 h-10 rounded-full bg-slate-900 dark:bg-slate-100"></div>
                       <div>
                         <div className="text-xs font-semibold text-[var(--text-main)]">Lunch: Masala Dosa with Sambar &amp; Chutney</div>
                         <div className="text-[11px] text-[var(--text-secondary)]">Nutrients: 62g Carbs • 18g Fat • 10g Protein | Peak: 178.0 mg/dL at +45m</div>
@@ -1138,10 +1164,10 @@ export default function ClinicianDashboard() {
                   <h2 className="text-base font-semibold text-[var(--text-main)]">Clinical Baseline Profile</h2>
                   <div className="space-y-2 text-xs">
                     <div className="flex justify-between py-2 border-b border-[var(--border-main)]"><span className="text-[var(--text-secondary)]">Patient:</span> <span className="font-mono text-[var(--text-main)] font-semibold">{patientId}</span></div>
-                    <div className="flex justify-between py-2 border-b border-[var(--border-main)]"><span className="text-[var(--text-secondary)]">Diagnosis:</span> <span className="text-emerald-600 dark:text-emerald-400 font-semibold">{currentPatient.diagnosis}</span></div>
+                    <div className="flex justify-between py-2 border-b border-[var(--border-main)]"><span className="text-[var(--text-secondary)]">Diagnosis:</span> <span className="text-slate-900 dark:text-slate-100 font-semibold">{currentPatient.diagnosis}</span></div>
                     <div className="flex justify-between py-2 border-b border-[var(--border-main)]"><span className="text-[var(--text-secondary)]">Age &amp; Sex:</span> <span className="text-[var(--text-main)]">{currentPatient.age}</span></div>
                     <div className="flex justify-between py-2 border-b border-[var(--border-main)]"><span className="text-[var(--text-secondary)]">BMI:</span> <span className="text-[var(--text-main)] font-mono">{currentPatient.bmi}</span></div>
-                    <div className="flex justify-between py-2 border-b border-[var(--border-main)]"><span className="text-[var(--text-secondary)]">Baseline HbA1c:</span> <span className="text-amber-600 dark:text-amber-400 font-semibold font-mono">{currentPatient.hba1c}</span></div>
+                    <div className="flex justify-between py-2 border-b border-[var(--border-main)]"><span className="text-[var(--text-secondary)]">Baseline HbA1c:</span> <span className="text-slate-900 dark:text-slate-100 font-semibold font-mono">{currentPatient.hba1c}</span></div>
                     <div className="flex justify-between py-2"><span className="text-[var(--text-secondary)]">Fasting Glucose:</span> <span className="text-[var(--text-main)] font-mono">{currentPatient.fasting}</span></div>
                   </div>
                 </div>
@@ -1149,7 +1175,7 @@ export default function ClinicianDashboard() {
                 <div className="clean-card p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="text-base font-semibold text-[var(--text-main)]">Synthetic EHR Records</h2>
-                    <span className="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    <span className="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                       SYNTHETIC (D14)
                     </span>
                   </div>
@@ -1168,16 +1194,16 @@ export default function ClinicianDashboard() {
                 <div className="clean-card p-6 space-y-4">
                   <div className="flex items-center justify-between">
                     <h2 className="text-base font-semibold text-[var(--text-main)]">Few-Shot Personalization</h2>
-                    <span className="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                    <span className="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700">
                       K = 5 MEALS
                     </span>
                   </div>
                   <div className="space-y-2 text-xs font-mono">
                     <div className="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)] space-y-1.5">
-                      <div className="flex justify-between text-[var(--text-secondary)]"><span>Zero-Shot (K=0):</span> <span className="text-rose-500">12.95 mg/dL</span></div>
-                      <div className="flex justify-between text-[var(--text-secondary)]"><span>1-Shot (K=1):</span> <span className="text-amber-500">10.84 mg/dL</span></div>
-                      <div className="flex justify-between text-[var(--text-secondary)]"><span>3-Shot (K=3):</span> <span className="text-emerald-500">9.45 mg/dL</span></div>
-                      <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-bold border-t border-[var(--border-main)] pt-1.5">
+                      <div className="flex justify-between text-[var(--text-secondary)]"><span>Zero-Shot (K=0):</span> <span className="text-slate-900 dark:text-slate-100 font-semibold">12.95 mg/dL</span></div>
+                      <div className="flex justify-between text-[var(--text-secondary)]"><span>1-Shot (K=1):</span> <span className="text-slate-900 dark:text-slate-100 font-semibold">10.84 mg/dL</span></div>
+                      <div className="flex justify-between text-[var(--text-secondary)]"><span>3-Shot (K=3):</span> <span className="text-slate-900 dark:text-slate-100 font-semibold">9.45 mg/dL</span></div>
+                      <div className="flex justify-between text-slate-900 dark:text-slate-100 font-bold border-t border-[var(--border-main)] pt-1.5">
                         <span>5-Shot Adapted (K=5):</span> <span>8.92 mg/dL</span>
                       </div>
                     </div>
@@ -1199,7 +1225,7 @@ export default function ClinicianDashboard() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-[var(--text-secondary)]">Active Scenario:</span>
-                    <span className="text-xs font-mono font-semibold bg-[var(--bg-card-subtle)] border border-emerald-500/40 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-lg">
+                    <span className="text-xs font-mono font-semibold bg-[var(--bg-card-subtle)] border border-slate-900 dark:border-slate-100 text-slate-900 dark:text-slate-100 px-3 py-1 rounded-lg">
                       {degradation}
                     </span>
                   </div>
@@ -1221,14 +1247,14 @@ export default function ClinicianDashboard() {
                       onClick={() => handleDegradation(item.id)}
                       className={`p-4 rounded-lg border text-left transition ${
                         degradation === item.id
-                          ? "bg-[var(--bg-card)] border-emerald-500 shadow-sm"
+                          ? "bg-[var(--bg-card)] border-slate-900 dark:border-slate-100 shadow-sm"
                           : "bg-[var(--bg-card-subtle)] border-[var(--border-main)] hover:border-[var(--border-subtle)]"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-semibold text-[var(--text-main)]">{item.label}</span>
                         <span className={`text-[10px] px-1.5 py-0.2 rounded font-mono font-semibold ${
-                          item.status === "HIGH" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : item.status === "MODERATE" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                          item.status === "HIGH" ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" : item.status === "MODERATE" ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200" : "bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-400 border border-slate-300 dark:border-slate-700"
                         }`}>
                           {item.status}
                         </span>
@@ -1396,14 +1422,16 @@ export default function ClinicianDashboard() {
                     key={item.id}
                     onClick={() => { item.run(); setIsPaletteOpen(false); }}
                     className={`flex items-center justify-between p-2.5 rounded-lg cursor-pointer transition text-xs ${
-                      idx === paletteIndex ? "bg-purple-500/10 border border-purple-500/40 text-[var(--text-main)]" : "bg-[var(--bg-card-subtle)] border border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:border-[var(--border-main)]"
+                      idx === paletteIndex ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900 border border-transparent" : "bg-[var(--bg-card-subtle)] border border-transparent text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:border-[var(--border-main)]"
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                      <span className={`w-1.5 h-1.5 rounded-full ${idx === paletteIndex ? "bg-white dark:bg-slate-900" : "bg-slate-400"}`}></span>
                       <span>{item.title}</span>
                     </div>
-                    <span className="font-mono text-[11px] bg-[var(--bg-card)] px-2 py-0.5 rounded text-[var(--text-secondary)] border border-[var(--border-main)]">{item.key}</span>
+                    <span className={`font-mono text-[11px] px-2 py-0.5 rounded border ${
+                      idx === paletteIndex ? "bg-slate-800 text-slate-200 dark:bg-slate-200 dark:text-slate-800 border-transparent" : "bg-[var(--bg-card)] text-[var(--text-secondary)] border-[var(--border-main)]"
+                    }`}>{item.key}</span>
                   </div>
                 ))
               )}
@@ -1427,35 +1455,35 @@ export default function ClinicianDashboard() {
                   type="text"
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
-                  className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2.5 outline-none focus:border-purple-500"
+                  className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2.5 outline-none focus:border-slate-900 dark:focus:border-slate-100"
                 />
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-amber-600 dark:text-amber-400 font-medium block mb-1">Carbs (g):</label>
+                  <label className="text-[var(--text-secondary)] font-medium block mb-1">Carbs (g):</label>
                   <input
                     type="number"
                     value={customCarbs}
                     onChange={(e) => setCustomCarbs(Number(e.target.value))}
-                    className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-amber-500"
+                    className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-slate-900 dark:focus:border-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="text-sky-600 dark:text-sky-400 font-medium block mb-1">Fat (g):</label>
+                  <label className="text-[var(--text-secondary)] font-medium block mb-1">Fat (g):</label>
                   <input
                     type="number"
                     value={customFat}
                     onChange={(e) => setCustomFat(Number(e.target.value))}
-                    className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-sky-500"
+                    className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-slate-900 dark:focus:border-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="text-emerald-600 dark:text-emerald-400 font-medium block mb-1">Protein (g):</label>
+                  <label className="text-[var(--text-secondary)] font-medium block mb-1">Protein (g):</label>
                   <input
                     type="number"
                     value={customProtein}
                     onChange={(e) => setCustomProtein(Number(e.target.value))}
-                    className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-emerald-500"
+                    className="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-slate-900 dark:focus:border-slate-100"
                   />
                 </div>
               </div>
@@ -1469,7 +1497,7 @@ export default function ClinicianDashboard() {
               </button>
               <button
                 onClick={applyCustomMeal}
-                className="px-4 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold shadow-sm transition"
+                className="px-4 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-xs font-semibold shadow-sm transition"
               >
                 Apply to Sandbox
               </button>
