@@ -10,6 +10,7 @@ from aegis.degradation.scenarios import DegradationScenario
 from aegis.uncertainty.conformal import (
     ConformalCalibrationTable,
     compute_conformal_intervals,
+    compute_interval_conformal_bounds,
     evaluate_conformal_coverage,
     fit_conformal_quantiles,
 )
@@ -128,3 +129,79 @@ def test_reliability_assessment_levels():
     )
     assert low_res_d7.level == ReliabilityLevel.LOW
     assert low_res_d7.is_safe_for_decision is False
+
+
+def test_interval_conformal_bounds_properties():
+    # 36-step trajectory, kinetic excursion peaking at 40 mg/dL
+    t = np.arange(1, 37) * 5.0
+    y_pred = 110.0 + 40.0 * (t / 45.0) * np.exp(1.0 - t / 45.0)
+    traj_kinetic = 35.0 * (t / 45.0) * np.exp(1.0 - t / 45.0)
+    quantiles = np.linspace(10.0, 25.0, 36)
+
+    # 1. Delta = 0.0 should exactly reproduce standard conformal bounds
+    l_std, u_std, l_rob0, u_rob0 = compute_interval_conformal_bounds(
+        y_pred, traj_kinetic, quantiles, delta_portion=0.0
+    )
+    np.testing.assert_allclose(l_rob0, l_std)
+    np.testing.assert_allclose(u_rob0, u_std)
+
+    # 2. Delta > 0 should widen bounds strictly around kinetic excursion
+    _, _, l_rob20, u_rob20 = compute_interval_conformal_bounds(
+        y_pred, traj_kinetic, quantiles, delta_portion=0.20
+    )
+    assert np.all(l_rob20 <= l_std)
+    assert np.all(u_rob20 >= u_std)
+    # At peak kinetic excursion, robust envelope should be wider by 2 * delta * kinetic
+    peak_idx = int(np.argmax(traj_kinetic))
+    expected_diff = 0.20 * traj_kinetic[peak_idx]
+    assert np.isclose(u_rob20[peak_idx] - u_std[peak_idx], expected_diff, atol=1e-4)
+    assert np.isclose(l_std[peak_idx] - l_rob20[peak_idx], expected_diff, atol=1e-4)
+
+    # 3. Monotonic expansion with delta
+    _, _, l_rob40, u_rob40 = compute_interval_conformal_bounds(
+        y_pred, traj_kinetic, quantiles, delta_portion=0.40
+    )
+    assert np.all(l_rob40 <= l_rob20)
+    assert np.all(u_rob40 >= u_rob20)
+
+    # 4. Physiological clamping [40, 400]
+    extreme_pred = np.array([45.0, 395.0])
+    extreme_kinetic = np.array([30.0, 30.0])
+    extreme_q = np.array([20.0, 20.0])
+    _, _, l_ext, u_ext = compute_interval_conformal_bounds(
+        extreme_pred, extreme_kinetic, extreme_q, delta_portion=0.30, clamp_physiological=True
+    )
+    assert l_ext[0] >= 40.0
+    assert u_ext[1] <= 400.0
+
+
+def test_interval_conformal_coverage_under_portion_shift():
+    np.random.seed(42)
+    n = 200
+    t = np.arange(1, 37) * 5.0
+    kinetic_shape = (t / 45.0) * np.exp(1.0 - t / 45.0)
+
+    # Unperturbed baseline predictions and residuals
+    y_pred = 110.0 + np.outer(np.ones(n), kinetic_shape * 40.0)
+    residuals = np.random.normal(0, 4.0, size=(n, 36))
+    quantiles = fit_conformal_quantiles(y_pred + residuals, y_pred, alpha=0.10)
+
+    # True portion size varies by up to +/- 20%
+    delta_portion = 0.20
+    portion_errors = np.random.uniform(-delta_portion, delta_portion, size=(n, 1))
+    y_true_perturbed = y_pred + (portion_errors * kinetic_shape * 40.0) + residuals
+
+    # Standard bounds without portion uncertainty
+    l_std, u_std = compute_conformal_intervals(y_pred, quantiles)
+    cov_std = evaluate_conformal_coverage(y_true_perturbed, l_std, u_std)
+
+    # Robust interval conformal bounds
+    traj_kinetic = np.outer(np.ones(n), kinetic_shape * 40.0)
+    _, _, l_rob, u_rob = compute_interval_conformal_bounds(
+        y_pred, traj_kinetic, quantiles, delta_portion=delta_portion
+    )
+    cov_rob = evaluate_conformal_coverage(y_true_perturbed, l_rob, u_rob)
+
+    # Robust bounds must achieve higher empirical coverage under portion shifts (>= 90%)
+    assert cov_rob["empirical_coverage"] >= 0.90
+    assert cov_rob["empirical_coverage"] >= cov_std["empirical_coverage"]

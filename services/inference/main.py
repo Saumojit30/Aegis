@@ -9,7 +9,12 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from services.backend.inference.provider import InProcessInferenceProvider, MockInferenceProvider
-from services.common.contracts import PredictRequest, PredictResponse
+from services.common.contracts import (
+    PredictRequest,
+    PredictResponse,
+    SimulateRequest,
+    SimulateResponse,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("aegis.inference")
@@ -59,6 +64,15 @@ async def predict_endpoint(request: PredictRequest):
         return await provider.predict(request)
     except Exception as e:
         logger.error(f"Inference error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/simulate", response_model=SimulateResponse)
+async def simulate_endpoint(request: SimulateRequest):
+    try:
+        return await provider.simulate(request)
+    except Exception as e:
+        logger.error(f"Simulation error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

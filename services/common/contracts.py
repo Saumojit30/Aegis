@@ -48,6 +48,12 @@ class MealInput(BaseModel):
     amount_pct: float = Field(
         default=100.0, ge=1.0, le=300.0, description="Percentage of meal eaten"
     )
+    portion_uncertainty_pct: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=50.0,
+        description="Carbohydrate portion uncertainty percentage (0.0 to 50.0%)",
+    )
     meal_type: Literal["breakfast", "lunch", "dinner", "snack"] = "lunch"
     insulin: Optional[InsulinInput] = Field(
         default=None, description="Optional meal bolus / basal insulin input"
@@ -71,6 +77,21 @@ class PredictRequest(BaseModel):
     insulin: Optional[InsulinInput] = Field(
         default=None, description="Optional insulin dosing parameters"
     )
+    portion_uncertainty_pct: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=50.0,
+        description="Carbohydrate portion uncertainty percentage (0.0 to 50.0%)",
+    )
+    tau_fast_override: Optional[float] = Field(
+        default=None, description="Optional override for fast pool absorption tau in min"
+    )
+    delay_override: Optional[float] = Field(
+        default=None, description="Optional override for absorption delay in min"
+    )
+    phi_override: Optional[float] = Field(
+        default=None, description="Optional override for slow pool fraction phi in [0, 1]"
+    )
 
 
 class IntervalBand(BaseModel):
@@ -80,6 +101,14 @@ class IntervalBand(BaseModel):
     lower: List[float] = Field(description="Lower bound trajectory in mg/dL")
     upper: List[float] = Field(description="Upper bound trajectory in mg/dL")
     scenario: str = "D0"
+    lower_bound_robust: Optional[List[float]] = Field(
+        default=None,
+        description="Robust lower bound trajectory under portion uncertainty in mg/dL",
+    )
+    upper_bound_robust: Optional[List[float]] = Field(
+        default=None,
+        description="Robust upper bound trajectory under portion uncertainty in mg/dL",
+    )
 
 
 class ForecastMetrics(BaseModel):

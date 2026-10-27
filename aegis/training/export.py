@@ -21,7 +21,7 @@ from aegis.personalisation.similarity import compute_patient_similarity_prior
 from aegis.training.train import train_model
 from aegis.uncertainty.conformal import (
     ConformalCalibrationTable,
-    compute_conformal_intervals,
+    compute_interval_conformal_bounds,
 )
 from aegis.uncertainty.reliability import ReliabilityAssessment, assess_reliability
 
@@ -51,6 +51,10 @@ class AegisBundle:
         scenario: Union[DegradationScenario, str] = DegradationScenario.D0_NONE,
         confidence_level: float = 0.90,
         seed: Optional[int] = 42,
+        tau_fast_override: Optional[float] = None,
+        delay_override: Optional[float] = None,
+        phi_override: Optional[float] = None,
+        portion_uncertainty_pct: float = 0.0,
     ) -> Dict[str, Any]:
         """Runs end-to-end forecasting, few-shot personalisation, conformal bounds, and reliability assessment.
 
@@ -83,11 +87,21 @@ class AegisBundle:
             seq_t, anchor_t, meal_t, static_t, scenario=scenario, seed=seed
         )
 
-        # 2. Forward pass through Candidate S
+        # 2. Forward pass through Candidate S with optional kinetic overrides
         self.model.eval()
         with torch.no_grad():
-            point_delta, _ = self.model(d_seq, d_static, d_meal, d_anchor)
+            point_delta, _, traj_kinetic = self.model(
+                d_seq,
+                d_static,
+                d_meal,
+                d_anchor,
+                tau_fast_override=tau_fast_override,
+                delay_override=delay_override,
+                phi_override=phi_override,
+                return_components=True,
+            )
             point_delta_np = point_delta.squeeze(0).cpu().numpy()
+            traj_kinetic_np = traj_kinetic.squeeze(0).cpu().numpy()
 
         # 3. Few-shot adaptation
         static_np = static_t.squeeze(0).cpu().numpy()
@@ -111,12 +125,17 @@ class AegisBundle:
         if deg_meta.get("out_of_support"):
             adapted_pred = np.clip(adapted_pred, 40.0, 400.0)
 
-        # 5. Split-conformal prediction intervals
+        # 5. Split-conformal prediction intervals and robust portion uncertainty bounds
         quantiles = self.calibration_table.get_quantiles(
             scenario=scenario, confidence_level=confidence_level
         )
-        lower_bound, upper_bound = compute_conformal_intervals(
-            adapted_pred, quantiles, clamp_physiological=True
+        delta_portion = float(np.clip(portion_uncertainty_pct / 100.0, 0.0, 0.50))
+        lower_bound, upper_bound, lower_robust, upper_robust = compute_interval_conformal_bounds(
+            adapted_pred,
+            traj_kinetic_np,
+            quantiles,
+            delta_portion=delta_portion,
+            clamp_physiological=True,
         )
 
         # 6. Reliability assessment
@@ -142,6 +161,13 @@ class AegisBundle:
             "forecast": [round(float(v), 2) for v in adapted_pred],
             "interval_lower": [round(float(v), 2) for v in lower_bound],
             "interval_upper": [round(float(v), 2) for v in upper_bound],
+            "interval_lower_robust": [round(float(v), 2) for v in lower_robust]
+            if delta_portion > 0.0
+            else None,
+            "interval_upper_robust": [round(float(v), 2) for v in upper_robust]
+            if delta_portion > 0.0
+            else None,
+            "traj_kinetic": [round(float(v), 2) for v in traj_kinetic_np],
             "peak_glucose": round(peak_glucose, 1),
             "time_to_peak_min": time_to_peak_min,
             "reliability": rel_assessment.to_dict(),
@@ -150,6 +176,7 @@ class AegisBundle:
                 "is_degraded": deg_meta.get("is_degraded", False),
                 "confidence_level": confidence_level,
                 "anchor_age_min": anchor_age,
+                "portion_uncertainty_pct": portion_uncertainty_pct,
                 "warning": deg_meta.get("warning"),
             },
         }

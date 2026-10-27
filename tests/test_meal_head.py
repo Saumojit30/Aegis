@@ -39,3 +39,47 @@ def test_basis_curve_bounds():
     # Peaks should be finite and normalized around 1.0
     assert torch.max(b_fast).item() <= 1.5
     assert torch.max(b_slow).item() <= 1.5
+
+
+def test_structured_meal_head_properties_and_overrides():
+    model = StructuredMealForecasterS()
+
+    # Check nominal property getters
+    assert 20.0 <= model.base_tau_fast <= 60.0
+    assert 60.0 <= model.base_tau_slow <= 140.0
+    assert 5.0 <= model.base_delay <= 40.0
+
+    seq = torch.randn(1, 12, 6)
+    static = torch.randn(1, 8)
+    meal = torch.randn(1, 16)
+    anchor = torch.randn(1, 4)
+
+    phi_nominal = model.compute_phi(meal)
+    assert 0.0 <= phi_nominal <= 1.0
+
+    # Test forward with return_components
+    traj_nom, res_nom, kinetic_nom = model(
+        seq, static, meal, anchor, return_components=True
+    )
+    assert traj_nom.shape == (1, 36)
+    assert res_nom.shape == (1, 36)
+    assert kinetic_nom.shape == (1, 36)
+    assert torch.allclose(traj_nom, kinetic_nom + res_nom, atol=1e-5)
+
+    # Test forward with overrides (e.g. food sequencing parameters)
+    traj_seq, res_seq, kinetic_seq = model(
+        seq,
+        static,
+        meal,
+        anchor,
+        tau_fast_override=model.base_tau_fast * 1.25,
+        delay_override=model.base_delay * 1.35 + 10.0,
+        phi_override=min(1.0, phi_nominal + 0.25),
+        return_components=True,
+    )
+    # Excursion curve should differ under delayed emptying
+    assert not torch.allclose(traj_nom, traj_seq, atol=1e-3)
+    # Peak of kinetic absorption curve should be shifted later in time
+    nom_peak_step = int(torch.argmax(kinetic_nom[0]).item())
+    seq_peak_step = int(torch.argmax(kinetic_seq[0]).item())
+    assert seq_peak_step >= nom_peak_step

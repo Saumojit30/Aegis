@@ -482,3 +482,166 @@ def test_patient_state_and_prediction_with_db_telemetry(client):
     data = pred_res.json()
     assert data["glucose"][0] > 140.0
 
+
+def test_simulate_dynamic_walk_glut4_clearance(client):
+    payload = {
+        "patient_id": "P001",
+        "session_id": "walk_dyn_test",
+        "t0": "2026-10-15T12:00:00Z",
+        "meal": {
+            "carbs_g": 70.0,
+            "protein_g": 20.0,
+            "fat_g": 10.0,
+            "meal_type": "lunch",
+        },
+        "degradation": "D0",
+        "scenarios": [
+            {"type": "walk", "minutes": 30, "shift_min": 15},
+        ],
+    }
+    response = client.post("/simulate", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    base_g = data["baseline"]["glucose"]
+    walk_sc = data["scenarios"][0]
+    walk_g = walk_sc["trajectory"]
+
+    # Pre-walk preservation: for t <= t_start (first 3 steps: 5, 10, 15 min), glucose is preserved
+    assert walk_g[0] == pytest.approx(base_g[0], abs=1e-2)
+    assert walk_g[1] == pytest.approx(base_g[1], abs=1e-2)
+    assert walk_g[2] == pytest.approx(base_g[2], abs=1e-2)
+
+    # Post-walk attenuation: peak and late plateau drop significantly
+    assert walk_sc["delta_vs_baseline"]["delta_peak"] < -5.0
+    assert walk_sc["delta_vs_baseline"]["delta_delayed_mean"] < -5.0
+
+    # Calibrated split-conformal intervals used (not fixed +-15.0)
+    interval = walk_sc["interval"]
+    widths = [upp - low for upp, low in zip(interval["upper"], interval["lower"])]
+    # Conformal widths expand with time horizon
+    assert widths[-1] > widths[0]
+    assert walk_sc["assumption"]["kappa_exercise"] == 0.38
+    assert walk_sc["assumption"]["tau_post_min"] == 25.0
+
+
+def test_simulate_dynamic_food_sequencing(client):
+    payload = {
+        "patient_id": "P001",
+        "session_id": "seq_dyn_test",
+        "t0": "2026-10-15T12:00:00Z",
+        "meal": {
+            "carbs_g": 65.0,
+            "protein_g": 22.0,
+            "fat_g": 14.0,
+            "fiber_g": 6.0,
+            "meal_type": "dinner",
+        },
+        "degradation": "D0",
+        "scenarios": [
+            {"type": "sequencing"},
+        ],
+    }
+    response = client.post("/simulate", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    base_g = data["baseline"]["glucose"]
+    seq_sc = data["scenarios"][0]
+    seq_g = seq_sc["trajectory"]
+    assert seq_sc["type"] == "sequencing"
+    assert seq_sc["origin"] == "model_driven"
+    # GLP-1/PYY delayed gastric emptying via Candidate S overrides delays peak and blunts early excursion
+    assert seq_sc["delta_vs_baseline"]["delta_time_to_peak"] >= 20
+    # At 45 min post-meal (step 9), sequenced trajectory is substantially lower than baseline
+    assert seq_g[8] < base_g[8] - 10.0
+    assert abs(seq_sc["delta_vs_baseline"]["delta_peak"]) <= 3.0
+    assert "GLP-1/PYY" in seq_sc["notes"]
+    assert "delay_override" in seq_sc["assumption"]
+
+
+def test_predict_with_portion_uncertainty_bounds(client):
+    # Predict with 30% carbohydrate portion uncertainty
+    payload = {
+        "patient_id": "P001",
+        "session_id": "portion_unc_test",
+        "t0": "2026-10-15T12:00:00Z",
+        "g_t0": 120.0,
+        "portion_uncertainty_pct": 30.0,
+        "meal": {
+            "carbs_g": 60.0,
+            "protein_g": 20.0,
+            "fat_g": 12.0,
+            "fiber_g": 5.0,
+            "meal_type": "lunch",
+        },
+        "degradation": "D0",
+    }
+    response = client.post("/predict", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    interval = data["interval"]
+    assert interval["lower_bound_robust"] is not None
+    assert interval["upper_bound_robust"] is not None
+    assert len(interval["lower_bound_robust"]) == 36
+    assert len(interval["upper_bound_robust"]) == 36
+
+    # Robust bounds must envelop the standard conformal bounds
+    for l_rob, l_std, u_std, u_rob in zip(
+        interval["lower_bound_robust"],
+        interval["lower"],
+        interval["upper"],
+        interval["upper_bound_robust"],
+    ):
+        assert l_rob <= l_std + 1e-4
+        assert u_rob >= u_std - 1e-4
+
+    # Peak interval width under portion uncertainty is wider
+    rob_width = [
+        upp - low
+        for upp, low in zip(interval["upper_bound_robust"], interval["lower_bound_robust"])
+    ]
+    std_width = [upp - low for upp, low in zip(interval["upper"], interval["lower"])]
+    assert max(rob_width) > max(std_width)
+
+
+def test_standalone_inference_microservice_routes():
+    from services.inference.main import app as inf_app
+
+    with TestClient(inf_app) as inf_client:
+        # 1. Health check
+        h_res = inf_client.get("/health")
+        assert h_res.status_code == 200
+        assert h_res.json()["service"] == "aegis-inference"
+
+        # 2. Predict endpoint
+        pred_payload = {
+            "patient_id": "P001",
+            "session_id": "inf_micro_pred",
+            "t0": "2026-10-15T12:00:00Z",
+            "meal": {"carbs_g": 50.0, "meal_type": "lunch"},
+        }
+        p_res = inf_client.post("/predict", json=pred_payload)
+        assert p_res.status_code == 200
+        p_data = p_res.json()
+        assert len(p_data["glucose"]) == 36
+
+        # 3. Simulate endpoint (resolved 404 parity with backend)
+        sim_payload = {
+            "patient_id": "P001",
+            "session_id": "inf_micro_sim",
+            "t0": "2026-10-15T12:00:00Z",
+            "meal": {"carbs_g": 50.0, "meal_type": "lunch"},
+            "scenarios": [
+                {"type": "portion", "amount_pct": 80.0},
+                {"type": "walk", "minutes": 15},
+            ],
+        }
+        s_res = inf_client.post("/simulate", json=sim_payload)
+        assert s_res.status_code == 200
+        s_data = s_res.json()
+        assert "baseline" in s_data
+        assert len(s_data["scenarios"]) == 2
+
+

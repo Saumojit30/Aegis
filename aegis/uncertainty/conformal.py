@@ -136,6 +136,65 @@ def compute_conformal_intervals(
     return lower, upper
 
 
+def compute_interval_conformal_bounds(
+    y_pred: Union[np.ndarray, torch.Tensor],
+    traj_kinetic: Union[np.ndarray, torch.Tensor],
+    quantiles: np.ndarray,
+    delta_portion: float = 0.0,
+    clamp_physiological: bool = True,
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Computes standard and robust split-conformal bounds under carbohydrate portion uncertainty.
+
+    Given portion uncertainty fraction delta in [0.0, 0.50], constructs the kinetic portion envelope:
+        DeltaTraj_portion(t) = delta * |Traj_kinetic(t)|
+        Y_low(t) = Y_point(t) - DeltaTraj_portion(t)
+        Y_high(t) = Y_point(t) + DeltaTraj_portion(t)
+        L_robust(t) = Y_low(t) - q_model(t)
+        U_robust(t) = Y_high(t) + q_model(t)
+
+    Args:
+        y_pred: [..., 36] point predictions in absolute mg/dL.
+        traj_kinetic: [..., 36] physiological kinetic component excursion in mg/dL.
+        quantiles: [36] conformal quantile half-widths.
+        delta_portion: relative portion uncertainty fraction delta in [0.0, 0.50].
+        clamp_physiological: whether to clamp output bounds to [40.0, 400.0] mg/dL.
+
+    Returns:
+        (lower_standard, upper_standard, lower_robust, upper_robust)
+    """
+    if isinstance(y_pred, torch.Tensor):
+        pred_np = y_pred.detach().cpu().numpy()
+    else:
+        pred_np = np.asarray(y_pred, dtype=np.float32)
+
+    if isinstance(traj_kinetic, torch.Tensor):
+        kinetic_np = traj_kinetic.detach().cpu().numpy()
+    else:
+        kinetic_np = np.asarray(traj_kinetic, dtype=np.float32)
+
+    # Standard conformal intervals
+    lower_std = pred_np - quantiles
+    upper_std = pred_np + quantiles
+
+    # Portion uncertainty envelope
+    delta = float(np.clip(delta_portion, 0.0, 0.50))
+    delta_traj = delta * np.abs(kinetic_np)
+
+    y_low = pred_np - delta_traj
+    y_high = pred_np + delta_traj
+
+    lower_robust = y_low - quantiles
+    upper_robust = y_high + quantiles
+
+    if clamp_physiological:
+        lower_std = np.clip(lower_std, PHYSIOLOGICAL_MIN_GLUCOSE, PHYSIOLOGICAL_MAX_GLUCOSE)
+        upper_std = np.clip(upper_std, PHYSIOLOGICAL_MIN_GLUCOSE, PHYSIOLOGICAL_MAX_GLUCOSE)
+        lower_robust = np.clip(lower_robust, PHYSIOLOGICAL_MIN_GLUCOSE, PHYSIOLOGICAL_MAX_GLUCOSE)
+        upper_robust = np.clip(upper_robust, PHYSIOLOGICAL_MIN_GLUCOSE, PHYSIOLOGICAL_MAX_GLUCOSE)
+
+    return lower_std, upper_std, lower_robust, upper_robust
+
+
 def evaluate_conformal_coverage(
     y_true: np.ndarray,
     lower: np.ndarray,

@@ -11,10 +11,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+import torch
 
 from aegis.features.extract import extract_meal_features, extract_static_features
 from aegis.models.pharmacology import compute_insulin_effect, estimate_isf
 from aegis.training.export import AegisBundle, load_aegis_bundle
+from aegis.uncertainty.conformal import compute_conformal_intervals
 from services.common.contracts import (
     CLINICAL_DISCLAIMER,
     ForecastMetrics,
@@ -127,7 +129,13 @@ class InProcessInferenceProvider(InferenceProvider):
                             pass
         return residuals
 
-    async def predict(self, req: PredictRequest) -> PredictResponse:
+    async def predict(
+        self,
+        req: PredictRequest,
+        tau_fast_override: Optional[float] = None,
+        delay_override: Optional[float] = None,
+        phi_override: Optional[float] = None,
+    ) -> PredictResponse:
         if self.bundle is None:
             # Fallback to mock if bundle unavailable
             return await MockInferenceProvider().predict(req)
@@ -294,6 +302,14 @@ class InProcessInferenceProvider(InferenceProvider):
         earlier_residuals = self._get_chronological_residuals(req.patient_id, req.t0)
         n_meals = len(earlier_residuals)
 
+        portion_unc = req.portion_uncertainty_pct
+        if portion_unc <= 0.0 and req.meal.portion_uncertainty_pct > 0.0:
+            portion_unc = req.meal.portion_uncertainty_pct
+
+        tf_override = tau_fast_override if tau_fast_override is not None else req.tau_fast_override
+        d_override = delay_override if delay_override is not None else req.delay_override
+        p_override = phi_override if phi_override is not None else req.phi_override
+
         # 6. Run Candidate S bundle prediction
         raw_out = self.bundle.predict(
             seq=seq,
@@ -305,11 +321,17 @@ class InProcessInferenceProvider(InferenceProvider):
             earlier_residuals=earlier_residuals,
             scenario=req.degradation,
             confidence_level=0.90,
+            tau_fast_override=tf_override,
+            delay_override=d_override,
+            phi_override=p_override,
+            portion_uncertainty_pct=portion_unc,
         )
 
         fc = raw_out["forecast"]
         low = raw_out["interval_lower"]
         upp = raw_out["interval_upper"]
+        low_robust = raw_out.get("interval_lower_robust")
+        upp_robust = raw_out.get("interval_upper_robust")
 
         # 7. Pharmacological Insulin (Bolus & Basal Drift) superposition
         insulin_input = req.insulin or req.meal.insulin
@@ -352,6 +374,15 @@ class InProcessInferenceProvider(InferenceProvider):
             upp = [
                 round(float(np.clip(v + d, 40.0, 400.0)), 1) for v, d in zip(upp, net_deflection)
             ]
+            if low_robust is not None and upp_robust is not None:
+                low_robust = [
+                    round(float(np.clip(v + d, 40.0, 400.0)), 1)
+                    for v, d in zip(low_robust, net_deflection)
+                ]
+                upp_robust = [
+                    round(float(np.clip(v + d, 40.0, 400.0)), 1)
+                    for v, d in zip(upp_robust, net_deflection)
+                ]
 
         delta_g = [round(v - g_t0, 2) for v in fc]
 
@@ -376,6 +407,8 @@ class InProcessInferenceProvider(InferenceProvider):
                 lower=low,
                 upper=upp,
                 scenario=req.degradation,
+                lower_bound_robust=low_robust,
+                upper_bound_robust=upp_robust,
             ),
             metrics=ForecastMetrics(
                 peak=round(peak_val, 1),
@@ -501,15 +534,64 @@ class InProcessInferenceProvider(InferenceProvider):
             )
 
         elif mod.type == "walk":
-            # Assumption-driven (Reynolds et al. 2016): 15-30m walk reduces peak excursion by ~20%
+            # Dynamic physical activity / exercise non-insulin-mediated GLUT4 clearance
             mins = mod.minutes or 15
-            suppression = 0.20 if mins >= 15 else 0.10
-            new_deltas = np.array(baseline.delta_glucose) * (1.0 - suppression)
-            new_traj = np.clip(base_g0 + new_deltas, 40.0, 400.0)
+            t_start = float(mod.shift_min) if mod.shift_min is not None else 15.0
+            t_end = t_start + float(mins)
+
+            # Retrieve patient weight
+            weight_kg = 70.0
+            if self.db_session_factory:
+                try:
+                    with self.db_session_factory() as db:
+                        from services.backend.models import PatientModel
+
+                        p_rec = (
+                            db.query(PatientModel)
+                            .filter(PatientModel.patient_id == req.patient_id)
+                            .first()
+                        )
+                        if p_rec and p_rec.weight_kg and p_rec.weight_kg > 0:
+                            weight_kg = float(p_rec.weight_kg)
+                except Exception:
+                    pass
+
+            mets = 3.5  # Moderate-to-brisk walking (Compendium of Physical Activities)
+            kappa_exercise = 0.38  # mg * dL^-1 * min^-1 * DeltaMET^-1
+            tau_post = 25.0  # min exponential decay tail
+            r_active = kappa_exercise * (mets - 1.0) * (weight_kg / 70.0)
+
+            # Integrate non-insulin GLUT4 clearance: CumClear(t) across 36-step horizon
+            t_grid = np.arange(1, 37) * 5.0
+            cum_clear = np.zeros_like(t_grid)
+            for i, t in enumerate(t_grid):
+                if t <= t_start:
+                    cum_clear[i] = 0.0
+                elif t_start < t <= t_end:
+                    cum_clear[i] = r_active * (t - t_start)
+                else:  # t > t_end
+                    cum_clear[i] = (
+                        r_active * (t_end - t_start)
+                        + r_active * tau_post * (1.0 - math.exp(-(t - t_end) / tau_post))
+                    )
+
+            new_traj = np.clip(base_traj - cum_clear, 40.0, 400.0)
 
             peak_val = float(np.max(new_traj))
             ttp = int((np.argmax(new_traj) + 1) * 5)
             del_mean = float(np.mean(new_traj[24:]))
+
+            # Calibrated Split-Conformal Uncertainty Intervals
+            quantiles = (
+                self.bundle.calibration_table.get_quantiles(
+                    scenario=req.degradation, confidence_level=0.90
+                )
+                if self.bundle
+                else np.full(36, 15.0, dtype=np.float32)
+            )
+            low_sc, upp_sc = compute_conformal_intervals(
+                new_traj, quantiles, clamp_physiological=True
+            )
 
             return ScenarioResult(
                 type=mod.type,
@@ -517,8 +599,8 @@ class InProcessInferenceProvider(InferenceProvider):
                 trajectory=[round(float(v), 2) for v in new_traj],
                 interval=IntervalBand(
                     level=0.90,
-                    lower=[round(float(v - 15.0), 2) for v in new_traj],
-                    upper=[round(float(v + 15.0), 2) for v in new_traj],
+                    lower=[round(float(v), 2) for v in low_sc],
+                    upper=[round(float(v), 2) for v in upp_sc],
                     scenario=baseline.interval.scenario,
                 ),
                 metrics=ForecastMetrics(
@@ -534,57 +616,129 @@ class InProcessInferenceProvider(InferenceProvider):
                     delta_delayed_mean=round(del_mean - baseline.metrics.delayed_mean_120_180, 1),
                 ),
                 reliability=baseline.reliability,
-                notes=f"Simulated {mins}-minute brisk walk post-meal attenuating glycemic peak.",
+                notes=f"Physical activity clearance: {mins}-min walk (METs={mets}, W={weight_kg:.0f}kg) starting at t={t_start:.0f}m with {tau_post}m post-exercise tail.",
                 assumption={
-                    "source": "Reynolds et al., Diabetologia 2016",
-                    "reduction_factor": round(suppression, 2),
+                    "source": "Reynolds et al., Diabetologia 2016; muscle GLUT4 non-insulin clearance",
+                    "kappa_exercise": kappa_exercise,
+                    "mets": mets,
+                    "weight_kg": weight_kg,
+                    "tau_post_min": tau_post,
+                    "t_start_min": t_start,
+                    "t_end_min": t_end,
                     "verify": True,
                 },
             )
 
         elif mod.type == "sequencing":
-            # Assumption-driven (Shukla et al. 2017): Veggies/protein first delays & blunts carb peak
-            new_deltas = np.array(baseline.delta_glucose) * 0.85
-            shifted = np.zeros_like(new_deltas)
-            shifted[3:] = new_deltas[:-3]
-            shifted[:3] = new_deltas[:3] * 0.5
-            new_traj = np.clip(base_g0 + shifted, 40.0, 400.0)
+            # Dynamic food sequencing: GLP-1/PYY delayed gastric emptying via Candidate S overrides
+            if self.bundle:
+                base_delay = self.bundle.model.base_delay
+                base_tau_fast = self.bundle.model.base_tau_fast
+                m_curr = req.meal
+                raw_m = {
+                    "carbs_g": m_curr.carbs_g * (m_curr.amount_pct / 100.0),
+                    "protein_g": m_curr.protein_g * (m_curr.amount_pct / 100.0),
+                    "fat_g": m_curr.fat_g * (m_curr.amount_pct / 100.0),
+                    "fiber_g": m_curr.fiber_g * (m_curr.amount_pct / 100.0),
+                    "calories": (
+                        m_curr.carbs_g * 4.0 + m_curr.protein_g * 4.0 + m_curr.fat_g * 9.0
+                    )
+                    * (m_curr.amount_pct / 100.0),
+                    "meal_type": m_curr.meal_type,
+                    "minutes_since_prev_meal": 360.0,
+                }
+                m_vec = extract_meal_features(raw_m)
+                base_phi = self.bundle.model.compute_phi(
+                    torch.tensor(m_vec, dtype=torch.float32).unsqueeze(0)
+                )
 
-            peak_val = float(np.max(new_traj))
-            ttp = int((np.argmax(new_traj) + 1) * 5)
-            del_mean = float(np.mean(new_traj[24:]))
+                delay_override = base_delay * 1.35 + 10.0
+                tau_fast_override = base_tau_fast * 1.25
+                phi_override = min(1.0, base_phi + 0.25)
 
-            return ScenarioResult(
-                type=mod.type,
-                origin="assumption_driven",
-                trajectory=[round(float(v), 2) for v in new_traj],
-                interval=IntervalBand(
-                    level=0.90,
-                    lower=[round(float(v - 15.0), 2) for v in new_traj],
-                    upper=[round(float(v + 15.0), 2) for v in new_traj],
-                    scenario=baseline.interval.scenario,
-                ),
-                metrics=ForecastMetrics(
-                    peak=round(peak_val, 1),
-                    time_to_peak_min=ttp,
-                    delayed_mean_120_180=round(del_mean, 1),
-                    minutes_above_threshold=float(sum(5.0 for v in new_traj if v > 180.0)),
-                    risk_flag=peak_val > 180.0,
-                ),
-                delta_vs_baseline=ScenarioDifference(
-                    delta_peak=round(peak_val - baseline.metrics.peak, 1),
-                    delta_time_to_peak=ttp - baseline.metrics.time_to_peak_min,
-                    delta_delayed_mean=round(del_mean - baseline.metrics.delayed_mean_120_180, 1),
-                ),
-                reliability=baseline.reliability,
-                notes="Food sequencing: Vegetables & protein ingested 10 min prior to carbohydrates.",
-                assumption={
-                    "source": "Shukla et al., BMJ Open Diabetes Res Care 2017",
-                    "peak_attenuation": 0.15,
-                    "delay_minutes": 15,
-                    "verify": True,
-                },
-            )
+                mod_req = PredictRequest(
+                    patient_id=req.patient_id,
+                    session_id=req.session_id,
+                    t0=req.t0,
+                    meal=req.meal,
+                    degradation=req.degradation,
+                    tau_fast_override=tau_fast_override,
+                    delay_override=delay_override,
+                    phi_override=phi_override,
+                )
+                sim_pred = await self.predict(
+                    mod_req,
+                    tau_fast_override=tau_fast_override,
+                    delay_override=delay_override,
+                    phi_override=phi_override,
+                )
+                return ScenarioResult(
+                    type=mod.type,
+                    origin="model_driven",
+                    trajectory=sim_pred.glucose,
+                    interval=sim_pred.interval,
+                    metrics=sim_pred.metrics,
+                    delta_vs_baseline=ScenarioDifference(
+                        delta_peak=round(sim_pred.metrics.peak - baseline.metrics.peak, 1),
+                        delta_time_to_peak=sim_pred.metrics.time_to_peak_min
+                        - baseline.metrics.time_to_peak_min,
+                        delta_delayed_mean=round(
+                            sim_pred.metrics.delayed_mean_120_180
+                            - baseline.metrics.delayed_mean_120_180,
+                            1,
+                        ),
+                    ),
+                    reliability=sim_pred.reliability,
+                    notes=(
+                        f"Food sequencing: Candidate S kinetic overrides (delay={delay_override:.1f}m, "
+                        f"tau_fast={tau_fast_override:.1f}m, phi={phi_override:.2f}) modeling GLP-1/PYY delayed gastric emptying."
+                    ),
+                    assumption={
+                        "source": "Shukla et al., BMJ Open Diabetes Res Care 2017; GLP-1/PYY delay model",
+                        "delay_override": round(delay_override, 1),
+                        "tau_fast_override": round(tau_fast_override, 1),
+                        "phi_override": round(phi_override, 2),
+                        "verify": True,
+                    },
+                )
+            else:
+                quantiles = np.full(36, 15.0, dtype=np.float32)
+                shifted = np.zeros_like(baseline.delta_glucose)
+                shifted[3:] = np.array(baseline.delta_glucose)[:-3] * 0.85
+                shifted[:3] = np.array(baseline.delta_glucose)[:3] * 0.5
+                new_traj = np.clip(base_g0 + shifted, 40.0, 400.0)
+                low_sc, upp_sc = compute_conformal_intervals(
+                    new_traj, quantiles, clamp_physiological=True
+                )
+                peak_val = float(np.max(new_traj))
+                ttp = int((np.argmax(new_traj) + 1) * 5)
+                del_mean = float(np.mean(new_traj[24:]))
+                return ScenarioResult(
+                    type=mod.type,
+                    origin="model_driven",
+                    trajectory=[round(float(v), 2) for v in new_traj],
+                    interval=IntervalBand(
+                        level=0.90,
+                        lower=[round(float(v), 2) for v in low_sc],
+                        upper=[round(float(v), 2) for v in upp_sc],
+                        scenario=baseline.interval.scenario,
+                    ),
+                    metrics=ForecastMetrics(
+                        peak=round(peak_val, 1),
+                        time_to_peak_min=ttp,
+                        delayed_mean_120_180=round(del_mean, 1),
+                        minutes_above_threshold=float(sum(5.0 for v in new_traj if v > 180.0)),
+                        risk_flag=peak_val > 180.0,
+                    ),
+                    delta_vs_baseline=ScenarioDifference(
+                        delta_peak=round(peak_val - baseline.metrics.peak, 1),
+                        delta_time_to_peak=ttp - baseline.metrics.time_to_peak_min,
+                        delta_delayed_mean=round(del_mean - baseline.metrics.delayed_mean_120_180, 1),
+                    ),
+                    reliability=baseline.reliability,
+                    notes="Food sequencing: Mock simulation with delayed absorption.",
+                    assumption={"source": "Shukla et al., 2017"},
+                )
 
         elif mod.type == "insulin":
             # Model-driven pharmacological insulin simulation
@@ -709,6 +863,24 @@ class MockInferenceProvider(InferenceProvider):
         ttp = int(t_grid[np.argmax(glucose)])
         del_mean = float(np.mean(glucose[24:]))
 
+        portion_unc = req.portion_uncertainty_pct
+        if portion_unc <= 0.0 and req.meal.portion_uncertainty_pct > 0.0:
+            portion_unc = req.meal.portion_uncertainty_pct
+
+        low_robust: Optional[List[float]] = None
+        upp_robust: Optional[List[float]] = None
+        if portion_unc > 0.0:
+            delta = min(0.50, portion_unc / 100.0)
+            delta_traj = delta * np.abs(excursion)
+            low_robust = [
+                round(float(np.clip(v - d - 18.0, 40.0, 400.0)), 2)
+                for v, d in zip(glucose, delta_traj)
+            ]
+            upp_robust = [
+                round(float(np.clip(v + d + 18.0, 40.0, 400.0)), 2)
+                for v, d in zip(glucose, delta_traj)
+            ]
+
         return PredictResponse(
             horizon_min=t_grid.tolist(),
             delta_glucose=[round(float(v), 2) for v in excursion],
@@ -718,6 +890,8 @@ class MockInferenceProvider(InferenceProvider):
                 lower=[round(float(v - 18.0), 2) for v in glucose],
                 upper=[round(float(v + 18.0), 2) for v in glucose],
                 scenario=req.degradation,
+                lower_bound_robust=low_robust,
+                upper_bound_robust=upp_robust,
             ),
             metrics=ForecastMetrics(
                 peak=round(peak_val, 1),
@@ -755,8 +929,95 @@ class MockInferenceProvider(InferenceProvider):
             g_t0=req.meal.carbs_g,
         )
         baseline = await self.predict(base_req)
+
+        results: List[ScenarioResult] = []
+        for mod in req.scenarios:
+            if mod.type == "portion":
+                amt = mod.amount_pct if mod.amount_pct is not None else 100.0
+                mod_meal = req.meal.model_copy(update={"amount_pct": amt})
+                p = await self.predict(base_req.model_copy(update={"meal": mod_meal}))
+                results.append(
+                    ScenarioResult(
+                        type=mod.type,
+                        origin="model_driven",
+                        trajectory=p.glucose,
+                        interval=p.interval,
+                        metrics=p.metrics,
+                        delta_vs_baseline=ScenarioDifference(
+                            delta_peak=round(p.metrics.peak - baseline.metrics.peak, 1),
+                            delta_time_to_peak=p.metrics.time_to_peak_min
+                            - baseline.metrics.time_to_peak_min,
+                            delta_delayed_mean=round(
+                                p.metrics.delayed_mean_120_180
+                                - baseline.metrics.delayed_mean_120_180,
+                                1,
+                            ),
+                        ),
+                        reliability=p.reliability,
+                    )
+                )
+            elif mod.type == "walk":
+                mins = mod.minutes or 15
+                t_grid = np.arange(1, 37) * 5.0
+                t_start = 15.0
+                t_end = t_start + float(mins)
+                r_active = 0.38 * 2.5  # 0.95 mg/dL/min
+                cum_clear = np.zeros_like(t_grid)
+                for i, t in enumerate(t_grid):
+                    if t_start < t <= t_end:
+                        cum_clear[i] = r_active * (t - t_start)
+                    elif t > t_end:
+                        cum_clear[i] = r_active * (t_end - t_start) + r_active * 25.0 * (
+                            1.0 - math.exp(-(t - t_end) / 25.0)
+                        )
+                new_traj = np.clip(np.array(baseline.glucose) - cum_clear, 40.0, 400.0)
+                peak_val = float(np.max(new_traj))
+                ttp = int((np.argmax(new_traj) + 1) * 5)
+                del_mean = float(np.mean(new_traj[24:]))
+                results.append(
+                    ScenarioResult(
+                        type=mod.type,
+                        origin="assumption_driven",
+                        trajectory=[round(float(v), 2) for v in new_traj],
+                        interval=IntervalBand(
+                            level=0.90,
+                            lower=[round(float(v - 18.0), 2) for v in new_traj],
+                            upper=[round(float(v + 18.0), 2) for v in new_traj],
+                            scenario=baseline.interval.scenario,
+                        ),
+                        metrics=ForecastMetrics(
+                            peak=round(peak_val, 1),
+                            time_to_peak_min=ttp,
+                            delayed_mean_120_180=round(del_mean, 1),
+                        ),
+                        delta_vs_baseline=ScenarioDifference(
+                            delta_peak=round(peak_val - baseline.metrics.peak, 1),
+                            delta_time_to_peak=ttp - baseline.metrics.time_to_peak_min,
+                            delta_delayed_mean=round(
+                                del_mean - baseline.metrics.delayed_mean_120_180, 1
+                            ),
+                        ),
+                        reliability=baseline.reliability,
+                        assumption={"source": "Reynolds et al., Diabetologia 2016"},
+                    )
+                )
+            else:
+                results.append(
+                    ScenarioResult(
+                        type=mod.type,
+                        origin="model_driven",
+                        trajectory=baseline.glucose,
+                        interval=baseline.interval,
+                        metrics=baseline.metrics,
+                        delta_vs_baseline=ScenarioDifference(
+                            delta_peak=0.0, delta_time_to_peak=0, delta_delayed_mean=0.0
+                        ),
+                        reliability=baseline.reliability,
+                    )
+                )
+
         return SimulateResponse(
             baseline=baseline,
-            scenarios=[],
+            scenarios=results,
             disclaimer=CLINICAL_DISCLAIMER,
         )
