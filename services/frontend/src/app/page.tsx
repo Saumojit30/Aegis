@@ -14,6 +14,28 @@ export default function ClinicianDashboard() {
   // Navigation & View State
   const [activeTab, setActiveTab] = useState<"forecast" | "whatif" | "timeline" | "profile" | "audit" | "settings">("forecast");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const sidebarRef = React.useRef<HTMLElement | null>(null);
+
+  const handleSelectTab = (tab: "forecast" | "whatif" | "timeline" | "profile" | "audit" | "settings") => {
+    setActiveTab(tab);
+    setMobileMenuOpen(false);
+  };
+
+  useEffect(() => {
+    const handleDocumentClick = (e: MouseEvent) => {
+      if (window.innerWidth >= 1024 || !mobileMenuOpen) return;
+      const toggleBtn = document.getElementById("mobileSidebarToggle");
+      if (
+        sidebarRef.current &&
+        !sidebarRef.current.contains(e.target as Node) &&
+        (!toggleBtn || !toggleBtn.contains(e.target as Node))
+      ) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleDocumentClick);
+    return () => document.removeEventListener("click", handleDocumentClick);
+  }, [mobileMenuOpen]);
 
   // Theme State (Dark / Light) - Light mode is default
   const [theme, setTheme] = useState<"dark" | "light">("light");
@@ -420,8 +442,13 @@ export default function ClinicianDashboard() {
           setIsCustomMealOpen(false);
           setIsBiomarkersModalOpen(false);
           setIsStylePopoverOpen(false);
+          setMobileMenuOpen(false);
         }
         return;
+      }
+
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
       }
 
       if (isPaletteOpen) {
@@ -514,12 +541,15 @@ export default function ClinicianDashboard() {
       {mobileMenuOpen && (
         <div
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-35 lg:hidden"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[35] lg:hidden cursor-pointer"
+          style={{ zIndex: 35 }}
+          aria-label="Close sidebar overlay"
         />
       )}
 
       {/* 2. EXPANDED SIDEBAR NAVIGATION (Auto-collapsible on screens < lg) */}
       <aside
+        ref={sidebarRef}
         aria-label="Sidebar"
         className={`${
           mobileMenuOpen ? "flex fixed inset-y-0 left-0 w-64 shadow-2xl z-40" : "hidden lg:flex w-60 z-40"
@@ -567,7 +597,7 @@ export default function ClinicianDashboard() {
             </div>
             <div className="mt-1 space-y-0.5">
               <button
-                onClick={() => setActiveTab("forecast")}
+                onClick={() => handleSelectTab("forecast")}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition ${
                   activeTab === "forecast" ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]"
                 }`}
@@ -580,7 +610,7 @@ export default function ClinicianDashboard() {
               </button>
 
               <button
-                onClick={() => setActiveTab("timeline")}
+                onClick={() => handleSelectTab("timeline")}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition ${
                   activeTab === "timeline" ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]"
                 }`}
@@ -593,7 +623,7 @@ export default function ClinicianDashboard() {
               </button>
 
               <button
-                onClick={() => setActiveTab("profile")}
+                onClick={() => handleSelectTab("profile")}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition ${
                   activeTab === "profile" ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]"
                 }`}
@@ -613,7 +643,7 @@ export default function ClinicianDashboard() {
             </div>
             <div className="mt-1 space-y-0.5">
               <button
-                onClick={() => setActiveTab("whatif")}
+                onClick={() => handleSelectTab("whatif")}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition ${
                   activeTab === "whatif" ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]"
                 }`}
@@ -626,7 +656,7 @@ export default function ClinicianDashboard() {
               </button>
 
               <button
-                onClick={() => setIsCustomMealOpen(true)}
+                onClick={() => { setIsCustomMealOpen(true); setMobileMenuOpen(false); }}
                 className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]"
               >
                 <div className="flex items-center gap-2.5">
@@ -644,7 +674,7 @@ export default function ClinicianDashboard() {
             </div>
             <div className="mt-1 space-y-0.5">
               <button
-                onClick={() => setActiveTab("audit")}
+                onClick={() => handleSelectTab("audit")}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition ${
                   activeTab === "audit" ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]"
                 }`}
@@ -657,7 +687,7 @@ export default function ClinicianDashboard() {
               </button>
 
               <button
-                onClick={() => setActiveTab("settings")}
+                onClick={() => handleSelectTab("settings")}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition ${
                   activeTab === "settings" ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-text)] font-semibold" : "text-[var(--text-secondary)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)]"
                 }`}
@@ -689,6 +719,7 @@ export default function ClinicianDashboard() {
             
             <div className="flex items-center gap-2 text-xs">
               <button
+                id="mobileSidebarToggle"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="lg:hidden p-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card)] text-[var(--text-main)] hover:bg-[var(--bg-card-subtle)] mr-1 transition"
                 aria-label="Toggle navigation"

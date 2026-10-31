@@ -207,6 +207,9 @@
     </div>
   </aside>
 
+  <!-- Mobile Sidebar Backdrop Overlay (Closes sidebar when clicked outside) -->
+  <div id="mobileBackdrop" onclick="closeMobileSidebar()" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-xs z-[35] lg:hidden transition-opacity duration-200"></div>
+
   <!-- ========================================================================= -->
   <!-- 2. EXPANDABLE RESPONSIVE SIDEBAR (Collapsible on mobile/tablets)           -->
   <!-- ========================================================================= -->
@@ -340,7 +343,7 @@
         <!-- Left: Mobile Menu Button + Breadcrumbs -->
         <div class="flex items-center gap-2 text-xs">
           <!-- Mobile Sidebar Toggle -->
-          <button onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[var(--text-main)]" title="Toggle Navigation">
+          <button id="mobileSidebarToggle" onclick="toggleMobileSidebar()" class="lg:hidden p-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[var(--text-main)] hover:bg-[var(--bg-card)] transition cursor-pointer" title="Toggle Navigation">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
 
@@ -1742,17 +1745,43 @@
       updateChartThemes();
     }
 
+    function openMobileSidebar() {
+      const sb = document.getElementById('sidebarContainer');
+      const backdrop = document.getElementById('mobileBackdrop');
+      if (!sb) return;
+      sb.classList.remove('hidden');
+      sb.classList.add('fixed', 'inset-y-0', 'left-0', 'z-40', 'shadow-2xl');
+      if (backdrop) backdrop.classList.remove('hidden');
+    }
+
+    function closeMobileSidebar() {
+      const sb = document.getElementById('sidebarContainer');
+      const backdrop = document.getElementById('mobileBackdrop');
+      if (!sb) return;
+      if (window.innerWidth < 1024) {
+        sb.classList.add('hidden');
+        sb.classList.remove('fixed', 'inset-y-0', 'left-0', 'shadow-2xl');
+      } else {
+        sb.classList.remove('hidden', 'fixed', 'inset-y-0', 'left-0', 'shadow-2xl');
+      }
+      if (backdrop) backdrop.classList.add('hidden');
+    }
+
     function toggleMobileSidebar() {
       const sb = document.getElementById('sidebarContainer');
-      sb.classList.toggle('hidden');
-      sb.classList.toggle('fixed');
-      sb.classList.toggle('inset-y-0');
-      sb.classList.toggle('left-0');
-      sb.classList.toggle('shadow-2xl');
+      if (!sb) return;
+      if (sb.classList.contains('hidden')) {
+        openMobileSidebar();
+      } else {
+        closeMobileSidebar();
+      }
     }
 
     // 2. Tab Navigation
     function switchTab(tabId) {
+      if (window.innerWidth < 1024) {
+        closeMobileSidebar();
+      }
       state.activeTab = tabId;
       const tabs = ['forecast', 'whatif', 'timeline', 'profile', 'audit', 'settings'];
       
@@ -2497,10 +2526,30 @@
       state.sandboxChart.update();
     }
 
-    // Window Resize Handler to Ensure Charts Resize Dynamically
+    // Window Resize Handler to Ensure Charts Resize Dynamically and Reset Desktop Sidebar
     window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024) {
+        const sb = document.getElementById('sidebarContainer');
+        const backdrop = document.getElementById('mobileBackdrop');
+        if (sb) {
+          sb.classList.remove('hidden', 'fixed', 'inset-y-0', 'left-0', 'shadow-2xl');
+        }
+        if (backdrop) backdrop.classList.add('hidden');
+      }
       if (state.trajectoryChart) state.trajectoryChart.resize();
       if (state.sandboxChart) state.sandboxChart.resize();
+    });
+
+    // Close mobile sidebar when clicking anywhere outside of it
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth >= 1024) return;
+      const sb = document.getElementById('sidebarContainer');
+      if (!sb || sb.classList.contains('hidden')) return;
+
+      const toggleBtn = document.getElementById('mobileSidebarToggle');
+      if (!sb.contains(e.target) && (!toggleBtn || !toggleBtn.contains(e.target))) {
+        closeMobileSidebar();
+      }
     });
 
     // Keyboard Shortcuts (Cmd+K, Space, N, 1-6, Escape)
@@ -2515,6 +2564,7 @@
           document.getElementById('commandPaletteModal').classList.add('hidden');
           closeCustomMealModal();
           closeBiomarkersModal();
+          closeMobileSidebar();
         }
         return;
       }
@@ -2522,6 +2572,7 @@
         document.getElementById('commandPaletteModal').classList.add('hidden');
         closeCustomMealModal();
         closeBiomarkersModal();
+        closeMobileSidebar();
         document.getElementById('responseStylePopover')?.classList.add('hidden');
         return;
       }
