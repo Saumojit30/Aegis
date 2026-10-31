@@ -34,21 +34,45 @@ def main() -> None:
     init_db()
     seed_database_if_empty()
 
+    import argparse
     import os
 
-    port = int(os.environ.get("AEGIS_PORT", os.environ.get("PORT", "8000")))
+    parser = argparse.ArgumentParser(description="Aegis Digital Twin Offline Clinician Demo")
+    parser.add_argument(
+        "--port",
+        "-p",
+        type=int,
+        default=int(os.environ.get("AEGIS_PORT", os.environ.get("PORT", "8080"))),
+        help="Port to bind the demo server to (default: 8080 or AEGIS_PORT)",
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",
+        help="Host address to bind to (default: 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--no-browser",
+        action="store_true",
+        help="Do not auto-open the browser dashboard",
+    )
+    args, _ = parser.parse_known_args()
+
+    port = args.port
+    host = args.host
 
     # 3. Open browser dashboard
     dash_url = f"http://localhost:{port}/dashboard"
-    logger.info(f"Starting server on http://0.0.0.0:{port} (Clinician Dashboard: {dash_url})")
+    logger.info(f"Starting server on http://{host}:{port} (Clinician Dashboard: {dash_url})")
 
-    try:
-        webbrowser.open(dash_url)
-    except Exception:
-        pass
+    if not args.no_browser:
+        try:
+            webbrowser.open(dash_url)
+        except Exception:
+            pass
 
     # 4. Start uvicorn
-    uvicorn.run("services.backend.main:app", host="0.0.0.0", port=port, reload=False)
+    uvicorn.run("services.backend.main:app", host=host, port=port, reload=False)
 
 
 if __name__ == "__main__":
