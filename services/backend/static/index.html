@@ -747,6 +747,73 @@
                 </div>
                 <input type="range" id="sliderPortion" min="25" max="200" step="25" value="100" oninput="updateSandboxValues()" class="w-full">
               </div>
+
+              <div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-[var(--text-secondary)] font-medium">Portion Estimation Uncertainty (±δ)</span>
+                  <span class="font-mono font-semibold text-[var(--text-main)]" id="valPortionUncertainty">±0% (Nominal)</span>
+                </div>
+                <input type="range" id="sliderPortionUncertainty" min="0" max="50" step="5" value="0" oninput="updateSandboxValues()" class="w-full">
+                <span class="text-[10px] text-[var(--text-muted)] block mt-0.5">Conformal robust envelope [L_robust, U_robust] with ≥90% finite-sample coverage</span>
+              </div>
+            </div>
+
+            <!-- Pharmacological Insulin Therapy (Bolus & Basal) -->
+            <div class="p-4 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card-subtle)] space-y-4">
+              <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2.5">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-[var(--text-main)]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                  <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)]">Insulin Therapy (Bolus &amp; Basal)</span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border-main)]">
+                  PHARMACOLOGY
+                </span>
+              </div>
+
+              <div class="space-y-3.5">
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="text-[var(--text-secondary)] font-medium">Rapid-Acting Bolus Injection</span>
+                    <span class="font-mono font-semibold text-[var(--text-main)]" id="valBolus">0.0 U</span>
+                  </div>
+                  <input type="range" id="sliderBolus" min="0" max="15" step="0.5" value="0" oninput="updateSandboxValues()" class="w-full">
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="text-[var(--text-secondary)] font-medium">Bolus Timing Relative to Meal</span>
+                    <span class="font-mono font-semibold text-[var(--text-main)]" id="valBolusTime">0 min (at meal)</span>
+                  </div>
+                  <input type="range" id="sliderBolusTime" min="-30" max="60" step="5" value="0" oninput="updateSandboxValues()" class="w-full">
+                  <div class="flex justify-between text-[10px] font-mono text-[var(--text-muted)] mt-0.5">
+                    <span>-30m (pre-bolus)</span>
+                    <span>0m (meal)</span>
+                    <span>+60m (post-bolus)</span>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-xs mb-1">
+                    <span class="text-[var(--text-secondary)] font-medium">Basal Rate Differential (ΔR_b)</span>
+                    <span class="font-mono font-semibold text-[var(--text-main)]" id="valBasalDiff">0.0 U/hr</span>
+                  </div>
+                  <input type="range" id="sliderBasalDiff" min="-1" max="1" step="0.1" value="0" oninput="updateSandboxValues()" class="w-full">
+                </div>
+              </div>
+
+              <!-- Live Metric Readouts (IOB and Net Glycemic Deflection) -->
+              <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-[var(--border-main)]">
+                <div class="p-2.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-main)] text-center">
+                  <span class="text-[11px] text-[var(--text-secondary)] block">Active IOB (+60m)</span>
+                  <span class="text-sm font-bold font-mono text-[var(--text-main)]" id="valActiveIOB">0.00 U</span>
+                  <span class="text-[10px] text-[var(--text-muted)] block mt-0.5">Insulin on Board</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-[var(--bg-card)] border border-[var(--border-main)] text-center">
+                  <span class="text-[11px] text-[var(--text-secondary)] block">Net Deflection (ΔG_ins)</span>
+                  <span class="text-sm font-bold font-mono text-[var(--text-main)]" id="valNetDeflection">0.0 mg/dL</span>
+                  <span class="text-[10px] text-[var(--text-muted)] block mt-0.5">Analytical Gamma</span>
+                </div>
+              </div>
             </div>
 
             <!-- Behavioral Interventions -->
@@ -796,6 +863,9 @@
                 <span class="flex items-center gap-1.5 text-[var(--text-secondary)]">
                   <span class="w-3 h-0.5 bg-[var(--text-main)] inline-block"></span> Counterfactual
                 </span>
+                <span id="legendRobustRibbon" class="hidden flex items-center gap-1.5 text-[var(--text-secondary)]">
+                  <span class="w-3 h-2 bg-slate-400/20 border border-slate-400/40 rounded-sm inline-block"></span> Robust Conformal Ribbon (±δ)
+                </span>
               </div>
             </div>
 
@@ -804,45 +874,58 @@
               <canvas id="sandboxChart"></canvas>
             </div>
 
-            <!-- Deltas -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div class="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
+            <!-- Deltas (4-column grid) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)]">
                 <div class="flex items-center justify-between text-xs mb-1">
-                  <span class="text-[var(--text-secondary)]">Δ Peak Glycemia</span>
-                  <span class="text-[10px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[var(--text-main)]">
+                  <span class="text-[var(--text-secondary)] truncate">Δ Peak Glycemia</span>
+                  <span class="text-[9px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1 py-0.2 rounded text-[var(--text-main)]">
                     MODEL
                   </span>
                 </div>
-                <div class="text-xl font-bold font-mono text-[var(--text-main)]" id="deltaPeak">
+                <div class="text-lg sm:text-xl font-bold font-mono text-[var(--text-main)]" id="deltaPeak">
                   0.0 mg/dL
                 </div>
-                <span class="text-[11px] text-[var(--text-muted)] mt-1 block">Excursion maximum delta</span>
+                <span class="text-[10px] text-[var(--text-muted)] mt-1 block truncate">Excursion max delta</span>
               </div>
 
-              <div class="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
+              <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)]">
                 <div class="flex items-center justify-between text-xs mb-1">
-                  <span class="text-[var(--text-secondary)]">Δ Delayed Mean</span>
-                  <span class="text-[10px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[var(--text-main)]">
+                  <span class="text-[var(--text-secondary)] truncate">Δ Delayed Mean</span>
+                  <span class="text-[9px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1 py-0.2 rounded text-[var(--text-main)]">
                     MODEL
                   </span>
                 </div>
-                <div class="text-xl font-bold font-mono text-[var(--text-main)]" id="deltaDelayed">
+                <div class="text-lg sm:text-xl font-bold font-mono text-[var(--text-main)]" id="deltaDelayed">
                   0.0 mg/dL
                 </div>
-                <span class="text-[11px] text-[var(--text-muted)] mt-1 block">Late lipid plateau effect</span>
+                <span class="text-[10px] text-[var(--text-muted)] mt-1 block truncate">Late lipid plateau</span>
               </div>
 
-              <div class="bg-[var(--bg-card-subtle)] p-3.5 rounded-lg border border-[var(--border-main)]">
+              <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)]">
                 <div class="flex items-center justify-between text-xs mb-1">
-                  <span class="text-[var(--text-secondary)]">Behavioral Impact</span>
-                  <span class="text-[10px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[var(--text-main)]">
+                  <span class="text-[var(--text-secondary)] truncate">Behavioral</span>
+                  <span class="text-[9px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1 py-0.2 rounded text-[var(--text-main)]">
                     ASSUMPTION
                   </span>
                 </div>
-                <div class="text-xl font-bold font-mono text-[var(--text-main)]" id="deltaBehavior">
+                <div class="text-lg sm:text-xl font-bold font-mono text-[var(--text-main)]" id="deltaBehavior">
                   0.0 mg/dL
                 </div>
-                <span class="text-[11px] text-[var(--text-muted)] mt-1 block">Literature exercise scalar</span>
+                <span class="text-[10px] text-[var(--text-muted)] mt-1 block truncate">Exercise scalar</span>
+              </div>
+
+              <div class="bg-[var(--bg-card-subtle)] p-3 rounded-lg border border-[var(--border-main)]">
+                <div class="flex items-center justify-between text-xs mb-1">
+                  <span class="text-[var(--text-secondary)] truncate">Insulin ΔG</span>
+                  <span class="text-[9px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1 py-0.2 rounded text-[var(--text-main)]">
+                    PHARMA
+                  </span>
+                </div>
+                <div class="text-lg sm:text-xl font-bold font-mono text-[var(--text-main)]" id="deltaInsulin">
+                  0.0 mg/dL
+                </div>
+                <span class="text-[10px] text-[var(--text-muted)] mt-1 block truncate">Gamma clearance</span>
               </div>
             </div>
 
@@ -986,59 +1069,137 @@
       <!-- TAB 4: PATIENT PHENOTYPE PROFILE                                          -->
       <!-- ========================================================================= -->
       <div id="tabContent-profile" class="hidden space-y-6">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Header with Edit Twin Biomarkers Action -->
+        <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border border-[var(--border-main)] bg-[var(--bg-card)]">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="text-base font-semibold text-[var(--text-main)]">Clinical Metabolic Panel &amp; Digital Twin Phenotype</h2>
+              <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
+                ICD-10 E11.9
+              </span>
+            </div>
+            <p class="text-xs text-[var(--text-secondary)] mt-0.5">Full metabolic lab panel, anthropometrics, lipid profile, and 1800-Rule sensitivity priors</p>
+          </div>
+          <button onclick="openBiomarkersModal()" id="openBiomarkersBtn" class="px-3.5 py-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] hover:border-[var(--text-main)] text-xs font-semibold text-[var(--text-main)] shadow-sm transition flex items-center gap-2">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            <span>Edit Twin Biomarkers</span>
+          </button>
+        </div>
+
+        <!-- 4-Card Primary Metabolic Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           
-          <div class="clean-card p-6 space-y-4">
-            <h2 class="text-base font-semibold text-[var(--text-main)]">Clinical Baseline Profile</h2>
-            <div class="space-y-2 text-xs">
-              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Patient Twin:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profilePid">P020</span></div>
-              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Diagnosis:</span> <span class="text-[var(--text-main)] font-semibold" id="profileDiagnosis">Type 2 Diabetes</span></div>
-              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Age &amp; Sex:</span> <span class="text-[var(--text-main)]" id="profileAgeSex">58y / Male</span></div>
-              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">BMI:</span> <span class="text-[var(--text-main)] font-mono" id="profileBMI">28.4 kg/m²</span></div>
-              <div class="flex justify-between py-2 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Baseline HbA1c:</span> <span class="text-[var(--text-main)] font-semibold font-mono" id="profileHbA1c">7.4%</span></div>
-              <div class="flex justify-between py-2"><span class="text-[var(--text-secondary)]">Fasting Glucose:</span> <span class="text-[var(--text-main)] font-mono" id="profileFasting">138 mg/dL</span></div>
+          <!-- Card 1: Anthropometrics & Baseline -->
+          <div class="clean-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)]">Anthropometrics</span>
+              <span class="font-mono text-xs font-bold text-[var(--text-main)]" id="profilePid">P020</span>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Diagnosis:</span> <span class="text-[var(--text-main)] font-semibold" id="profileDiagnosis">Type 2 Diabetes</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Age &amp; Sex:</span> <span class="text-[var(--text-main)]" id="profileAgeSex">58y / Male</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Weight:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profileWeight">78.0 kg</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Height:</span> <span class="font-mono text-[var(--text-main)]" id="profileHeight">168.0 cm</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">BMI:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profileBMI">27.6 kg/m²</span></div>
+              <div class="flex justify-between py-1"><span class="text-[var(--text-secondary)]">HbA1c:</span> <span class="font-mono text-[var(--text-main)] font-bold" id="profileHbA1c">7.4%</span></div>
             </div>
           </div>
 
-          <div class="clean-card p-6 space-y-4">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base font-semibold text-[var(--text-main)]">Synthetic EHR Records</h2>
-              <span class="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
-                SYNTHETIC
-              </span>
+          <!-- Card 2: Glycemic & Insulin Resistance -->
+          <div class="clean-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)]">Insulin Resistance</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">HOMA</span>
             </div>
-            <div class="space-y-3 text-xs">
-              <div class="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)]">
-                <span class="text-[var(--text-secondary)] block font-medium">Prescribed Medications:</span>
-                <span class="text-[var(--text-main)] mt-0.5 block" id="profileMeds">Metformin 500mg BID, Lisinopril 10mg QD</span>
-              </div>
-              <div class="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)]">
-                <span class="text-[var(--text-secondary)] block font-medium">Diagnosed Comorbidities:</span>
-                <span class="text-[var(--text-main)] mt-0.5 block" id="profileComorbidities">Essential Hypertension, Dyslipidemia</span>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Fasting Glucose:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profileFasting">138 mg/dL</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Fasting Insulin:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profileFastingInsulin">14.2 µU/mL</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">HOMA-IR Score:</span> <span class="font-mono text-[var(--text-main)] font-bold" id="profileHomaIR">4.84</span></div>
+              <div class="pt-1.5">
+                <span class="text-[11px] text-[var(--text-secondary)] block mb-1">Resistance Classification:</span>
+                <span class="text-xs font-semibold text-[var(--text-main)] block px-2 py-1 rounded bg-[var(--bg-card-subtle)] border border-[var(--border-main)]" id="profileResistanceTier">
+                  Significant Insulin Resistance (&gt;2.9)
+                </span>
               </div>
             </div>
           </div>
 
-          <div class="clean-card p-6 space-y-4">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base font-semibold text-[var(--text-main)]">Few-Shot Personalization</h2>
-              <span class="text-[11px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
-                K = 5 MEALS
-              </span>
+          <!-- Card 3: Full Lipid Panel -->
+          <div class="clean-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)]">Lipid Panel</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">FASTING</span>
             </div>
-            <div class="space-y-2 text-xs font-mono">
-              <div class="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)] space-y-1.5">
-                <div class="flex justify-between text-[var(--text-secondary)]"><span>Zero-Shot (K=0):</span> <span class="text-[var(--text-main)]">12.95 mg/dL</span></div>
-                <div class="flex justify-between text-[var(--text-secondary)]"><span>1-Shot (K=1):</span> <span class="text-[var(--text-main)]">10.84 mg/dL</span></div>
-                <div class="flex justify-between text-[var(--text-secondary)]"><span>3-Shot (K=3):</span> <span class="text-[var(--text-main)]">9.45 mg/dL</span></div>
-                <div class="flex justify-between text-[var(--text-main)] font-bold border-t border-[var(--border-main)] pt-1.5">
-                  <span>5-Shot Adapted (K=5):</span> <span>8.92 mg/dL</span>
-                </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Triglycerides:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profileTriglycerides">185 mg/dL</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">HDL Cholesterol:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profileHDL">42 mg/dL</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">LDL Cholesterol:</span> <span class="font-mono text-[var(--text-main)] font-semibold" id="profileLDL">128 mg/dL</span></div>
+              <div class="flex justify-between py-1"><span class="text-[var(--text-secondary)]">TG / HDL Ratio:</span> <span class="font-mono text-[var(--text-main)] font-bold" id="profileTgHdlRatio">4.4</span></div>
+            </div>
+          </div>
+
+          <!-- Card 4: 1800-Rule Clinical Priors -->
+          <div class="clean-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)]">1800-Rule Priors</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">ESTIMATED</span>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Total Daily Dose (TDD):</span> <span class="font-mono text-[var(--text-main)] font-bold" id="profileTDD">42.9 U</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Insulin Sensitivity (ISF):</span> <span class="font-mono text-[var(--text-main)] font-bold" id="profileISF">42.0 mg/dL/U</span></div>
+              <div class="flex justify-between py-1 border-b border-[var(--border-main)]"><span class="text-[var(--text-secondary)]">Carb Ratio (CIR):</span> <span class="font-mono text-[var(--text-main)] font-bold" id="profileCIR">11.7 g/U</span></div>
+              <div class="text-[10px] text-[var(--text-muted)] font-mono pt-1">
+                ISF = 1800 / (0.55 × Weight)
               </div>
             </div>
           </div>
 
         </div>
+
+        <!-- Secondary Clinical Records Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          
+          <!-- Synthetic EHR Records -->
+          <div class="clean-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)]">Prescribed Regimen &amp; Comorbidities</span>
+              <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
+                SYNTHETIC EHR (D14)
+              </span>
+            </div>
+            <div class="space-y-2.5 text-xs">
+              <div class="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)]">
+                <span class="text-[var(--text-secondary)] block font-medium">Prescribed Medications:</span>
+                <span class="text-[var(--text-main)] font-semibold mt-0.5 block" id="profileMeds">Metformin 500mg BID, Lisinopril 10mg QD</span>
+              </div>
+              <div class="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)]">
+                <span class="text-[var(--text-secondary)] block font-medium">Diagnosed Comorbidities:</span>
+                <span class="text-[var(--text-main)] font-semibold mt-0.5 block" id="profileComorbidities">Essential Hypertension, Dyslipidemia</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Few-Shot Adaptation Table -->
+          <div class="clean-card p-5 space-y-3">
+            <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-2">
+              <span class="text-xs font-semibold uppercase tracking-wider text-[var(--text-main)]">Few-Shot Personalization</span>
+              <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold bg-[var(--bg-card-subtle)] text-[var(--text-main)] border border-[var(--border-main)]">
+                K = 5 MEALS
+              </span>
+            </div>
+            <div class="p-3 bg-[var(--bg-card-subtle)] rounded-lg border border-[var(--border-main)] space-y-1.5 text-xs font-mono">
+              <div class="flex justify-between text-[var(--text-secondary)]"><span>Zero-Shot (K=0):</span> <span class="text-[var(--text-main)]">12.95 mg/dL</span></div>
+              <div class="flex justify-between text-[var(--text-secondary)]"><span>1-Shot (K=1):</span> <span class="text-[var(--text-main)]">10.84 mg/dL</span></div>
+              <div class="flex justify-between text-[var(--text-secondary)]"><span>3-Shot (K=3):</span> <span class="text-[var(--text-main)]">9.45 mg/dL</span></div>
+              <div class="flex justify-between text-[var(--text-main)] font-bold border-t border-[var(--border-main)] pt-1.5">
+                <span>5-Shot Adapted (K=5):</span> <span>8.92 mg/dL</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
       </div>
 
       <!-- ========================================================================= -->
@@ -1322,6 +1483,121 @@
   </div>
 
   <!-- ========================================================================= -->
+  <!-- 5B. EDIT TWIN BIOMARKERS MODAL (#biomarkersModal)                         -->
+  <!-- ========================================================================= -->
+  <div id="biomarkersModal" class="hidden fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4">
+    <div class="w-full max-w-xl bg-[var(--bg-card)] rounded-xl border border-[var(--border-main)] shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-[var(--border-main)] pb-3">
+        <div>
+          <h3 class="text-sm font-semibold text-[var(--text-main)]">Edit Digital Twin Clinical Biomarkers</h3>
+          <p class="text-xs text-[var(--text-secondary)] mt-0.5">Update patient laboratory biomarkers, physiological anthropometrics, and sensitivity overrides</p>
+        </div>
+        <button onclick="closeBiomarkersModal()" class="text-[var(--text-secondary)] hover:text-[var(--text-main)] text-xs">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Physical Anthropometrics -->
+        <div>
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] block mb-2">Anthropometrics &amp; Glycemia</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">Weight (kg):</label>
+              <input type="number" step="0.5" id="inputWeight" oninput="calculateModalDerivedValues()" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">Height (cm):</label>
+              <input type="number" step="0.5" id="inputHeight" oninput="calculateModalDerivedValues()" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">Fasting Gluc (mg/dL):</label>
+              <input type="number" step="1" id="inputFastingGlucose" oninput="calculateModalDerivedValues()" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">Fasting Ins (µU/mL):</label>
+              <input type="number" step="0.1" id="inputFastingInsulin" oninput="calculateModalDerivedValues()" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+          </div>
+        </div>
+
+        <!-- Lipid Panel -->
+        <div>
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] block mb-2">Lipid Panel &amp; Glycated Hemoglobin</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">HbA1c (%):</label>
+              <input type="number" step="0.1" id="inputHbA1c" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">Triglycerides (mg/dL):</label>
+              <input type="number" step="1" id="inputTriglycerides" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">HDL (mg/dL):</label>
+              <input type="number" step="1" id="inputHDL" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">LDL (mg/dL):</label>
+              <input type="number" step="1" id="inputLDL" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom Sensitivity Overrides -->
+        <div>
+          <label class="text-[11px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] block mb-2">Sensitivity Factor Overrides (Optional)</label>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">ISF Override (mg/dL per Unit):</label>
+              <input type="number" step="0.1" id="inputISF" placeholder="Auto (1800-rule)" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+            <div>
+              <label class="text-[var(--text-secondary)] block mb-1">CIR Override (g Carbs per Unit):</label>
+              <input type="number" step="0.1" id="inputCIR" placeholder="Auto (500-rule)" class="w-full bg-[var(--bg-card-subtle)] border border-[var(--border-main)] text-[var(--text-main)] rounded-lg p-2 font-mono outline-none focus:border-[var(--text-main)]">
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Calculation Preview Card -->
+        <div class="p-3.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-[var(--text-main)]">Live Derived Physiological Parameters:</span>
+            <span class="text-[10px] font-mono font-semibold bg-[var(--bg-card)] border border-[var(--border-main)] px-1.5 py-0.2 rounded text-[var(--text-secondary)]">
+              PREVIEW
+            </span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div class="p-2 rounded bg-[var(--bg-card)] border border-[var(--border-main)]">
+              <span class="text-[11px] text-[var(--text-secondary)] block">Body Mass Index</span>
+              <span class="font-mono font-bold text-[var(--text-main)]" id="modalCalcBMI">--</span>
+            </div>
+            <div class="p-2 rounded bg-[var(--bg-card)] border border-[var(--border-main)]">
+              <span class="text-[11px] text-[var(--text-secondary)] block">HOMA-IR Index</span>
+              <span class="font-mono font-bold text-[var(--text-main)]" id="modalCalcHoma">--</span>
+            </div>
+            <div class="p-2 rounded bg-[var(--bg-card)] border border-[var(--border-main)]">
+              <span class="text-[11px] text-[var(--text-secondary)] block">1800-Rule ISF</span>
+              <span class="font-mono font-bold text-[var(--text-main)]" id="modalCalcISF">--</span>
+            </div>
+          </div>
+          <div class="text-[11px] font-mono text-[var(--text-muted)] text-center pt-1" id="modalCalcPriorsSummary">
+            TDD: -- U • CIR: -- g/U
+          </div>
+        </div>
+
+      </div>
+
+      <div class="flex justify-end gap-2.5 pt-3 border-t border-[var(--border-main)]">
+        <button onclick="closeBiomarkersModal()" class="px-3.5 py-1.5 rounded-lg border border-[var(--border-main)] bg-[var(--bg-card-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-main)] text-xs font-medium">
+          Cancel
+        </button>
+        <button onclick="saveBiomarkers()" class="px-4 py-1.5 rounded-lg bg-[var(--text-main)] text-[var(--bg-card)] text-xs font-semibold shadow-sm transition hover:opacity-90">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
   <!-- 6. JAVASCRIPT STATE ENGINE                                                -->
   <!-- ========================================================================= -->
   <script>
@@ -1337,6 +1613,10 @@
       fat: 12,
       protein: 16,
       portion: 100,
+      portionUncertainty: 0,
+      bolusUnits: 0.0,
+      bolusTime: 0,
+      basalDiff: 0.0,
       walking: false,
       sequencing: false,
       trajectoryChart: null,
@@ -1344,10 +1624,94 @@
     };
 
     const patientDatabase = {
-      P020: { age: '58y / Male', bmi: '28.4 kg/m²', hba1c: '7.4%', fasting: '138 mg/dL', diagnosis: 'Type 2 Diabetes', meds: 'Metformin 500mg BID, Lisinopril 10mg QD', comorbidities: 'Essential Hypertension, Dyslipidemia' },
-      P021: { age: '61y / Female', bmi: '30.1 kg/m²', hba1c: '7.8%', fasting: '146 mg/dL', diagnosis: 'Type 2 Diabetes', meds: 'Metformin 1000mg BID, Empagliflozin 10mg QD', comorbidities: 'Microalbuminuria' },
-      P010: { age: '48y / Male', bmi: '26.8 kg/m²', hba1c: '6.0%', fasting: '112 mg/dL', diagnosis: 'Prediabetes', meds: 'Lifestyle modification, Metformin 250mg QD', comorbidities: 'None recorded' },
-      P001: { age: '28y / Female', bmi: '21.5 kg/m²', hba1c: '5.2%', fasting: '88 mg/dL', diagnosis: 'Healthy Control', meds: 'None', comorbidities: 'None' }
+      P020: {
+        age: '58y / Male',
+        weight: 78.0,
+        height: 168.0,
+        bmi: '27.6 kg/m²',
+        hba1c: '7.4%',
+        fasting: '138 mg/dL',
+        fastingGlucose: 138.0,
+        fastingInsulin: 14.2,
+        homa: 4.84,
+        triglycerides: 185,
+        hdl: 42,
+        ldl: 128,
+        tdd: 42.9,
+        isf: 42.0,
+        cir: 11.7,
+        isfOverride: null,
+        cirOverride: null,
+        diagnosis: 'Type 2 Diabetes',
+        meds: 'Metformin 500mg BID, Lisinopril 10mg QD',
+        comorbidities: 'Essential Hypertension, Dyslipidemia'
+      },
+      P021: {
+        age: '61y / Female',
+        weight: 82.0,
+        height: 165.0,
+        bmi: '30.1 kg/m²',
+        hba1c: '7.8%',
+        fasting: '146 mg/dL',
+        fastingGlucose: 146.0,
+        fastingInsulin: 16.5,
+        homa: 5.95,
+        triglycerides: 210,
+        hdl: 38,
+        ldl: 142,
+        tdd: 45.1,
+        isf: 39.9,
+        cir: 11.1,
+        isfOverride: null,
+        cirOverride: null,
+        diagnosis: 'Type 2 Diabetes',
+        meds: 'Metformin 1000mg BID, Empagliflozin 10mg QD',
+        comorbidities: 'Microalbuminuria'
+      },
+      P010: {
+        age: '48y / Male',
+        weight: 74.0,
+        height: 172.0,
+        bmi: '25.0 kg/m²',
+        hba1c: '6.0%',
+        fasting: '112 mg/dL',
+        fastingGlucose: 112.0,
+        fastingInsulin: 8.5,
+        homa: 2.35,
+        triglycerides: 155,
+        hdl: 46,
+        ldl: 118,
+        tdd: 40.7,
+        isf: 44.2,
+        cir: 12.3,
+        isfOverride: null,
+        cirOverride: null,
+        diagnosis: 'Prediabetes',
+        meds: 'Lifestyle modification, Metformin 250mg QD',
+        comorbidities: 'None recorded'
+      },
+      P001: {
+        age: '28y / Female',
+        weight: 58.0,
+        height: 164.0,
+        bmi: '21.6 kg/m²',
+        hba1c: '5.2%',
+        fasting: '88 mg/dL',
+        fastingGlucose: 88.0,
+        fastingInsulin: 4.5,
+        homa: 0.98,
+        triglycerides: 95,
+        hdl: 58,
+        ldl: 85,
+        tdd: 31.9,
+        isf: 56.4,
+        cir: 15.7,
+        isfOverride: null,
+        cirOverride: null,
+        diagnosis: 'Healthy Control',
+        meds: 'None',
+        comorbidities: 'None'
+      }
     };
 
     const mealPresets = {
@@ -1467,19 +1831,187 @@
       showToast('Settings updated');
     }
 
-    // 5. Patient Switcher
+    // 5. Patient Switcher & Complete Metabolic Display
     function handlePatientChange(pid) {
       state.patientId = pid;
       const data = patientDatabase[pid] || patientDatabase['P020'];
-      document.getElementById('profilePid').textContent = pid;
-      document.getElementById('profileDiagnosis').textContent = data.diagnosis;
-      document.getElementById('profileAgeSex').textContent = data.age;
-      document.getElementById('profileBMI').textContent = data.bmi;
-      document.getElementById('profileHbA1c').textContent = data.hba1c;
-      document.getElementById('profileFasting').textContent = data.fasting;
-      document.getElementById('profileMeds').textContent = data.meds;
-      document.getElementById('profileComorbidities').textContent = data.comorbidities;
+      
+      // Update Anthropometrics
+      if (document.getElementById('profilePid')) document.getElementById('profilePid').textContent = pid;
+      if (document.getElementById('profileDiagnosis')) document.getElementById('profileDiagnosis').textContent = data.diagnosis;
+      if (document.getElementById('profileAgeSex')) document.getElementById('profileAgeSex').textContent = data.age;
+      if (document.getElementById('profileWeight')) document.getElementById('profileWeight').textContent = `${data.weight.toFixed(1)} kg`;
+      if (document.getElementById('profileHeight')) document.getElementById('profileHeight').textContent = `${data.height.toFixed(1)} cm`;
+      if (document.getElementById('profileBMI')) document.getElementById('profileBMI').textContent = data.bmi;
+      if (document.getElementById('profileHbA1c')) document.getElementById('profileHbA1c').textContent = data.hba1c;
+      
+      // Update Fasting Labs & HOMA
+      if (document.getElementById('profileFasting')) document.getElementById('profileFasting').textContent = `${data.fastingGlucose} mg/dL`;
+      if (document.getElementById('profileFastingInsulin')) document.getElementById('profileFastingInsulin').textContent = `${data.fastingInsulin} µU/mL`;
+      if (document.getElementById('profileHomaIR')) document.getElementById('profileHomaIR').textContent = data.homa.toFixed(2);
+      if (document.getElementById('profileResistanceTier')) {
+        const tier = data.homa > 2.9 ? 'Significant Insulin Resistance (>2.9)' : (data.homa > 1.9 ? 'Early Insulin Resistance (1.9–2.9)' : 'Normal Insulin Sensitivity (<1.9)');
+        document.getElementById('profileResistanceTier').textContent = tier;
+      }
+      
+      // Update Lipids
+      if (document.getElementById('profileTriglycerides')) document.getElementById('profileTriglycerides').textContent = `${data.triglycerides} mg/dL`;
+      if (document.getElementById('profileHDL')) document.getElementById('profileHDL').textContent = `${data.hdl} mg/dL`;
+      if (document.getElementById('profileLDL')) document.getElementById('profileLDL').textContent = `${data.ldl} mg/dL`;
+      if (document.getElementById('profileTgHdlRatio')) {
+        const ratio = (data.triglycerides / (data.hdl || 1)).toFixed(1);
+        document.getElementById('profileTgHdlRatio').textContent = ratio;
+      }
+
+      // Update 1800-Rule Priors
+      const activeISF = data.isfOverride || data.isf;
+      const activeCIR = data.cirOverride || data.cir;
+      if (document.getElementById('profileTDD')) document.getElementById('profileTDD').textContent = `${data.tdd.toFixed(1)} U`;
+      if (document.getElementById('profileISF')) document.getElementById('profileISF').textContent = `${activeISF.toFixed(1)} mg/dL/U`;
+      if (document.getElementById('profileCIR')) document.getElementById('profileCIR').textContent = `${activeCIR.toFixed(1)} g/U`;
+
+      // Update EHR
+      if (document.getElementById('profileMeds')) document.getElementById('profileMeds').textContent = data.meds;
+      if (document.getElementById('profileComorbidities')) document.getElementById('profileComorbidities').textContent = data.comorbidities;
+      
+      // If Biomarkers modal is currently open, refresh its inputs for the active patient
+      const bioModal = document.getElementById('biomarkersModal');
+      if (bioModal && !bioModal.classList.contains('hidden')) {
+        openBiomarkersModal();
+      }
+
+      // Re-trigger What-If updates with new patient's ISF
+      updateSandboxValues();
       showToast(`Switched active twin to ${pid}`);
+    }
+
+    // 5B. Biomarkers Modal Logic
+    function openBiomarkersModal() {
+      const p = patientDatabase[state.patientId] || patientDatabase['P020'];
+      document.getElementById('inputWeight').value = p.weight;
+      document.getElementById('inputHeight').value = p.height;
+      document.getElementById('inputFastingGlucose').value = p.fastingGlucose;
+      document.getElementById('inputFastingInsulin').value = p.fastingInsulin;
+      document.getElementById('inputHbA1c').value = parseFloat(p.hba1c) || 7.4;
+      document.getElementById('inputTriglycerides').value = p.triglycerides;
+      document.getElementById('inputHDL').value = p.hdl;
+      document.getElementById('inputLDL').value = p.ldl;
+      document.getElementById('inputISF').value = p.isfOverride || '';
+      document.getElementById('inputCIR').value = p.cirOverride || '';
+      calculateModalDerivedValues();
+      document.getElementById('biomarkersModal').classList.remove('hidden');
+    }
+
+    function closeBiomarkersModal() {
+      document.getElementById('biomarkersModal').classList.add('hidden');
+    }
+
+    function calculateModalDerivedValues() {
+      const w = parseFloat(document.getElementById('inputWeight').value) || 0;
+      const h = parseFloat(document.getElementById('inputHeight').value) || 0;
+      const fg = parseFloat(document.getElementById('inputFastingGlucose').value) || 0;
+      const fi = parseFloat(document.getElementById('inputFastingInsulin').value) || 0;
+
+      let bmi = 0;
+      if (w > 0 && h > 0) {
+        const hm = h / 100.0;
+        bmi = Number((w / (hm * hm)).toFixed(1));
+      }
+
+      let homa = 0;
+      if (fg > 0 && fi > 0) {
+        homa = Number(((fg * fi) / 405.0).toFixed(2));
+      }
+
+      let tdd = 0, isf = 0, cir = 0;
+      if (w > 0) {
+        tdd = Number((0.55 * w).toFixed(1));
+        isf = Number((1800.0 / (0.55 * w)).toFixed(1));
+        cir = Number((500.0 / (0.55 * w)).toFixed(1));
+      }
+
+      document.getElementById('modalCalcBMI').textContent = bmi > 0 ? `${bmi} kg/m²` : '--';
+      document.getElementById('modalCalcHoma').textContent = homa > 0 ? `${homa}` : '--';
+      document.getElementById('modalCalcISF').textContent = isf > 0 ? `${isf} mg/dL/U` : '--';
+      document.getElementById('modalCalcPriorsSummary').textContent =
+        `Est. TDD: ${tdd > 0 ? tdd + ' U' : '--'} • Est. CIR: ${cir > 0 ? cir + ' g/U' : '--'}`;
+    }
+
+    async function saveBiomarkers() {
+      const pid = state.patientId;
+      const w = parseFloat(document.getElementById('inputWeight').value);
+      const h = parseFloat(document.getElementById('inputHeight').value);
+      const fg = parseFloat(document.getElementById('inputFastingGlucose').value);
+      const fi = parseFloat(document.getElementById('inputFastingInsulin').value);
+      const hba1c = parseFloat(document.getElementById('inputHbA1c').value) || 7.4;
+      const tg = parseFloat(document.getElementById('inputTriglycerides').value) || 185;
+      const hdl = parseFloat(document.getElementById('inputHDL').value) || 42;
+      const ldl = parseFloat(document.getElementById('inputLDL').value) || 128;
+      
+      const isfRaw = document.getElementById('inputISF').value.trim();
+      const isfOv = isfRaw !== "" && !isNaN(parseFloat(isfRaw)) && parseFloat(isfRaw) > 0 ? parseFloat(isfRaw) : null;
+      const cirRaw = document.getElementById('inputCIR').value.trim();
+      const cirOv = cirRaw !== "" && !isNaN(parseFloat(cirRaw)) && parseFloat(cirRaw) > 0 ? parseFloat(cirRaw) : null;
+
+      // Clinical parameter positive boundary validation
+      if (isNaN(w) || w <= 0 || isNaN(h) || h <= 0 || isNaN(fg) || fg <= 0 || isNaN(fi) || fi <= 0) {
+        showToast('Please enter positive numerical values for weight, height, glucose, and insulin');
+        return;
+      }
+
+      const hm = h / 100.0;
+      const bmi = Number((w / (hm * hm)).toFixed(1));
+      const homa = Number(((fg * fi) / 405.0).toFixed(2));
+      const tdd = Number((0.55 * w).toFixed(1));
+      const isf = isfOv || Number((1800.0 / (0.55 * w)).toFixed(1));
+      const cir = cirOv || Number((500.0 / (0.55 * w)).toFixed(1));
+
+      const p = patientDatabase[pid] || {};
+      p.weight = w;
+      p.height = h;
+      p.bmi = `${bmi} kg/m²`;
+      p.fastingGlucose = fg;
+      p.fasting = `${fg} mg/dL`;
+      p.fastingInsulin = fi;
+      p.hba1c = `${hba1c}%`;
+      p.homa = homa;
+      p.triglycerides = tg;
+      p.hdl = hdl;
+      p.ldl = ldl;
+      p.tdd = tdd;
+      p.isf = isf;
+      p.cir = cir;
+      p.isfOverride = isfOv;
+      p.cirOverride = cirOv;
+      patientDatabase[pid] = p;
+
+      // Backend sync via PUT /patients/{id}/biomarkers
+      try {
+        const payload = {
+          weight_kg: w,
+          height_cm: h,
+          bmi: bmi,
+          fasting_glucose: fg,
+          fasting_insulin: fi,
+          hba1c: hba1c,
+          triglycerides: tg,
+          hdl: hdl,
+          ldl: ldl,
+          isf: isfOv,
+          cir: cirOv
+        };
+        await fetch(`/patients/${pid}/biomarkers`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        console.warn('Backend biomarker update:', err);
+      }
+
+      handlePatientChange(pid);
+      closeBiomarkersModal();
+      showToast(`Biomarkers updated successfully for ${pid}`);
     }
 
     // 6. Playback Stream Controls
@@ -1530,7 +2062,22 @@
       document.getElementById('hudDelta').textContent = `(Δ ${diff > 0 ? '+' : ''}${diff})`;
     }
 
-    // 7. What-If Counterfactual Sandbox Engine
+    // 7. Pharmacological Gamma Absorption & IOB Calculation
+    function calculateGammaAbs(t_min, t_bolus_min) {
+      const delta_t = t_min - t_bolus_min;
+      if (delta_t <= 0) return 0.0;
+      if (delta_t >= 300.0) return 1.0;
+      const x = delta_t / 55.0;
+      return Math.min(1.0, Math.max(0.0, 1.0 - (1.0 + x) * Math.exp(-x)));
+    }
+
+    function calculateIOB(t_min, bolus_units, t_bolus_min) {
+      if (bolus_units <= 0 || t_min < t_bolus_min) return 0.0;
+      const f_abs = calculateGammaAbs(t_min, t_bolus_min);
+      return Math.max(0.0, bolus_units * (1.0 - f_abs));
+    }
+
+    // 8. What-If Counterfactual Sandbox Engine
     function applyPresetMeal(key) {
       const preset = mealPresets[key];
       if (!preset) return;
@@ -1547,6 +2094,10 @@
       const fat = Number(document.getElementById('sliderFat').value);
       const protein = Number(document.getElementById('sliderProtein').value);
       const portion = Number(document.getElementById('sliderPortion').value);
+      const portionUncertainty = Number(document.getElementById('sliderPortionUncertainty').value);
+      const bolusUnits = Number(document.getElementById('sliderBolus').value);
+      const bolusTime = Number(document.getElementById('sliderBolusTime').value);
+      const basalDiff = Number(document.getElementById('sliderBasalDiff').value);
       const walking = document.getElementById('chkWalk').checked;
       const sequencing = document.getElementById('chkSequence').checked;
 
@@ -1554,14 +2105,27 @@
       state.fat = fat;
       state.protein = protein;
       state.portion = portion;
+      state.portionUncertainty = portionUncertainty;
+      state.bolusUnits = bolusUnits;
+      state.bolusTime = bolusTime;
+      state.basalDiff = basalDiff;
       state.walking = walking;
       state.sequencing = sequencing;
 
+      // Update Slider Readouts
       document.getElementById('valCarbs').textContent = `${carbs} g`;
       document.getElementById('valFat').textContent = `${fat} g`;
       document.getElementById('valProtein').textContent = `${protein} g`;
       document.getElementById('valPortion').textContent = `${portion}%`;
+      document.getElementById('valPortionUncertainty').textContent =
+        portionUncertainty === 0 ? '±0% (Nominal)' : `±${portionUncertainty}% (Interval Bound)`;
+      document.getElementById('valBolus').textContent = `${bolusUnits.toFixed(1)} U`;
+      document.getElementById('valBolusTime').textContent =
+        `${bolusTime > 0 ? '+' : ''}${bolusTime} min ${bolusTime < 0 ? '(pre-bolus)' : bolusTime > 0 ? '(post-bolus)' : '(at meal)'}`;
+      document.getElementById('valBasalDiff').textContent =
+        `${basalDiff >= 0 ? '+' : ''}${basalDiff.toFixed(1)} U/hr`;
 
+      // Macro Percentages
       const totalKcal = carbs * 4 + protein * 4 + fat * 9;
       const totalGrams = carbs + protein + fat || 1;
       const cPct = Math.round((carbs / totalGrams) * 100);
@@ -1576,15 +2140,39 @@
       document.getElementById('pctProtein').textContent = `Protein (${pPct}%)`;
       document.getElementById('pctFat').textContent = `Fat (${fPct}%)`;
 
+      // Active Patient ISF
+      const currentPatientData = patientDatabase[state.patientId] || patientDatabase['P020'];
+      const activeISF = currentPatientData.isfOverride || currentPatientData.isf || 42.0;
+
+      // Closed-Form Analytical Insulin Glycemic Deflection Array (36 points, 13 displayed)
+      const f_abs_0 = calculateGammaAbs(0.0, bolusTime);
+      const insulinExcursionArray = timeLabels.map((_, idx) => {
+        const t_min = idx * 15;
+        const f_abs_t = calculateGammaAbs(t_min, bolusTime);
+        const delta_abs = f_abs_t - f_abs_0;
+        const bolus_def = -activeISF * bolusUnits * delta_abs;
+        const basal_def = -activeISF * basalDiff * (t_min / 60.0);
+        return bolus_def + basal_def;
+      });
+
+      // Active IOB at benchmark t=60m and Net Deflection readout
+      const activeIOB60 = calculateIOB(60.0, bolusUnits, bolusTime);
+      const netDeflection60 = insulinExcursionArray[4]; // idx 4 = 60m
+
+      document.getElementById('valActiveIOB').textContent = `${activeIOB60.toFixed(2)} U`;
+      document.getElementById('valNetDeflection').textContent = `${netDeflection60.toFixed(1)} mg/dL`;
+      document.getElementById('deltaInsulin').textContent = `${netDeflection60.toFixed(1)} mg/dL`;
+
+      // Macronutrient & Behavioral deltas
       const carbDelta = ((portion / 100 - 1) * 35) + ((carbs - 48) * 0.45);
       const fatDelta = (fat - 12) * 0.3;
       const exerciseDelta = (walking ? -18 : 0) + (sequencing ? -15 : 0);
 
-      document.getElementById('deltaPeak').textContent = `${(carbDelta + exerciseDelta).toFixed(1)} mg/dL`;
       document.getElementById('deltaDelayed').textContent = `${fatDelta.toFixed(1)} mg/dL`;
       document.getElementById('deltaBehavior').textContent = `${exerciseDelta} mg/dL`;
 
-      updateSandboxChartData(carbs, fat, protein, portion, walking, sequencing);
+      // Update Chart with Superimposed Counterfactual & Robust Conformal Ribbon
+      updateSandboxChartData(carbs, fat, protein, portion, portionUncertainty, walking, sequencing, insulinExcursionArray);
     }
 
     function openCustomMealModal() {
@@ -1609,10 +2197,11 @@
       showToast(`Custom meal applied: ${name}`);
     }
 
-    // 8. Command Palette (⌘K)
+    // 9. Command Palette (⌘K)
     const paletteActions = [
       { title: 'Replay: Toggle Play / Pause Stream', cat: 'Replay', key: 'Space', run: togglePlayPause },
       { title: 'Replay: Jump to Next Clinical Meal', cat: 'Replay', key: 'N', run: jumpNextMeal },
+      { title: 'Twin: Edit Biomarkers & Lab Panel', cat: 'Twin', key: 'E', run: openBiomarkersModal },
       { title: 'Twin: Switch to P020 (T2D, 58y)', cat: 'Twin', key: 'P20', run: () => handlePatientChange('P020') },
       { title: 'Twin: Switch to P021 (T2D, 61y)', cat: 'Twin', key: 'P21', run: () => handlePatientChange('P021') },
       { title: 'Twin: Switch to P010 (Prediabetes)', cat: 'Twin', key: 'P10', run: () => handlePatientChange('P010') },
@@ -1665,7 +2254,7 @@
       document.getElementById('commandPaletteModal').classList.add('hidden');
     }
 
-    // 9. Chart.js (Monochrome Precision)
+    // 10. Chart.js (Monochrome Precision)
     const timeLabels = ['0m', '15m', '30m', '45m', '60m', '75m', '90m', '105m', '120m', '135m', '150m', '165m', '180m'];
     const nominalPred = [136.6, 142.1, 151.4, 161.0, 164.2, 160.8, 154.2, 148.0, 142.5, 139.1, 137.8, 136.9, 136.2];
     const nominalTruth = [136.6, 140.5, 150.2, 158.8, 162.0, 159.4, 152.0, 146.5, 141.0, 138.0, 137.2, 136.5, 136.0];
@@ -1758,6 +2347,25 @@
           labels: timeLabels,
           datasets: [
             {
+              label: 'Robust Upper Bound (±δ)',
+              data: [],
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(15, 23, 42, 0.25)',
+              borderDash: [4, 4],
+              pointRadius: 0,
+              fill: '+1',
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)',
+            },
+            {
+              label: 'Robust Lower Bound (±δ)',
+              data: [],
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(15, 23, 42, 0.25)',
+              borderDash: [4, 4],
+              pointRadius: 0,
+              fill: false,
+            },
+            {
               label: 'Baseline Excursion',
               data: nominalPred,
               borderColor: '#94a3b8',
@@ -1797,8 +2405,8 @@
               ticks: { color: textColor, font: { family: 'JetBrains Mono', size: 10 } }
             },
             y: {
-              min: 70,
-              max: 220,
+              suggestedMin: 60,
+              suggestedMax: 240,
               grid: { color: gridColor },
               ticks: { color: textColor, font: { family: 'JetBrains Mono', size: 10 } }
             }
@@ -1826,27 +2434,66 @@
       });
       state.trajectoryChart.data.datasets[2].borderColor = mainLineColor;
       state.trajectoryChart.data.datasets[2].pointBackgroundColor = mainLineColor;
-      state.sandboxChart.data.datasets[1].borderColor = mainLineColor;
-      state.sandboxChart.data.datasets[1].pointBackgroundColor = mainLineColor;
+
+      // Sandbox chart themes
+      state.sandboxChart.data.datasets[0].backgroundColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.06)';
+      state.sandboxChart.data.datasets[0].borderColor = isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(15, 23, 42, 0.25)';
+      state.sandboxChart.data.datasets[1].borderColor = isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(15, 23, 42, 0.25)';
+      state.sandboxChart.data.datasets[3].borderColor = mainLineColor;
+      state.sandboxChart.data.datasets[3].pointBackgroundColor = mainLineColor;
+
       state.trajectoryChart.update();
       state.sandboxChart.update();
     }
 
-    function updateSandboxChartData(carbs, fat, protein, portion, walking, sequencing) {
+    function updateSandboxChartData(carbs, fat, protein, portion, portionUncertainty, walking, sequencing, insulinExcursionArray) {
       if (!state.sandboxChart) return;
       const carbDelta = ((portion / 100 - 1) * 35) + ((carbs - 48) * 0.45);
       const fatDelta = (fat - 12) * 0.3;
       const exerciseDelta = (walking ? -18 : 0) + (sequencing ? -15 : 0);
 
+      // Superimpose Macronutrients, Behavioral exercise, and Pharmacological Insulin
       const modified = nominalPred.map((val, idx) => {
         if (idx === 0) return val;
         const progress = idx / 12;
         const peakImpact = Math.sin(progress * Math.PI) * (carbDelta + exerciseDelta);
         const lateImpact = (progress > 0.5 ? (progress - 0.5) * 2 : 0) * fatDelta;
-        return Number((val + peakImpact + lateImpact).toFixed(1));
+        const insImpact = (insulinExcursionArray && insulinExcursionArray[idx]) || 0.0;
+        return Number(Math.max(40.0, Math.min(400.0, val + peakImpact + lateImpact + insImpact)).toFixed(1));
       });
 
-      state.sandboxChart.data.datasets[1].data = modified;
+      // Conformal portion uncertainty robust interval bounds
+      const deltaPortion = (portionUncertainty || 0) / 100.0;
+      const robustLegend = document.getElementById('legendRobustRibbon');
+
+      if (deltaPortion > 0) {
+        const robustUpper = modified.map((y) => {
+          const kinetic = Math.abs(y - nominalPred[0]);
+          const deltaTraj = deltaPortion * kinetic;
+          return Number(Math.min(400.0, y + deltaTraj + 14.0).toFixed(1));
+        });
+        const robustLower = modified.map((y) => {
+          const kinetic = Math.abs(y - nominalPred[0]);
+          const deltaTraj = deltaPortion * kinetic;
+          return Number(Math.max(40.0, y - deltaTraj - 14.0).toFixed(1));
+        });
+
+        state.sandboxChart.data.datasets[0].data = robustUpper;
+        state.sandboxChart.data.datasets[1].data = robustLower;
+        if (robustLegend) robustLegend.classList.remove('hidden');
+      } else {
+        state.sandboxChart.data.datasets[0].data = [];
+        state.sandboxChart.data.datasets[1].data = [];
+        if (robustLegend) robustLegend.classList.add('hidden');
+      }
+
+      state.sandboxChart.data.datasets[3].data = modified;
+
+      // Update Δ Peak Glycemia
+      const peakBaseline = Math.max(...nominalPred);
+      const peakModified = Math.max(...modified);
+      document.getElementById('deltaPeak').textContent = `${(peakModified - peakBaseline > 0 ? '+' : '')}${(peakModified - peakBaseline).toFixed(1)} mg/dL`;
+
       state.sandboxChart.update();
     }
 
@@ -1856,7 +2503,7 @@
       if (state.sandboxChart) state.sandboxChart.resize();
     });
 
-    // Keyboard Shortcuts (Cmd+K, Space, N, 1-6)
+    // Keyboard Shortcuts (Cmd+K, Space, N, 1-6, Escape)
     window.addEventListener('keydown', (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -1867,12 +2514,14 @@
         if (e.key === 'Escape') {
           document.getElementById('commandPaletteModal').classList.add('hidden');
           closeCustomMealModal();
+          closeBiomarkersModal();
         }
         return;
       }
       if (e.key === 'Escape') {
         document.getElementById('commandPaletteModal').classList.add('hidden');
         closeCustomMealModal();
+        closeBiomarkersModal();
         document.getElementById('responseStylePopover')?.classList.add('hidden');
         return;
       }
@@ -1894,6 +2543,7 @@
     window.addEventListener('DOMContentLoaded', () => {
       initTheme();
       initCharts();
+      handlePatientChange('P020');
     });
   </script>
 
