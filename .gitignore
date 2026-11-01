@@ -70,3 +70,7 @@ htmlcov/
 .dvc/cache/
 .dvc/tmp/
 uv.lock
+
+# Interview Preparation Materials (not tracked by git)
+interviewPrep/
+
