@@ -76,33 +76,51 @@ Aegis resolves these challenges by fusing structured kinetic priors, few-shot re
 ## 5. System Architecture
 
 ```mermaid
-flowchart LR
-    subgraph Ingestion["1. Multimodal Ingestion"]
-        CGM["Wearables Telemetry<br/>(CGM, HR, METs)"]
-        EHR["Clinical Context<br/>(Labs &amp; Meal Macros)"]
+flowchart TD
+    subgraph DataStorage["Data & Storage Infrastructure"]
+        CGM[("PhysioNet CGMacros<br/>5-min CGM, HR, METs")]
+        EHR[("Synthetic EHR Generator<br/>ADA 2024 Guidelines")]
+        DB[("Relational State<br/>SQLite / PostgreSQL")]
     end
 
-    subgraph CoreEngine["2. Physiological Engine"]
-        GRU["GRU Temporal Encoder"]
-        HEAD["Candidate S Dual-Gamma Head<br/>(&tau;fast, &tau;slow &amp; Insulin PK)"]
+    subgraph FeaturePipeline["Feature Pipeline &amp; Data Contracts"]
+        CLEAN["Temporal Grid Resampler &amp; Missingness Indicator Masks"]
+        CONTRACT["Frozen Pydantic Contracts<br/>PredictRequest / Response"]
+        CGM --> CLEAN
+        EHR --> CLEAN
+        CLEAN --> CONTRACT
+    end
+
+    subgraph PhysiologicalEngine["Candidate S Physiological Engine (PyTorch)"]
+        GRU["2-Layer GRU Temporal Fusion Backbone"]
+        HEAD["Dual-Gamma Kinetic Absorption Head (&tau;fast, &tau;slow)"]
+        PK["Closed-Form Pharmacokinetics (Bolus/Basal PK &amp; Active IOB)"]
+        ADAPT["Few-Shot Ridge Personalisation (PCA Residual Basis r=3)"]
         GRU --> HEAD
+        HEAD --> PK
+        PK --> ADAPT
     end
 
-    subgraph SafetyAdapt["3. Personalisation &amp; Safety"]
-        RIDGE["Few-Shot Ridge Twin (K=5)"]
-        CONF["Split-Conformal Bands (&ge;95%)"]
-        RIDGE --> CONF
+    subgraph ServingLayer["Serving, Calibration &amp; Replay Layer"]
+        API["FastAPI Inference Service (/predict, /simulate)"]
+        CONF["Split-Conformal Calibration Engine (Scenarios D0-D7)"]
+        WS["In-Memory Async Replay Cursor (WebSockets)"]
+        API <--> DB
+        API --> CONF
+        API --> WS
     end
 
-    subgraph Cockpit["4. Clinician Cockpit"]
-        API["FastAPI / Replay Engine"]
-        UI["Interactive Dashboard &amp;<br/>What-If Sandbox"]
-        API --> UI
+    subgraph PresentationLayer["Clinician Decision Cockpit"]
+        DASH["Responsive Dual-Rail Dashboard (Static SPA / Next.js)"]
+        CHART["Chart.js Dynamic 180-min Trajectory &amp; Conformal Corridor"]
+        SANDBOX["Interactive What-If Sandbox (Macros, Insulin, Walk, Sequencing)"]
+        DASH --- CHART
+        DASH --- SANDBOX
     end
 
-    Ingestion --> CoreEngine
-    CoreEngine --> SafetyAdapt
-    SafetyAdapt --> Cockpit
+    CONTRACT --> PhysiologicalEngine
+    PhysiologicalEngine --> API
+    ServingLayer --> PresentationLayer
 ```
 
 ---
