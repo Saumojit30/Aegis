@@ -58,9 +58,7 @@ def test_structured_meal_head_properties_and_overrides():
     assert 0.0 <= phi_nominal <= 1.0
 
     # Test forward with return_components
-    traj_nom, res_nom, kinetic_nom = model(
-        seq, static, meal, anchor, return_components=True
-    )
+    traj_nom, res_nom, kinetic_nom = model(seq, static, meal, anchor, return_components=True)
     assert traj_nom.shape == (1, 36)
     assert res_nom.shape == (1, 36)
     assert kinetic_nom.shape == (1, 36)
@@ -113,4 +111,3 @@ def test_kinetic_overrides_boundary_clamping_and_numpy():
     assert not torch.isnan(traj).any()
     assert not torch.isinf(traj).any()
     assert not torch.isnan(kinetic).any()
-

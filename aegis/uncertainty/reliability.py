@@ -141,7 +141,11 @@ def assess_reliability(
     return ReliabilityAssessment(
         level=ReliabilityLevel.HIGH,
         score=0.92,
-        reasons=["Active CGM stream", "Complete biometric sensors", f"Personalised on {k_personal_meals} meals"],
+        reasons=[
+            "Active CGM stream",
+            "Complete biometric sensors",
+            f"Personalised on {k_personal_meals} meals",
+        ],
         clinician_message="High confidence: Calibrated trajectory backed by active sensors and clinical twin personalisation.",
         scenario=sc_str,
         mean_interval_width=mean_interval_width,

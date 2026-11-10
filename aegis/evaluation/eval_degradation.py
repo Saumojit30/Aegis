@@ -169,7 +169,10 @@ def run_degradation_and_conformal_evaluation(
                             )
                         else:
                             adapted_delta = adapt_prediction_with_prior(
-                                pred_delta, basis, past_residuals=past_patient_residuals, prior_alpha=alpha_prior
+                                pred_delta,
+                                basis,
+                                past_residuals=past_patient_residuals,
+                                prior_alpha=alpha_prior,
                             )
 
                         g_t0 = float(s["g_t0"])
@@ -291,22 +294,24 @@ def generate_degradation_report(
             f"| **{sc_val}** | {desc} | {mae_all:.2f} | {rmse_all:.2f} | {mae_120:.2f} | {peak_err:.2f} | {width:.1f} | {emp_cov:.1f}% |"
         )
 
-    lines.extend([
-        "",
-        "## 2. Dropout Duration vs Error Curve (Ablation A6)",
-        "",
-        "| Dropout Duration | MAE (0-180m) | Peak Error (mg/dL) | Interval Width (90%) | Reliability State |",
-        "|---|---|---|---|---|",
-        f"| 0 min (D0 Nominal) | {summary['D0']['mae_0_180']:.2f} | {summary['D0']['peak_error']:.2f} | {coverage['D0']['mean_width']:.1f} | HIGH |",
-        f"| 15 min (D1_15m) | {summary['D1_15m']['mae_0_180']:.2f} | {summary['D1_15m']['peak_error']:.2f} | {coverage['D1_15m']['mean_width']:.1f} | MODERATE |",
-        f"| 30 min (D1_30m) | {summary['D1_30m']['mae_0_180']:.2f} | {summary['D1_30m']['peak_error']:.2f} | {coverage['D1_30m']['mean_width']:.1f} | MODERATE |",
-        f"| 60 min (D1_60m) | {summary['D1_60m']['mae_0_180']:.2f} | {summary['D1_60m']['peak_error']:.2f} | {coverage['D1_60m']['mean_width']:.1f} | LOW |",
-        "",
-        "## 3. Key Observations & Clinical Guardrails",
-        "- **Sensor Masking Resilience (D15):** The model handles up to 30 min of CGM dropout gracefully without crashing, with MAE degrading modestly from 8.92 to 10.45 mg/dL.",
-        "- **Reduced-Sensor Safety (D4):** In complete absence of CGM, MAE rises as expected. The system assigns `LOW` confidence and displays the mandatory clinician warning: *'Estimate based on wearables and profile only - not suitable for treatment decisions.'*",
-        "- **Conservative Clamping on OOD (D16 / D7):** Meals outside historical carbohydrate/fat support envelope are bounded to physiological ranges [40, 400] mg/dL with interval width expanding to reflect uncertainty.",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 2. Dropout Duration vs Error Curve (Ablation A6)",
+            "",
+            "| Dropout Duration | MAE (0-180m) | Peak Error (mg/dL) | Interval Width (90%) | Reliability State |",
+            "|---|---|---|---|---|",
+            f"| 0 min (D0 Nominal) | {summary['D0']['mae_0_180']:.2f} | {summary['D0']['peak_error']:.2f} | {coverage['D0']['mean_width']:.1f} | HIGH |",
+            f"| 15 min (D1_15m) | {summary['D1_15m']['mae_0_180']:.2f} | {summary['D1_15m']['peak_error']:.2f} | {coverage['D1_15m']['mean_width']:.1f} | MODERATE |",
+            f"| 30 min (D1_30m) | {summary['D1_30m']['mae_0_180']:.2f} | {summary['D1_30m']['peak_error']:.2f} | {coverage['D1_30m']['mean_width']:.1f} | MODERATE |",
+            f"| 60 min (D1_60m) | {summary['D1_60m']['mae_0_180']:.2f} | {summary['D1_60m']['peak_error']:.2f} | {coverage['D1_60m']['mean_width']:.1f} | LOW |",
+            "",
+            "## 3. Key Observations & Clinical Guardrails",
+            "- **Sensor Masking Resilience (D15):** The model handles up to 30 min of CGM dropout gracefully without crashing, with MAE degrading modestly from 8.92 to 10.45 mg/dL.",
+            "- **Reduced-Sensor Safety (D4):** In complete absence of CGM, MAE rises as expected. The system assigns `LOW` confidence and displays the mandatory clinician warning: *'Estimate based on wearables and profile only - not suitable for treatment decisions.'*",
+            "- **Conservative Clamping on OOD (D16 / D7):** Meals outside historical carbohydrate/fat support envelope are bounded to physiological ranges [40, 400] mg/dL with interval width expanding to reflect uncertainty.",
+        ]
+    )
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
@@ -338,14 +343,16 @@ def generate_uncertainty_report(
             f"| **{sc_val}** | 90.0% | **{emp:.1f}%** | {c120:.1f}% | {c180:.1f}% | {width:.1f} |"
         )
 
-    lines.extend([
-        "",
-        "## 2. Horizon-Wise Quantile Growth",
-        "As time from meal ingestion progresses from 0 to 180 minutes, uncertainty half-widths $q_t$ grow monotonically:",
-        "",
-        "| Horizon Step | Time (min) | D0 Half-Width (90%) | D1_30m Half-Width (90%) | D4 Half-Width (90%) |",
-        "|---|---|---|---|---|",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 2. Horizon-Wise Quantile Growth",
+            "As time from meal ingestion progresses from 0 to 180 minutes, uncertainty half-widths $q_t$ grow monotonically:",
+            "",
+            "| Horizon Step | Time (min) | D0 Half-Width (90%) | D1_30m Half-Width (90%) | D4 Half-Width (90%) |",
+            "|---|---|---|---|---|",
+        ]
+    )
 
     q_d0 = cal_table.get_quantiles("D0", 0.90)
     q_d1 = cal_table.get_quantiles("D1_30m", 0.90)
@@ -354,15 +361,17 @@ def generate_uncertainty_report(
     for step_idx in [5, 11, 17, 23, 29, 35]:
         t_min = (step_idx + 1) * 5
         lines.append(
-            f"| Step {step_idx+1} | {t_min} min | ±{q_d0[step_idx]:.1f} mg/dL | ±{q_d1[step_idx]:.1f} mg/dL | ±{q_d4[step_idx]:.1f} mg/dL |"
+            f"| Step {step_idx + 1} | {t_min} min | ±{q_d0[step_idx]:.1f} mg/dL | ±{q_d1[step_idx]:.1f} mg/dL | ±{q_d4[step_idx]:.1f} mg/dL |"
         )
 
-    lines.extend([
-        "",
-        "## 3. Calibration Validity",
-        "- Finite-sample conformal correction preserves $\\ge 90\\%$ empirical coverage across held-out test patients.",
-        "- No uncalibrated parametric assumptions (e.g. Gaussian error) are made.",
-    ])
+    lines.extend(
+        [
+            "",
+            "## 3. Calibration Validity",
+            "- Finite-sample conformal correction preserves $\\ge 90\\%$ empirical coverage across held-out test patients.",
+            "- No uncalibrated parametric assumptions (e.g. Gaussian error) are made.",
+        ]
+    )
 
     with open(out_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))

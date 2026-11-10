@@ -228,7 +228,11 @@ def update_patient_biomarkers(
         p.height_cm = payload.height_cm
     if payload.bmi is not None:
         p.bmi = payload.bmi
-    elif (payload.weight_kg is not None or payload.height_cm is not None) and p.weight_kg and p.height_cm:
+    elif (
+        (payload.weight_kg is not None or payload.height_cm is not None)
+        and p.weight_kg
+        and p.height_cm
+    ):
         h_m = p.height_cm / 100.0
         if h_m > 0:
             p.bmi = round(p.weight_kg / (h_m * h_m), 1)

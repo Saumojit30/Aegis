@@ -23,7 +23,9 @@ class ConformalCalibrationTable:
 
     alpha_levels: List[float]  # e.g. [0.10, 0.20] for 90% and 80%
     n_calibration_samples: int
-    scenarios: Dict[str, Dict[str, List[float]]]  # scenario_id -> {"80%": [q1..q36], "90%": [q1..q36]}
+    scenarios: Dict[
+        str, Dict[str, List[float]]
+    ]  # scenario_id -> {"80%": [q1..q36], "90%": [q1..q36]}
     inflation_multipliers: Dict[str, float]  # scenario_id -> inflation factor if test coverage dips
 
     def to_dict(self) -> Dict[str, Any]:
@@ -207,7 +209,9 @@ def evaluate_conformal_coverage(
 
     # Horizon-specific coverage
     coverage_120 = float(np.mean(in_interval[:, :24]))
-    coverage_180 = float(np.mean(in_interval[:, 24:])) if y_true.shape[1] > 24 else empirical_coverage
+    coverage_180 = (
+        float(np.mean(in_interval[:, 24:])) if y_true.shape[1] > 24 else empirical_coverage
+    )
 
     return {
         "empirical_coverage": empirical_coverage,

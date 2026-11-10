@@ -116,7 +116,10 @@ class AegisBundle:
             )
         else:
             adapted_delta = adapt_prediction_with_prior(
-                point_delta_np, self.basis, past_residuals=earlier_residuals[:5], prior_alpha=alpha_prior
+                point_delta_np,
+                self.basis,
+                past_residuals=earlier_residuals[:5],
+                prior_alpha=alpha_prior,
             )
 
         adapted_pred = float(g_t0) + adapted_delta
@@ -238,11 +241,7 @@ def export_aegis_bundle(
     }
     ref_alphas = {}
     for pid in unique_pids:
-        p_res = [
-            residuals[i]
-            for i, s in enumerate(samples)
-            if s["patient_id"] == pid
-        ]
+        p_res = [residuals[i] for i, s in enumerate(samples) if s["patient_id"] == pid]
         if p_res:
             ref_alphas[pid] = np.mean([basis.transform(r) for r in p_res], axis=0).tolist()
 
@@ -309,9 +308,7 @@ def load_aegis_bundle(bundle_dir: Union[str, Path] = "artifacts/bundle") -> Aegi
     ref_static = {
         pid: np.array(vec, dtype=np.float32) for pid, vec in sim_data["static_profiles"].items()
     }
-    ref_alphas = {
-        pid: np.array(vec, dtype=np.float32) for pid, vec in sim_data["alphas"].items()
-    }
+    ref_alphas = {pid: np.array(vec, dtype=np.float32) for pid, vec in sim_data["alphas"].items()}
 
     cal_table = ConformalCalibrationTable.load(b_dir / "uncertainty_table.json")
 

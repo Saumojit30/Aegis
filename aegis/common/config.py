@@ -128,8 +128,8 @@ def load_app_config(
 
     data_cfg = DataConfig()
     model_cfg = ModelHyperparameters()
-    assumptions = {}
-    degradations = {}
+    assumptions: Dict[str, Any] = {}
+    degradations: Dict[str, Any] = {}
 
     if base_config_path:
         raw_dict = load_yaml_file(base_config_path)

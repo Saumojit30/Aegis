@@ -65,9 +65,7 @@ def test_d2_cgm_gaps(mock_sample_tensors):
 
 def test_d3_missing_wearables(mock_sample_tensors):
     seq, anchor, meal, static = mock_sample_tensors
-    deg_seq, _, _, _, meta = apply_degradation(
-        seq, anchor, meal, static, DegradationScenario.D3
-    )
+    deg_seq, _, _, _, meta = apply_degradation(seq, anchor, meal, static, DegradationScenario.D3)
     assert meta["is_degraded"] is True
     # HR and METs values and masks zeroed out
     assert torch.all(deg_seq[..., 2] == 0.0)
@@ -95,9 +93,7 @@ def test_d4_reduced_sensor(mock_sample_tensors):
 
 def test_d5_incomplete_meal(mock_sample_tensors):
     seq, anchor, meal, static = mock_sample_tensors
-    _, _, deg_meal, _, meta = apply_degradation(
-        seq, anchor, meal, static, DegradationScenario.D5
-    )
+    _, _, deg_meal, _, meta = apply_degradation(seq, anchor, meal, static, DegradationScenario.D5)
     assert meta["is_degraded"] is True
     assert deg_meal.shape == meal.shape
 

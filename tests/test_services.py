@@ -422,7 +422,7 @@ def test_biomarker_update_preserves_custom_priors_and_recomputes_bmi(client):
 def test_predict_missing_telemetry_resilience(client):
     # Ensure None/missing values in retrospective_sequence do not cause TypeError crashes
     pts = [
-        {"ts": f"2026-10-20T10:{i*5:02d}:00Z", "glucose": None, "hr": None, "mets": None}
+        {"ts": f"2026-10-20T10:{i * 5:02d}:00Z", "glucose": None, "hr": None, "mets": None}
         for i in range(12)
     ]
     payload = {
@@ -758,6 +758,3 @@ def test_simulate_walk_with_robust_bounds_and_zero_minutes(client):
     w0 = data["scenarios"][1]
     assert w0["delta_vs_baseline"]["delta_peak"] == 0.0
     assert w0["delta_vs_baseline"]["delta_time_to_peak"] == 0
-
-
-

@@ -99,7 +99,9 @@ class ReplayEngine:
                 avail = df["patient_id"].unique()
                 if len(avail) > 0:
                     first_p = avail[0]
-                    logger.info(f"Patient {patient_id} not in sensor parquet. Using {first_p} timeseries.")
+                    logger.info(
+                        f"Patient {patient_id} not in sensor parquet. Using {first_p} timeseries."
+                    )
                     p_df = df[df["patient_id"] == first_p].sort_values("ts").reset_index(drop=True)
                 else:
                     return self._create_fallback_series(patient_id)
@@ -146,22 +148,26 @@ class ReplayEngine:
                     future_slice = p_df.iloc[idx : min(n_rows, idx + 36)]["glucose"].tolist()
                     actual_curve = [round(float(v), 2) for v in future_slice]
 
-                points.append({
-                    "step": idx,
-                    "ts": ts_dt.isoformat(),
-                    "glucose": round(float(row["glucose"]), 1),
-                    "hr": round(float(row.get("hr", 72.0)), 1),
-                    "mets": round(float(row.get("mets", 1.0)), 2),
-                    "glucose_missing": bool(row.get("glucose_missing", False)),
-                    "hr_missing": bool(row.get("hr_missing", False)),
-                    "mets_missing": bool(row.get("mets_missing", False)),
-                    "is_meal": is_meal,
-                    "meal": meal_info,
-                    "actual_curve": actual_curve,
-                })
+                points.append(
+                    {
+                        "step": idx,
+                        "ts": ts_dt.isoformat(),
+                        "glucose": round(float(row["glucose"]), 1),
+                        "hr": round(float(row.get("hr", 72.0)), 1),
+                        "mets": round(float(row.get("mets", 1.0)), 2),
+                        "glucose_missing": bool(row.get("glucose_missing", False)),
+                        "hr_missing": bool(row.get("hr_missing", False)),
+                        "mets_missing": bool(row.get("mets_missing", False)),
+                        "is_meal": is_meal,
+                        "meal": meal_info,
+                        "actual_curve": actual_curve,
+                    }
+                )
 
             self._series_cache[patient_id] = points
-            logger.info(f"Loaded {len(points)} real sensor readings and {len(meals_dict)} meals for patient {patient_id}")
+            logger.info(
+                f"Loaded {len(points)} real sensor readings and {len(meals_dict)} meals for patient {patient_id}"
+            )
             return points
 
         except Exception as e:
@@ -171,7 +177,9 @@ class ReplayEngine:
     def _create_fallback_series(self, patient_id: str) -> List[Dict[str, Any]]:
         """Fallback series if parquet files are completely absent."""
         points = []
-        base_t = datetime.datetime.now(datetime.timezone.utc).replace(hour=8, minute=0, second=0, microsecond=0)
+        base_t = datetime.datetime.now(datetime.timezone.utc).replace(
+            hour=8, minute=0, second=0, microsecond=0
+        )
         curr_g = 120.0
         for step in range(144):
             ts = base_t + datetime.timedelta(minutes=step * 5)
@@ -179,32 +187,54 @@ class ReplayEngine:
             meal_info = None
             if step == 24:
                 curr_g += 45.0
-                meal_info = {"meal_id": f"M_{patient_id}_1", "name": "Breakfast", "carbs_g": 45.0, "fat_g": 12.0, "protein_g": 15.0, "calories": 350.0, "amount_pct": 100.0, "meal_type": "breakfast"}
+                meal_info = {
+                    "meal_id": f"M_{patient_id}_1",
+                    "name": "Breakfast",
+                    "carbs_g": 45.0,
+                    "fat_g": 12.0,
+                    "protein_g": 15.0,
+                    "calories": 350.0,
+                    "amount_pct": 100.0,
+                    "meal_type": "breakfast",
+                }
             elif step == 72:
                 curr_g += 60.0
-                meal_info = {"meal_id": f"M_{patient_id}_2", "name": "Lunch", "carbs_g": 65.0, "fat_g": 20.0, "protein_g": 22.0, "calories": 520.0, "amount_pct": 100.0, "meal_type": "lunch"}
+                meal_info = {
+                    "meal_id": f"M_{patient_id}_2",
+                    "name": "Lunch",
+                    "carbs_g": 65.0,
+                    "fat_g": 20.0,
+                    "protein_g": 22.0,
+                    "calories": 520.0,
+                    "amount_pct": 100.0,
+                    "meal_type": "lunch",
+                }
             else:
                 curr_g = curr_g + (120.0 - curr_g) * 0.05
-            points.append({
-                "step": step,
-                "ts": ts.isoformat(),
-                "glucose": round(curr_g, 1),
-                "hr": 72.0,
-                "mets": 1.0,
-                "glucose_missing": False,
-                "hr_missing": False,
-                "mets_missing": False,
-                "is_meal": is_meal,
-                "meal": meal_info,
-                "actual_curve": None,
-            })
+            points.append(
+                {
+                    "step": step,
+                    "ts": ts.isoformat(),
+                    "glucose": round(curr_g, 1),
+                    "hr": 72.0,
+                    "mets": 1.0,
+                    "glucose_missing": False,
+                    "hr_missing": False,
+                    "mets_missing": False,
+                    "is_meal": is_meal,
+                    "meal": meal_info,
+                    "actual_curve": None,
+                }
+            )
         self._series_cache[patient_id] = points
         return points
 
     def get_patient_series(self, patient_id: str) -> List[Dict[str, Any]]:
         return self._load_patient_series(patient_id)
 
-    def get_retrospective_buffer(self, patient_id: str, cursor_idx: int, steps: int = 12) -> List[Dict[str, Any]]:
+    def get_retrospective_buffer(
+        self, patient_id: str, cursor_idx: int, steps: int = 12
+    ) -> List[Dict[str, Any]]:
         """Extracts preceding 12 steps (60 minutes) from the active replay buffer."""
         series = self._load_patient_series(patient_id)
         if not series:
@@ -312,7 +342,9 @@ class ReplayEngine:
             )
         return state
 
-    async def _process_step(self, session_id: str, state: ReplayState, pt: Dict[str, Any], series: List[Dict[str, Any]]) -> None:
+    async def _process_step(
+        self, session_id: str, state: ReplayState, pt: Dict[str, Any], series: List[Dict[str, Any]]
+    ) -> None:
         """Processes a single step, broadcasting tick and running forecast on meal arrival."""
         state.current_glucose = pt["glucose"]
         state.current_hr = pt["hr"]
@@ -351,7 +383,9 @@ class ReplayEngine:
                 try:
                     from services.common.contracts import MealInput, PredictRequest
 
-                    retrospective_window = self.get_retrospective_buffer(state.patient_id, state.cursor_idx, steps=12)
+                    retrospective_window = self.get_retrospective_buffer(
+                        state.patient_id, state.cursor_idx, steps=12
+                    )
 
                     req = PredictRequest(
                         patient_id=state.patient_id,

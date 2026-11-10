@@ -241,19 +241,31 @@ class InProcessInferenceProvider(InferenceProvider):
                 mets_missing = p.get("mets_missing", False) or raw_mets is None
 
                 try:
-                    p_g = float(raw_g) if (raw_g is not None and not math.isnan(float(raw_g))) else g_t0
+                    p_g = (
+                        float(raw_g)
+                        if (raw_g is not None and not math.isnan(float(raw_g)))
+                        else g_t0
+                    )
                 except (ValueError, TypeError):
                     p_g = g_t0
                     g_missing = True
 
                 try:
-                    p_hr = float(raw_hr) if (raw_hr is not None and not math.isnan(float(raw_hr))) else 75.0
+                    p_hr = (
+                        float(raw_hr)
+                        if (raw_hr is not None and not math.isnan(float(raw_hr)))
+                        else 75.0
+                    )
                 except (ValueError, TypeError):
                     p_hr = 75.0
                     hr_missing = True
 
                 try:
-                    p_mets = float(raw_mets) if (raw_mets is not None and not math.isnan(float(raw_mets))) else 1.0
+                    p_mets = (
+                        float(raw_mets)
+                        if (raw_mets is not None and not math.isnan(float(raw_mets)))
+                        else 1.0
+                    )
                 except (ValueError, TypeError):
                     p_mets = 1.0
                     mets_missing = True
@@ -268,14 +280,22 @@ class InProcessInferenceProvider(InferenceProvider):
             anchor[0] = g_t0 / 200.0
             g_minus15_raw = pts[-3].get("glucose") if len(pts) >= 3 else None
             try:
-                g_minus15 = float(g_minus15_raw) if (g_minus15_raw is not None and not math.isnan(float(g_minus15_raw))) else g_t0
+                g_minus15 = (
+                    float(g_minus15_raw)
+                    if (g_minus15_raw is not None and not math.isnan(float(g_minus15_raw)))
+                    else g_t0
+                )
             except (ValueError, TypeError):
                 g_minus15 = g_t0
             anchor[1] = (g_t0 - g_minus15) / 15.0
 
             g_minus30_raw = pts[-6].get("glucose") if len(pts) >= 6 else None
             try:
-                g_minus30 = float(g_minus30_raw) if (g_minus30_raw is not None and not math.isnan(float(g_minus30_raw))) else g_t0
+                g_minus30 = (
+                    float(g_minus30_raw)
+                    if (g_minus30_raw is not None and not math.isnan(float(g_minus30_raw)))
+                    else g_t0
+                )
             except (ValueError, TypeError):
                 g_minus30 = g_t0
             anchor[2] = (g_t0 - g_minus30) / 30.0
@@ -590,9 +610,8 @@ class InProcessInferenceProvider(InferenceProvider):
                 elif t_start < t <= t_end:
                     cum_clear[i] = r_active * (t - t_start)
                 else:  # t > t_end
-                    cum_clear[i] = (
-                        r_active * (t_end - t_start)
-                        + r_active * tau_post * (1.0 - math.exp(-(t - t_end) / tau_post))
+                    cum_clear[i] = r_active * (t_end - t_start) + r_active * tau_post * (
+                        1.0 - math.exp(-(t - t_end) / tau_post)
                     )
 
             new_traj = np.clip(base_traj - cum_clear, 40.0, 400.0)
@@ -675,9 +694,7 @@ class InProcessInferenceProvider(InferenceProvider):
                     "protein_g": m_curr.protein_g * (m_curr.amount_pct / 100.0),
                     "fat_g": m_curr.fat_g * (m_curr.amount_pct / 100.0),
                     "fiber_g": m_curr.fiber_g * (m_curr.amount_pct / 100.0),
-                    "calories": (
-                        m_curr.carbs_g * 4.0 + m_curr.protein_g * 4.0 + m_curr.fat_g * 9.0
-                    )
+                    "calories": (m_curr.carbs_g * 4.0 + m_curr.protein_g * 4.0 + m_curr.fat_g * 9.0)
                     * (m_curr.amount_pct / 100.0),
                     "meal_type": m_curr.meal_type,
                     "minutes_since_prev_meal": 360.0,
@@ -776,7 +793,9 @@ class InProcessInferenceProvider(InferenceProvider):
                     delta_vs_baseline=ScenarioDifference(
                         delta_peak=round(peak_val - baseline.metrics.peak, 1),
                         delta_time_to_peak=ttp - baseline.metrics.time_to_peak_min,
-                        delta_delayed_mean=round(del_mean - baseline.metrics.delayed_mean_120_180, 1),
+                        delta_delayed_mean=round(
+                            del_mean - baseline.metrics.delayed_mean_120_180, 1
+                        ),
                     ),
                     reliability=baseline.reliability,
                     notes="Food sequencing: Mock simulation with delayed absorption.",
@@ -1010,7 +1029,10 @@ class MockInferenceProvider(InferenceProvider):
                 mod_meal = req.meal.model_copy(update={"amount_pct": amt})
                 p = await self.predict(
                     base_req.model_copy(
-                        update={"meal": mod_meal, "g_t0": baseline.glucose[0] - baseline.delta_glucose[0]}
+                        update={
+                            "meal": mod_meal,
+                            "g_t0": baseline.glucose[0] - baseline.delta_glucose[0],
+                        }
                     )
                 )
                 results.append(

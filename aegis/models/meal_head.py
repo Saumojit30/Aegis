@@ -168,9 +168,7 @@ class StructuredMealForecasterS(nn.Module):
         # 1. Slow fraction φ from meal ratios (indices 5, 6, 7) or explicit override
         if phi_override is not None:
             clamped_phi = float(np.clip(phi_override, 0.0, 1.0))
-            phi = torch.full(
-                (batch_size, 1), clamped_phi, dtype=torch.float32, device=device
-            )
+            phi = torch.full((batch_size, 1), clamped_phi, dtype=torch.float32, device=device)
         else:
             ratios = meal[:, 5:8]
             phi = self.slow_fraction_mlp(ratios)  # [B, 1]

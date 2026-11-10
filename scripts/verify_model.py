@@ -183,9 +183,7 @@ def run_verification(
     print(
         f"| {'B2: Multi-Output Ridge':<28} | {res_b2['mae_120']:>8.2f} mg | {res_b2['rmse_120']:>9.2f} mg | {res_b2['peak_err']:>6.2f} mg | {res_b2['ttp_err']:>5.1f} m  |"
     )
-    print(
-        f"| {'B3: Tuned HistGBDT':<28} |    22.00 mg |    23.55 mg |   28.53 mg |  26.3 m  |"
-    )
+    print(f"| {'B3: Tuned HistGBDT':<28} |    22.00 mg |    23.55 mg |   28.53 mg |  26.3 m  |")
     print(
         f"| {'Candidate S (Aegis)':<28} | {res_cs['mae_120']:>8.2f} mg | {res_cs['rmse_120']:>9.2f} mg | {res_cs['peak_err']:>6.2f} mg | {res_cs['ttp_err']:>5.1f} m  |"
     )
@@ -220,14 +218,10 @@ def run_verification(
                     in_bounds_points += 1
                     horizon_coverages[t] += 1
 
-    empirical_coverage = (
-        (in_bounds_points / total_points) * 100.0 if total_points > 0 else 0.0
-    )
+    empirical_coverage = (in_bounds_points / total_points) * 100.0 if total_points > 0 else 0.0
 
     print("+" + "-" * 78 + "+")
-    print(
-        "| 2. SPLIT-CONFORMAL UNCERTAINTY QUANTIFICATION AUDIT (Target: >=90.0% Coverage)|"
-    )
+    print("| 2. SPLIT-CONFORMAL UNCERTAINTY QUANTIFICATION AUDIT (Target: >=90.0% Coverage)|")
     print("+" + "-" * 78 + "+")
     print(
         f"| Total Evaluated Telemetry Points: {total_points:<6}  In-Bounds Points: {in_bounds_points:<12}       |"
@@ -236,9 +230,7 @@ def run_verification(
         f"| Empirical Test Coverage:          {empirical_coverage:>6.2f}% (Finite-Sample Validated)           |"
     )
     print("|" + "-" * 78 + "|")
-    print(
-        "| Multi-Horizon Empirical Coverage Breakdown:                                  |"
-    )
+    print("| Multi-Horizon Empirical Coverage Breakdown:                                  |")
     milestones = [5, 11, 17, 23, 29, 35]  # 30m, 60m, 90m, 120m, 150m, 180m
     for idx in milestones:
         t_min = (idx + 1) * 5
@@ -270,9 +262,7 @@ def run_verification(
     safe_zone_pct = cega_pct + cegb_pct
 
     print("+" + "-" * 78 + "+")
-    print(
-        "| 3. CLARKE ERROR GRID ANALYSIS (Clinical Decision-Theoretic Safety)            |"
-    )
+    print("| 3. CLARKE ERROR GRID ANALYSIS (Clinical Decision-Theoretic Safety)            |")
     print("+" + "-" * 78 + "+")
     print(
         f"| Zone A (Clinically Accurate, <=20% error):              {zone_counts['A']:>5} ({cega_pct:>5.1f}%)        |"
@@ -281,13 +271,13 @@ def run_verification(
         f"| Zone B (Benign / Non-actionable deviations):            {zone_counts['B']:>5} ({cegb_pct:>5.1f}%)        |"
     )
     print(
-        f"| Zone C (Overcorrection risk):                           {zone_counts['C']:>5} ({(zone_counts['C']/total_points)*100.0:>5.1f}%)        |"
+        f"| Zone C (Overcorrection risk):                           {zone_counts['C']:>5} ({(zone_counts['C'] / total_points) * 100.0:>5.1f}%)        |"
     )
     print(
-        f"| Zone D (Failure to detect dangerous hypo/hyper):        {zone_counts['D']:>5} ({(zone_counts['D']/total_points)*100.0:>5.1f}%)        |"
+        f"| Zone D (Failure to detect dangerous hypo/hyper):        {zone_counts['D']:>5} ({(zone_counts['D'] / total_points) * 100.0:>5.1f}%)        |"
     )
     print(
-        f"| Zone E (Erroneous treatment / catastrophic risk):       {zone_counts['E']:>5} ({(zone_counts['E']/total_points)*100.0:>5.1f}%)        |"
+        f"| Zone E (Erroneous treatment / catastrophic risk):       {zone_counts['E']:>5} ({(zone_counts['E'] / total_points) * 100.0:>5.1f}%)        |"
     )
     print("|" + "-" * 78 + "|")
     print(
@@ -297,33 +287,17 @@ def run_verification(
 
     # 4. K-Shot Few-Shot Personalisation Trajectory
     print("+" + "-" * 78 + "+")
-    print(
-        "| 4. FEW-SHOT DIGITAL TWIN PERSONALISATION (Chronological Historical Meals)      |"
-    )
+    print("| 4. FEW-SHOT DIGITAL TWIN PERSONALISATION (Chronological Historical Meals)      |")
     print("+" + "-" * 78 + "+")
-    print(
-        "| Strategy                               | Historical Meals (K) | MAE (0-120m)   |"
-    )
+    print("| Strategy                               | Historical Meals (K) | MAE (0-120m)   |")
     print("|" + "-" * 40 + "+" + "-" * 22 + "+" + "-" * 14 + "|")
-    print(
-        "| Clinical Similarity Prior (Cold Start) | K = 0                | 17.01 mg/dL    |"
-    )
-    print(
-        "| Single-Meal Ridge Shrinkage            | K = 1                | 10.90 mg/dL    |"
-    )
-    print(
-        "| Three-Meal Residual Adaptation         | K = 3                |  9.50 mg/dL    |"
-    )
-    print(
-        "| Multi-Meal Personalised Twin           | K = 5                |  8.08 mg/dL    |"
-    )
+    print("| Clinical Similarity Prior (Cold Start) | K = 0                | 17.01 mg/dL    |")
+    print("| Single-Meal Ridge Shrinkage            | K = 1                | 10.90 mg/dL    |")
+    print("| Three-Meal Residual Adaptation         | K = 3                |  9.50 mg/dL    |")
+    print("| Multi-Meal Personalised Twin           | K = 5                |  8.08 mg/dL    |")
     print("+" + "-" * 78 + "+")
-    print(
-        "  * Personalisation strictly preserves temporal ordering (zero future data leakage)."
-    )
-    print(
-        "  * 5 observed meals reduce prediction error by >52% compared to cold start.\n"
-    )
+    print("  * Personalisation strictly preserves temporal ordering (zero future data leakage).")
+    print("  * 5 observed meals reduce prediction error by >52% compared to cold start.\n")
 
     # 5. Optional Single Sample Drilldown
     if inspect_sample_idx is not None:
@@ -349,15 +323,13 @@ def run_verification(
             err = abs(pred_abs[t] - true_abs[t])
             in_b = lowers[t] <= true_abs[t] <= uppers[t]
             print(
-                f"#{t+1:<4} | {t_min:>3} min  | {true_abs[t]:>7.1f} mg/dL | {pred_abs[t]:>6.1f} mg/dL | {err:>5.1f} mg/dL | [{lowers[t]:>5.1f}, {uppers[t]:>5.1f}] mg/dL    | {'YES' if in_b else 'NO'}"
+                f"#{t + 1:<4} | {t_min:>3} min  | {true_abs[t]:>7.1f} mg/dL | {pred_abs[t]:>6.1f} mg/dL | {err:>5.1f} mg/dL | [{lowers[t]:>5.1f}, {uppers[t]:>5.1f}] mg/dL    | {'YES' if in_b else 'NO'}"
             )
         print("=" * 85 + "\n")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Aegis Real-World Clinical Model Verification"
-    )
+    parser = argparse.ArgumentParser(description="Aegis Real-World Clinical Model Verification")
     parser.add_argument(
         "--bundle", default="artifacts/bundle", help="Path to artifact bundle directory"
     )
@@ -366,9 +338,7 @@ if __name__ == "__main__":
         default="data/processed/samples.json",
         help="Path to processed clinical samples",
     )
-    parser.add_argument(
-        "--patient", default=None, help="Filter to specific patient ID (e.g. P020)"
-    )
+    parser.add_argument("--patient", default=None, help="Filter to specific patient ID (e.g. P020)")
     parser.add_argument(
         "--sample", type=int, default=None, help="Inspect specific sample index (0..53)"
     )

@@ -127,10 +127,16 @@ def apply_degradation(
         DegradationScenario.D1_60M,
     ]:
         # CGM dropout for last N minutes
-        dropout_min = 15 if scenario == DegradationScenario.D1_15M else (30 if scenario == DegradationScenario.D1_30M else 60)
+        dropout_min = (
+            15
+            if scenario == DegradationScenario.D1_15M
+            else (30 if scenario == DegradationScenario.D1_30M else 60)
+        )
         dropout_steps = min(steps, dropout_min // 5)
         metadata["anchor_age_min"] = float(dropout_min)
-        metadata["warning"] = f"CGM missing for the last {dropout_min} minutes. Prediction anchored to earlier observation."
+        metadata["warning"] = (
+            f"CGM missing for the last {dropout_min} minutes. Prediction anchored to earlier observation."
+        )
 
         # Mask out glucose for the last dropout_steps
         if dropout_steps > 0:
@@ -151,7 +157,9 @@ def apply_degradation(
     elif scenario in [DegradationScenario.D2_20, DegradationScenario.D2_50]:
         # Random gaps in CGM
         drop_rate = 0.20 if scenario == DegradationScenario.D2_20 else 0.50
-        metadata["warning"] = f"Intermittent CGM communication gaps ({int(drop_rate*100)}% dropout rate)."
+        metadata["warning"] = (
+            f"Intermittent CGM communication gaps ({int(drop_rate * 100)}% dropout rate)."
+        )
 
         if is_torch:
             mask = torch.from_numpy(rng.rand(*out_seq.shape[:-1]) < drop_rate).to(out_seq.device)
@@ -189,7 +197,9 @@ def apply_degradation(
 
     elif scenario == DegradationScenario.D5:
         # Incomplete meal: substitute population defaults
-        metadata["warning"] = "Incomplete meal composition; replaced with population nutritional medians."
+        metadata["warning"] = (
+            "Incomplete meal composition; replaced with population nutritional medians."
+        )
         # If raw_meal provided, use extract_meal_features with population medians
         default_meal = {
             "calories": 500.0,
@@ -216,11 +226,15 @@ def apply_degradation(
     elif scenario == DegradationScenario.D6:
         # Cold start: K=0 personal meals
         metadata["cold_start"] = True
-        metadata["warning"] = "New patient cold-start (K=0 meals). Prior computed via clinical similarity."
+        metadata["warning"] = (
+            "New patient cold-start (K=0 meals). Prior computed via clinical similarity."
+        )
 
     elif scenario == DegradationScenario.D7:
         # Out of support meal
         metadata["out_of_support"] = True
-        metadata["warning"] = "Meal nutritional profile is outside historical support envelope; conservative bounds applied."
+        metadata["warning"] = (
+            "Meal nutritional profile is outside historical support envelope; conservative bounds applied."
+        )
 
     return out_seq, out_anchor, out_meal, out_static, metadata
