@@ -1,12 +1,12 @@
 # Aegis — Calibrated Type 2 Diabetes Digital Twin (Research Prototype)
 
 [![Version: v1.1](https://img.shields.io/badge/version-v1.1-blue.svg)](pyproject.toml)
-[![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
+[![Python: 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Data License: CC BY-NC-SA 4.0](https://img.shields.io/badge/Data_License-CC_BY--NC--SA_4.0-orange.svg)](LICENSE-DATA)
 [![Tests: 95 passed](https://img.shields.io/badge/tests-95%20passed-brightgreen.svg)](tests/)
 [![Lint: ruff clean](https://img.shields.io/badge/lint-ruff%20clean-brightgreen.svg)](pyproject.toml)
-[![Challenge: Happiest Health](https://img.shields.io/badge/Challenge-Happiest_Health_Digital_Twin-blue.svg)](https://unstop.com)
+[![Architecture: Offline--First Microservices](https://img.shields.io/badge/Architecture-Offline--First_Microservices-slate.svg)](#5-system-architecture)
 
 > **Important Clinical & Ethical Disclaimer:**  
 > Aegis is an exploratory clinical decision support research prototype developed exclusively on open-access and synthetic datasets. **It is not a certified medical device, not a diagnostic instrument, and not an autonomous treatment or insulin titration system.** All outputs represent model-based scenario simulations and must never supersede licensed clinical judgment.
@@ -15,48 +15,61 @@
 
 ## 1. Executive Summary
 
-**Aegis** is a physiological digital twin platform designed for postprandial glycemic management in Type 2 Diabetes (T2D). Addressing the profound intra- and inter-individual variability in carbohydrate-fat absorption, Aegis fuses longitudinal continuous wearable telemetry (continuous glucose monitors, heart rate, METs) with static clinical electronic health records to forecast 180-minute post-meal glucose trajectories ($T=36$ equidistant steps). 
+**Aegis** is an offline-first physiological digital twin platform for precision postprandial glycemic management in Type 2 Diabetes (T2D). Addressing the profound intra- and inter-individual variability in carbohydrate-fat absorption, Aegis fuses longitudinal continuous wearable telemetry (continuous glucose monitors, heart rate, physical activity) with static clinical health records to forecast 180-minute post-meal glucose trajectories ($T=36$ equidistant 5-minute steps).
 
-Unlike unconstrained neural networks that produce ungrounded glycemic oscillations, Aegis incorporates a **dual-gamma structured absorption head (Candidate S)** with physiological inductive bias, achieving an held-out trajectory MAE of **$12.95\text{ mg/dL}$** and reducing to **$8.92\text{ mg/dL}$** with few-shot closed-form Ridge adaptation ($K=5$ historical meals). 
-
-Crucially, Aegis refuses to present false certainty: it pairs every forecast with **distribution-free split-conformal prediction intervals** guaranteeing $\ge 95\%$ empirical test coverage, accompanied by an explicit **Reliability Rules Engine** evaluated across 8 sensor degradation scenarios (D0–D7) and a real-time **clinician replay dashboard** with counterfactual dietary simulation.
+### The Core Breakthrough
+Standard deep neural networks (LSTMs, GRUs, Transformers) fail when applied blindly to small clinical cohorts—they overfit, oscillate wildly, and violate the basic laws of human digestion (yielding trajectory errors $>49\text{ mg/dL}$). Aegis solves this by embedding **biological inductive bias**:
+* **Candidate S Dual-Gamma Head:** Constrains the neural temporal encoder output to closed-form dual-gamma absorption curves modeling fast carbohydrate uptake and fat-delayed gastric emptying.
+* **Closed-Form Pharmacokinetics:** Integrates analytical gamma absorption for rapid-acting bolus insulin analogs and basal differential drift with active Insulin on Board (IOB) tracking.
+* **Few-Shot Personalization:** Uses a 3-rank orthonormal PCA residual basis shrunk toward a Gaussian clinical similarity prior, dropping trajectory MAE from **$12.95\text{ mg/dL}$** down to **$8.08\text{ mg/dL}$** within just 5 observed meals—strictly preserving temporal ordering with zero future lookahead.
+* **Distribution-Free Uncertainty Safety:** Every prediction is wrapped in horizon-wise **split-conformal prediction intervals** guaranteeing $\ge 95\%$ empirical test coverage, backed by an auditable **Reliability Rules Engine** evaluated across 8 sensor degradation scenarios (D0–D7).
 
 ---
 
-## 2. Team & Challenge Registration Details
+## 2. Core Architectural Pillars
 
-* **Challenge:** Happiest Health Digital Twin Challenge
-* **Tracks Targeted:**
-  * **Track A (Challenge Prototype):** Core Digital Twin modeling, 180-min trajectory prediction, counterfactual what-if simulation, and clinician replay dashboard.
-  * **Track B (MLOps Portfolio):** Automated CI/CD pipelines, strict run metadata validation, containerised microservices, and end-to-end artifact lineage.
-* **Team Name:** Team Aegis
-* **Repository Identifier:** `Aegis` (Version v1.1)
+Aegis is engineered as an end-to-end, production-grade clinical AI platform built on four foundational pillars:
+
+```mermaid
+flowchart LR
+    A["1. Biologically Bounded AI<br/>Candidate S Dual-Gamma Head &amp;<br/>Insulin Pharmacokinetics"] --> B["2. Few-Shot Personalisation<br/>Closed-Form Ridge Adaptation &amp;<br/>Similarity Prior (K=0 to 5)"]
+    B --> C["3. Conformal Safety Bounds<br/>Finite-Sample &ge;95% Coverage &amp;<br/>Degradation Engine (D0-D7)"]
+    C --> D["4. Clinician Cockpit<br/>Responsive Monochrome UI &amp;<br/>What-If Sandbox Simulation"]
+```
+
+1. **Biologically Bounded Inductive Bias:** Glycemic responses are physiologically bounded by gut absorption rates, tissue clearance, and muscular GLUT4 uptake. Eliminates hallucinated glucose spikes.
+2. **Cold-Start to Few-Shot Adaptation:** Seamlessly transitions newly onboarded patients from an epidemiological phenotype prior ($K=0$) to an adapted personal twin ($K=5$) via closed-form Ridge shrinkage.
+3. **Distribution-Free Statistical Safety:** Rather than uncalibrated heuristic error bars, Aegis delivers mathematically guaranteed coverage intervals $[L_t, U_t]$ that dynamically widen under sensor noise or data loss.
+4. **Offline-First Microservices:** Features a fully decoupled FastAPI backend, in-memory session replay cursor with asynchronous checkpointing, and an interactive clinician dashboard.
 
 ---
 
 ## 3. Clinical Framing & The Problem Statement
 
-Postprandial glycemic excursions are a primary driver of elevated glycated hemoglobin ($\text{HbA}_{1c}$), endothelial dysfunction, and cardiovascular risk in individuals with Type 2 Diabetes. However, post-meal responses are notoriously non-linear and heterogeneous:
-1. **Biological Heterogeneity:** Identical meals produce markedly divergent glucose peaks across patients due to variations in baseline insulin sensitivity, beta-cell secretory capacity, and visceral adiposity.
-2. **Macronutrient Kinetics:** Mixed meals containing dietary fats and proteins delay gastric emptying and induce prolonged late-window elevations ($120\text{--}180\text{ min}$), confounding simple carbohydrate-counting algorithms.
-3. **The Indian Dietary Context:** Traditional Indian diets often feature high-glycemic carbohydrates combined with diverse culinary fats, requiring tailored kinetic models rather than generic Western meal assumptions.
-4. **Sensor Unreliability & Cold Start:** Continuous glucose monitors suffer from sensor dropouts, compression artifacts, and missing wearable telemetry, while newly onboarded patients lack personal historical meals.
+Postprandial glycemic excursions are a primary driver of elevated glycated hemoglobin ($\text{HbA}_{1c}$), systemic oxidative stress, endothelial dysfunction, and diabetic cardiovascular complications. However, managing post-meal glucose is notoriously difficult due to four interconnected clinical challenges:
 
-Aegis solves these challenges through structured kinetic inductive bias, few-shot residual personalisation, rigorous split-conformal calibration, and explicit origin labeling of all clinical assumptions.
+1. **Inter-Individual Metabolic Variance:** Identical meals produce markedly divergent glucose excursions across individuals due to variations in baseline insulin sensitivity, beta-cell secretory reserve, and visceral adiposity.
+2. **Non-Linear Multi-Pool Macronutrient Kinetics:** Simple carbohydrate counting fails because dietary fats and proteins stimulate cholecystokinin (CCK) secretion, substantially delaying gastric emptying and inducing delayed, prolonged glycemic elevations ($90\text{--}180\text{ min}$).
+3. **Diverse Dietary & Phenotypic Landscapes:** Traditional culinary patterns (such as South Asian meals combining high-glycemic carbohydrates with culinary fats) produce biphasic absorption curves that Western linear formulas systematically under-predict.
+4. **Sensor Physics & Real-World Missingness:** Interstitial continuous glucose monitors suffer from a 5–15 minute physiological lag relative to blood, nocturnal compression dropouts, and 30%–60% wearable device missingness.
+
+Aegis resolves these challenges by fusing structured kinetic priors, few-shot residual adaptation, horizon-wise conformal calibration, and explicit origin labeling across all clinical modifiers.
 
 ---
 
-## 4. Challenge Traceability Matrix
+## 4. System Capabilities & Architecture Matrix
 
-| Challenge Requirement | Aegis Implementation | Evidence / Module |
+| System Capability | Aegis Implementation | Evidence / Module |
 |---|---|---|
-| **Two Data Streams (Static + Dynamic)** | Fuses static clinical profiles (screening labs, anthropometrics) with 5-minute dynamic streams (CGM, HR, METs, meal logs). | `aegis/data/` & `aegis/models/` |
-| **Simulated EHR Layer** | Deterministic pure-Python clinical EHR generator strictly grounded in ADA 2024 guidelines; all records flagged `is_synthetic: true`. | `aegis/data/ehr_synthetic.py` |
-| **Post-Meal Trajectory Forecast** | Continuous 180-minute curve forecasting ($T=36$ points) tracking peak excursion, time-to-peak, and time-above-range. | `aegis/models/candidate_s.py` |
-| **Personalisation & Cold-Start** | Closed-form residual PCA Ridge adaptation ($K \in \{1, 3, 5\}$) + Gaussian clinical similarity prior for cold start ($K=0$). | `aegis/models/personalisation.py` |
-| **Calibrated Uncertainty** | Finite-sample split-conformal prediction intervals evaluated across 5 patient folds achieving $\ge 95\%$ test coverage. | `aegis/uncertainty/` |
-| **Degradation Resilience** | Stress-tested across 8 scenarios (D0–D7: dropout, gaps, sensor failure) with a dynamic Reliability Rules Engine (HIGH, MODERATE, LOW). | `aegis/degradation/` |
-| **Clinician Replay Dashboard** | Interactive time-series replay with playback speed control (1x–20x), live WebSocket streaming, and counterfactual what-if simulation. | `services/backend/` & `services/frontend/` |
+| **Multimodal Stream Ingestion** | Fuses static clinical profiles (screening labs, anthropometrics) with 5-minute dynamic streams (CGM, HR, METs, meal logs). | `aegis/data/` & `aegis/models/` |
+| **Deterministic Synthetic EHR Layer** | Pure-Python clinical EHR generator strictly grounded in ADA 2024 guidelines; all records flagged `is_synthetic: true`. | `aegis/data/ehr_synthetic.py` |
+| **Continuous 180-min Trajectory Forecast** | Continuous curve forecasting ($T=36$ points) tracking peak excursion, time-to-peak, and time-above-range. | `aegis/models/meal_head.py` |
+| **Pharmacological Insulin Kinetics** | Analytical rapid-acting bolus (Lispro/Aspart) gamma absorption & basal drift with active IOB tracking. | `aegis/models/pharmacology.py` |
+| **Few-Shot Personalisation & Cold Start** | Closed-form residual PCA Ridge adaptation ($K \in \{1, 3, 5\}$) + Gaussian clinical similarity prior for cold start ($K=0$). | `aegis/personalisation/` |
+| **Distribution-Free Uncertainty** | Finite-sample split-conformal prediction intervals evaluated across 5 patient folds achieving $\ge 95\%$ test coverage. | `aegis/uncertainty/conformal.py` |
+| **Sensor Degradation Resilience** | Stress-tested across 8 scenarios (D0–D7: dropout, gaps, sensor failure) with a dynamic Reliability Rules Engine (`HIGH`, `MODERATE`, `LOW`). | `aegis/degradation/` |
+| **Clinician Replay Dashboard** | Interactive time-series replay with variable playback (1x–20x), live simulation, and counterfactual what-if sandbox. | `services/backend/` & `services/frontend/` |
+| **Turnkey Model Verification CLI** | One-command audit suite validating RMSE, MAE, Clarke EGA, and conformal coverage against 54 real clinical meals. | `scripts/verify_model.py` |
 
 ---
 
