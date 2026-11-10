@@ -563,7 +563,7 @@ export default function ClinicianDashboard() {
               <span className="w-4 h-4 rounded bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center text-[9px] font-bold">Æ</span>
               <span>Twin Workspace</span>
             </div>
-            <span className="text-[10px] text-[var(--text-muted)] font-mono">v2026.4</span>
+            <span className="text-[10px] text-[var(--text-muted)] font-mono">v1.1</span>
           </div>
           <select
             value={patientId}

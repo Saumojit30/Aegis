@@ -1,11 +1,12 @@
 # Aegis — Calibrated Type 2 Diabetes Digital Twin (Research Prototype)
 
+[![Version: v1.1](https://img.shields.io/badge/version-v1.1-blue.svg)](pyproject.toml)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Data License: CC BY-NC-SA 4.0](https://img.shields.io/badge/Data_License-CC_BY--NC--SA_4.0-orange.svg)](LICENSE-DATA)
-[![Tests: 67 passed](https://img.shields.io/badge/tests-67%20passed-brightgreen.svg)](tests/)
+[![Tests: 95 passed](https://img.shields.io/badge/tests-95%20passed-brightgreen.svg)](tests/)
 [![Lint: ruff clean](https://img.shields.io/badge/lint-ruff%20clean-brightgreen.svg)](pyproject.toml)
-[![Challenge: Happiest Health 2026](https://img.shields.io/badge/Challenge-Happiest_Health_Digital_Twin_2026-purple.svg)](https://unstop.com)
+[![Challenge: Happiest Health](https://img.shields.io/badge/Challenge-Happiest_Health_Digital_Twin-blue.svg)](https://unstop.com)
 
 > **Important Clinical & Ethical Disclaimer:**  
 > Aegis is an exploratory clinical decision support research prototype developed exclusively on open-access and synthetic datasets. **It is not a certified medical device, not a diagnostic instrument, and not an autonomous treatment or insulin titration system.** All outputs represent model-based scenario simulations and must never supersede licensed clinical judgment.
@@ -24,12 +25,12 @@ Crucially, Aegis refuses to present false certainty: it pairs every forecast wit
 
 ## 2. Team & Challenge Registration Details
 
-* **Challenge:** Happiest Health Digital Twin Challenge 2026
+* **Challenge:** Happiest Health Digital Twin Challenge
 * **Tracks Targeted:**
   * **Track A (Challenge Prototype):** Core Digital Twin modeling, 180-min trajectory prediction, counterfactual what-if simulation, and clinician replay dashboard.
   * **Track B (MLOps Portfolio):** Automated CI/CD pipelines, strict run metadata validation, containerised microservices, and end-to-end artifact lineage.
 * **Team Name:** Team Aegis
-* **Repository Identifier:** `Aegis`
+* **Repository Identifier:** `Aegis` (Version v1.1)
 
 ---
 
@@ -197,18 +198,19 @@ Aegis automatically computes an auditable Reliability State:
 
 ## 9. Counterfactual What-If Sandbox & Clinical Simulator
 
-Clinicians can simulate dietary alterations and behavioral interventions before meals are consumed. To maintain scientific honesty, Aegis strictly segregates evidence into two origin tiers:
+Clinicians can simulate dietary alterations, pharmacological interventions, and behavioral actions before meals are consumed. To maintain scientific honesty, Aegis strictly segregates evidence into two origin tiers:
 
 ```
 [What-If Simulation Engine]
-          ├── Model-Driven Modifiers (Dual-Gamma Absorption Network)
-          │     ├── Carbohydrate Alterations (±20%, ±50%)
-          │     ├── Fat / Protein Ratio Adjustments (Delayed gastric emptying)
+          ├── Model-Driven Modifiers (Dual-Gamma Absorption Network & Pharmacology)
+          │     ├── Carbohydrate & Macronutrient Scaling (±20%, ±50%)
+          │     ├── Pharmacological Insulin Modeling (Rapid-acting bolus gamma absorption + basal drift)
+          │     ├── Portion Estimation Uncertainty Ribbons (±10% to ±50% conformal envelopes)
           │     └── Regional Preset Substitutions (IFCT 2017)
           │
-          └── Assumption-Driven Modifiers (Literature Multipliers)
-                ├── Food Sequencing: Fiber/Protein consumed 10m before carbs (-15% peak)
-                └── Post-Meal Walk: 15-min moderate exertion 30m postprandial (-20% peak)
+          └── Assumption-Driven Modifiers (Literature Kinetics)
+                ├── Food Sequencing: Fiber/Protein consumed before carbs (GLP-1 delayed gastric emptying)
+                └── Post-Meal Walk: Dynamic non-insulin-mediated GLUT4 muscular glucose clearance
 ```
 
 Both curves are rendered simultaneously on the dashboard with distinct visual styling and explicit origin chips.
@@ -223,26 +225,37 @@ Aegis is engineered for 100% offline reproducibility without external cloud depe
 Launches the SQLite database, seeds demonstration patient twins, and opens the clinician dashboard in your default browser:
 ```bash
 # Clone the repository
-git clone https://github.com/<TeamName>_<CollegeName>/Aegis.git
+git clone https://github.com/Saumojit30/Aegis.git
 cd Aegis
 
 # Run with uv (or standard python in venv)
 uv run python scripts/run_demo.py
 ```
-* **Clinician Dashboard:** `http://localhost:8000/dashboard`
-* **API Documentation:** `http://localhost:8000/docs`
+* **Clinician Dashboard:** `http://localhost:8080/dashboard` (or `http://localhost:8000/dashboard`)
+* **API Documentation:** `http://localhost:8080/docs`
 
-### 10.2 Verification & Test Suite Execution
+### 10.2 Real-World Model Verification & Clinical Audit
+Execute an end-to-end mathematical and clinical validation of the trained Candidate S model against the 54 held-out meal episodes from the PhysioNet CGMacros cohort:
+```bash
+# Run complete validation benchmark (MAE, RMSE, Clarke EGA, Conformal Coverage)
+uv run python scripts/verify_model.py
+
+# Inspect a single patient episode step-by-step against ground-truth CGM sensor readings
+uv run python scripts/verify_model.py --sample 0
+uv run python scripts/verify_model.py --patient P020
+```
+
+### 10.3 Automated Test Suite Execution
 Execute the comprehensive automated test suite and linting audit:
 ```bash
-# Run 67 unit and integration tests
-uv run pytest tests/ -v
+# Run 95 unit and integration tests across 17 test modules
+uv run pytest tests/ -q
 
 # Run ruff code quality and style checks
 uv run ruff check aegis/ services/ tests/ scripts/
 ```
 
-### 10.3 Multi-Container Docker Orchestration
+### 10.4 Multi-Container Docker Orchestration
 Run the decoupled microservice architecture (FastAPI backend + inference server):
 ```bash
 docker compose up --build
@@ -270,20 +283,24 @@ Aegis/
 │   ├── data/                       # Acquisition, 5-min resampling, synthetic EHR
 │   ├── features/                   # Static/dynamic extractors & missingness masks
 │   ├── models/                     # Candidate S, Candidate U, baselines B0-B4
+│   │   └── pharmacology.py         # Closed-form rapid-acting bolus/basal insulin PK
 │   ├── uncertainty/                # Split-conformal calibration & reliability engine
 │   └── degradation/                # Stress scenarios D0-D7
 ├── artifacts/bundle/               # Exported runtime bundle (weights, scalers, conformal table)
 ├── configs/                        # System settings, presets, conformal tables
 ├── docs/                           # Architecture, slides, demo script, challenge specs
 ├── reports/                        # Audited reports (model_decision, ablations, claims.csv)
-├── scripts/                        # Demo runner, data download, evaluation scripts
+├── scripts/                        # Demo runner, pipeline builder, verify_model audit CLI
+│   ├── run_demo.py                 # Interactive dashboard server
+│   ├── run_pipeline.py             # Data preprocessing and split generation
+│   └── verify_model.py             # Turnkey clinical benchmark audit suite
 ├── services/
 │   ├── backend/                    # FastAPI server, replay engine, DB models, static UI
 │   ├── frontend/                   # Decoupled Next.js 14 clinician dashboard
 │   └── inference/                  # Decoupled HTTP inference microservice
-├── tests/                          # 67 comprehensive unit & integration tests
+├── tests/                          # 95 comprehensive unit & integration tests (17 modules)
 ├── docker-compose.yml              # Container orchestration
-├── pyproject.toml                  # Project packaging and dependencies
+├── pyproject.toml                  # Project packaging and dependencies (v1.1)
 ├── LICENSE                         # Apache-2.0 License
 ├── LICENSE-DATA                    # CC BY-NC-SA 4.0 Data License
 └── ATTRIBUTION.md                  # Comprehensive citations & data provenance
@@ -295,7 +312,7 @@ Aegis/
 
 1. **Cohort Demographics:** The primary continuous wearable dataset (CGMacros) consists of 14 participants with Type 2 Diabetes residing in the San Francisco Bay Area. Dietary and metabolic patterns may not fully generalize across diverse global populations without local re-calibration.
 2. **Synthetic Data Boundaries:** While clinical labs and EHR co-morbidities strictly follow ADA 2024 distributions, they are synthetic artifacts designed to validate multimodal software architectures, not real patient health records.
-3. **No Direct Pharmacological Titration:** The model forecasts glucose response to meals and physical activity; it does not account for acute exogenous insulin injections or complex sulfonylurea dynamics.
+3. **Non-Titration Clinical Guardrail:** Aegis supports closed-form simulation of rapid-acting bolus (Lispro/Aspart) gamma pharmacokinetics and basal drift for physiological counterfactuals, but it strictly enforces non-prescriptive operation: it never titrates, recommends, or automates insulin dosing decisions.
 4. **Research Prototype Notice:** Aegis is developed to explore explainable AI, inductive bias, and calibrated uncertainty. It is strictly non-clinical software.
 
 ---
