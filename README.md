@@ -4,6 +4,8 @@
 ### Calibrated Type 2 Diabetes Physiological Digital Twin & Clinical Decision Simulator
 
 [![Version](https://img.shields.io/badge/version-v1.1.0-2563EB?style=for-the-badge&logo=semver&logoColor=white)](pyproject.toml)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Vercel_Dashboard-black?style=for-the-badge&logo=vercel&logoColor=white)](https://aegis-navy-one.vercel.app/)
+[![API Docs](https://img.shields.io/badge/API_Docs-Railway_FastAPI-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://aegis-twin-api.up.railway.app/docs)
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.5+-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -17,7 +19,12 @@
   <b>A production-grade, offline-first clinical AI platform forecasting 180-minute postprandial glycemic trajectories with biologically bounded neural kinetics, closed-form pharmacokinetics, few-shot personalization, and finite-sample distribution-free uncertainty guarantees.</b>
 </p>
 
-[Quick Start](#10-quick-start--reproducibility-guide) • [Clinician Cockpit](#9-counterfactual-what-if-sandbox--clinical-simulator) • [Physiological Engine](#7-the-physiological-breakthrough-candidate-s) • [Few-Shot Personalisation](#73-few-shot-personalisation--cold-start-k-curve) • [Conformal Safety](#8-split-conformal-uncertainty--degradation-matrix) • [Verification Suite](#102-real-world-model-verification--clinical-audit) • [System Architecture](#5-system-architecture) • [Citations](#15-references--citations)
+<p align="center">
+  <a href="https://aegis-navy-one.vercel.app/"><b>🌐 Live Clinician Dashboard (Vercel)</b></a> &nbsp;•&nbsp;
+  <a href="https://aegis-twin-api.up.railway.app/docs"><b>⚡ Interactive API Swagger (Railway)</b></a>
+</p>
+
+[Live Demo](https://aegis-navy-one.vercel.app/) • [API Docs](https://aegis-twin-api.up.railway.app/docs) • [Quick Start](#10-quick-start--reproducibility-guide) • [Clinician Cockpit](#9-counterfactual-what-if-sandbox--clinical-simulator) • [Physiological Engine](#7-the-physiological-breakthrough-candidate-s) • [Few-Shot Personalisation](#73-few-shot-personalisation--cold-start-k-curve) • [Conformal Safety](#8-split-conformal-uncertainty--degradation-matrix) • [Verification Suite](#102-real-world-model-verification--clinical-audit) • [System Architecture](#5-system-architecture) • [Citations](#15-references--citations)
 
 ---
 
@@ -55,10 +62,11 @@
   - [8.3 Auditable Reliability Rules Engine](#83-auditable-reliability-rules-engine)
 - [9. Counterfactual What-If Sandbox & Clinical Simulator](#9-counterfactual-what-if-sandbox--clinical-simulator)
 - [10. Quick Start & Reproducibility Guide](#10-quick-start--reproducibility-guide)
-  - [10.1 One-Command Offline Demo Runner](#101-one-command-offline-demo-runner)
-  - [10.2 Real-World Model Verification & Clinical Audit](#102-real-world-model-verification--clinical-audit)
-  - [10.3 Automated Test Suite Execution](#103-automated-test-suite-execution)
-  - [10.4 Multi-Container Docker Orchestration](#104-multi-container-docker-orchestration)
+  - [10.1 Live Production Deployments](#101-live-production-deployments)
+  - [10.2 One-Command Offline Demo Runner](#102-one-command-offline-demo-runner)
+  - [10.3 Real-World Model Verification & Clinical Audit](#103-real-world-model-verification--clinical-audit)
+  - [10.4 Automated Test Suite Execution](#104-automated-test-suite-execution)
+  - [10.5 Multi-Container Docker Orchestration](#105-multi-container-docker-orchestration)
 - [11. Technology Stack](#11-technology-stack)
 - [12. REST API & Data Contracts Reference](#12-rest-api--data-contracts-reference)
 - [13. Repository Structure](#13-repository-structure)
@@ -363,14 +371,23 @@ Both curves are rendered simultaneously on the dashboard with distinct visual st
 
 ## 10. Quick Start & Reproducibility Guide
 
-Aegis is engineered for 100% offline reproducibility without external cloud dependencies.
+Aegis is deployed live in production and also engineered for 100% offline reproducibility.
 
-### Prerequisites
+### 10.1 Live Production Deployments
+
+Access the cloud-hosted digital twin services instantly:
+
+| Component | Platform | Live URL | Description |
+|---|---|---|---|
+| **Clinician Replay Dashboard** | **Vercel** | [https://aegis-navy-one.vercel.app/](https://aegis-navy-one.vercel.app/) | Interactive 180-min trajectory cockpit, What-If simulator, and patient twin viewer. |
+| **Backend REST & WS API** | **Railway** | [https://aegis-twin-api.up.railway.app/docs](https://aegis-twin-api.up.railway.app/docs) | Containerized FastAPI inference provider, Swagger documentation, and telemetry stream. |
+
+### Prerequisites (For Local Execution)
 * Python 3.10, 3.11, or 3.12
 * [uv](https://github.com/astral-sh/uv) (strongly recommended) or standard `pip`
 * Git
 
-### 10.1 One-Command Offline Demo Runner
+### 10.2 One-Command Offline Demo Runner
 
 Clone the repository, initialize the database with synthetic clinical cohorts, and launch the Clinician Decision Cockpit:
 
@@ -394,7 +411,7 @@ uv run python scripts/run_demo.py
 
 ---
 
-### 10.2 Real-World Model Verification & Clinical Audit
+### 10.3 Real-World Model Verification & Clinical Audit
 
 Execute an end-to-end mathematical and clinical validation of the trained Candidate S model against the 54 held-out meal episodes from the PhysioNet CGMacros cohort:
 
@@ -431,7 +448,7 @@ AUDIT VERDICT: ALL CLINICAL CRITERIA MET (Candidate S Certified)
 
 ---
 
-### 10.3 Automated Test Suite Execution
+### 10.4 Automated Test Suite Execution
 
 Aegis includes 95 automated unit, integration, and clinical safety regression tests:
 
@@ -445,7 +462,7 @@ uv run ruff check aegis/ services/ tests/ scripts/
 
 ---
 
-### 10.4 Multi-Container Docker Orchestration
+### 10.5 Multi-Container Docker Orchestration
 
 Run the decoupled microservice architecture (FastAPI backend + inference server):
 
