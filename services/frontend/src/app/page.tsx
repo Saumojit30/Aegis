@@ -2003,6 +2003,8 @@ export default function ClinicianDashboard() {
             </div>
           </div>
         </div>
+      )}
+
       {/* EDIT TWIN BIOMARKERS MODAL */}
       {isBiomarkersModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
